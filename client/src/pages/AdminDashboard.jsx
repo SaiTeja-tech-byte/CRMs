@@ -13,6 +13,7 @@ import { createAdminUser } from '../services/adminService';
 import { adminGetAllEvents, adminAssignEvent, adminDeleteEvent } from '../services/eventService';
 import { onSocketEvent, connectSocket, disconnectSocket } from '../services/socketService';
 import { describeApiError } from '../services/errorHelper';
+import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import AdminOrganizationChart from './AdminOrganizationChart';
 // =========================
 // AdminHome
@@ -2419,6 +2420,126 @@ const AdminDocuments = () => {
 // =========================
 // AdminNotifications
 // =========================
+// =========================
+// AdminLeaveRequests — reviewing/approving the requests employees send from
+// the "Request Leave" button on their dashboard. Shown at the top of the
+// Notifications tab since it's the "things needing your attention" page.
+// =========================
+const AdminLeaveRequests = () => {
+  const [leaveRequests, setLeaveRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actioningId, setActioningId] = useState(null);
+  const [filter, setFilter] = useState("Pending");
+
+  const load = () => {
+    getAllLeaveRequests()
+      .then((data) => setLeaveRequests(data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    connectSocket();
+    const unsub = onSocketEvent("leave:new", load);
+    return unsub;
+  }, []);
+
+  const handleAction = async (id, status) => {
+    setActioningId(id);
+    try {
+      await updateLeaveRequestStatus(id, status);
+      load();
+    } catch (err) {
+      alert(describeApiError ? describeApiError(err) : "Couldn't update this request — please try again.");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const visible = leaveRequests.filter((r) => filter === "All" || r.status === filter);
+  const pendingCount = leaveRequests.filter((r) => r.status === "Pending").length;
+
+  return (
+    <div className="card bg-white mb-2" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+      <div className="card-body p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 className="fw-semibold mb-0 text-dark" style={{ fontSize: "16px" }}>
+              Leave Requests {pendingCount > 0 && <span className="badge bg-danger ms-1">{pendingCount} pending</span>}
+            </h5>
+            <p className="text-secondary mb-0" style={{ fontSize: "13px" }}>Requests employees have sent for approval.</p>
+          </div>
+          <select className="form-select form-select-sm w-auto" value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>Loading leave requests...</div>
+        ) : visible.length === 0 ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>No {filter !== "All" ? filter.toLowerCase() : ""} leave requests.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table mb-0" style={{ fontSize: "13.5px" }}>
+              <thead>
+                <tr>
+                  <th className="text-secondary fw-semibold border-bottom">Employee</th>
+                  <th className="text-secondary fw-semibold border-bottom">Type</th>
+                  <th className="text-secondary fw-semibold border-bottom">Dates</th>
+                  <th className="text-secondary fw-semibold border-bottom">Reason</th>
+                  <th className="text-secondary fw-semibold border-bottom">Status</th>
+                  <th className="text-secondary fw-semibold border-bottom text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((r) => (
+                  <tr key={r.id}>
+                    <td className="fw-medium text-dark">{r.employeeName}</td>
+                    <td>{r.type}</td>
+                    <td>{r.startDate} → {r.endDate} <span className="text-secondary">({r.days}d)</span></td>
+                    <td className="text-secondary">{r.reason || "—"}</td>
+                    <td>
+                      <span className={`badge ${r.status === "Approved" ? "bg-success" : r.status === "Rejected" ? "bg-danger" : "bg-warning text-dark"}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="text-end">
+                      {r.status === "Pending" ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-success me-2"
+                            disabled={actioningId === r.id}
+                            onClick={() => handleAction(r.id, "Approved")}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            disabled={actioningId === r.id}
+                            onClick={() => handleAction(r.id, "Rejected")}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-secondary">{r.reviewedByName ? `by ${r.reviewedByName}` : "—"}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminNotifications = () => {
   const { notifications, setNotifications } = useCRMContext();
   const [searchTerm, setSearchTerm] = useState("");
@@ -2487,7 +2608,9 @@ const AdminNotifications = () => {
 
   return (
     <div className="admin-notifications-container" style={{ display: "flex", flexDirection: "column", gap: "24px", color: "#333" }}>
-      
+
+      <AdminLeaveRequests />
+
       {/* Toast */}
       {showToast && (
         <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
