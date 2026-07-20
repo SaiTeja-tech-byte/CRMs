@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import keshavAvatar from "../assets/images/keshav_avatar.jpg";
 import { getMyTasks, createMyTask, updateMyTask, deleteMyTask } from "../services/taskService";
 import { getMyEvents, createMyEvent, updateMyEvent, deleteMyEvent } from "../services/eventService";
@@ -165,6 +166,7 @@ const SalesChartComponent = () => {
 // SIDEBAR MENU
 // ----------------------------------------------------
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
+  const navigate = useNavigate();
   const menuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { key: "me", label: "Me", icon: "bi-person" },
@@ -172,11 +174,23 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "team", label: "Team", icon: "bi-people" },
+    // Chat is its own route (/chat), not a tab inside this file's activeMenu
+    // switch, so it needs `to` instead of setActiveMenu.
+    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Settings", icon: "bi-gear" },
     { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
   ];
+
+  const handleItemClick = (item) => {
+    setMobileActive(false);
+    if (item.to) {
+      navigate(item.to);
+    } else {
+      setActiveMenu(item.key);
+    }
+  };
 
   return (
     <aside className="crm-sidebar-menu">
@@ -185,7 +199,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
           <li className={activeMenu === item.key ? "active" : ""} key={item.key}>
             <button
               title={item.label}
-              onClick={() => { setActiveMenu(item.key); setMobileActive(false); }}
+              onClick={() => handleItemClick(item)}
             >
               <i className={`bi ${item.icon}`}></i>
               <span className="sidebar-nav-label">{item.label}</span>
