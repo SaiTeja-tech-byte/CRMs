@@ -2,10 +2,13 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import keshavAvatar from "../assets/images/keshav_avatar.jpg";
 import useChatUnreadCount from "../hooks/useChatUnreadCount";
+import useNotificationUnreadCount from "../hooks/useNotificationUnreadCount";
 import { getMyTasks, createMyTask, updateMyTask, deleteMyTask } from "../services/taskService";
 import { getMyEvents, createMyEvent, updateMyEvent, deleteMyEvent } from "../services/eventService";
 import { getTeam } from "../services/teamService";
 import { onSocketEvent, connectSocket, disconnectSocket } from "../services/socketService";
+import { getNotifications as fetchServerNotifications, markNotificationRead as markServerNotificationRead, markAllNotificationsRead as markAllServerNotificationsRead } from "../services/notificationService";
+import { getMyLeaveRequests, getMyLeaveBalance, createLeaveRequest as submitLeaveRequest } from "../services/leaveService";
 import OrganizationChart from "./OrganizationChart";
 
 // Was hardcoded to TODAY_STR throughout this file, which drifts stale
@@ -169,6 +172,7 @@ const SalesChartComponent = () => {
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
   const navigate = useNavigate();
   const chatUnread = useChatUnreadCount();
+  const notifUnread = useNotificationUnreadCount();
   const menuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { key: "me", label: "Me", icon: "bi-person" },
@@ -212,6 +216,14 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
                   style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
                 >
                   {chatUnread > 99 ? "99+" : chatUnread}
+                </span>
+              )}
+              {item.key === "notifications" && notifUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {notifUnread > 99 ? "99+" : notifUnread}
                 </span>
               )}
             </button>
@@ -4524,12 +4536,24 @@ const Dashboard = () => {
     } catch (e) { console.error("Error syncing documents:", e); }
   };
 
+  const syncLeaveData = async () => {
+    try {
+      const [requests, balance] = await Promise.all([getMyLeaveRequests(), getMyLeaveBalance()]);
+      setLeaveData((prev) => ({ ...(prev || {}), requests: requests || [] }));
+      setLeaveBalance(balance || null);
+    } catch (e) { console.error("Error syncing leave data:", e); }
+  };
+
   React.useEffect(() => {
     syncDashboardData();
     // Poll every 10s as a fallback (covers reconnect gaps); the socket
     // listeners below make updates feel instant the rest of the time.
     const interval = setInterval(syncDashboardData, 10000);
     return () => clearInterval(interval);
+  }, []);
+
+  React.useEffect(() => {
+    syncLeaveData();
   }, []);
 
   // Real-time push: when an admin assigns a task/event, posts news, or
@@ -4554,7 +4578,9 @@ const Dashboard = () => {
         if (payload?.text) {
           triggerNotification("New Notification", payload.text, "Medium", "System");
         }
+        syncServerNotifications();
       }),
+      onSocketEvent("leave:updated", () => { syncServerNotifications(); syncLeaveData(); }),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
   }, []);
@@ -4724,6 +4750,43 @@ const Dashboard = () => {
     return [];
   });
 
+  // Converts a backend Notification row (from admins assigning tasks/events,
+  // approving/rejecting leave, etc.) into this page's local notification
+  // shape, tagged with serverId so read-state can be synced back to the API.
+  const serverNotifToLocal = (n) => ({
+    id: `server-${n.id}`,
+    serverId: n.id,
+    title: "New Notification",
+    description: n.text,
+    time: new Date(n.createdAt).toLocaleString(),
+    date: (n.createdAt || "").slice(0, 10),
+    unread: !n.read,
+    archived: false,
+    priority: "Medium",
+    type: "System",
+  });
+
+  // Pulls real notifications sent by the backend (task/event assignments,
+  // leave approvals, etc.) into the list shown on the Notifications tab —
+  // this is what makes the sidebar badge count mean something concrete
+  // instead of just tracking locally-triggered toasts.
+  const syncServerNotifications = () => {
+    fetchServerNotifications()
+      .then((serverList) => {
+        setNotifications((prev) => {
+          const local = (prev || []).filter((n) => !n.serverId);
+          const merged = [...(serverList || []).map(serverNotifToLocal), ...local];
+          localStorage.setItem("crm_notifications_v2", JSON.stringify(merged));
+          return merged;
+        });
+      })
+      .catch(() => {});
+  };
+
+  React.useEffect(() => {
+    syncServerNotifications();
+  }, []);
+
   const triggerNotification = (title, desc, priority = "Medium", type = "System Update") => {
     const newNotif = {
       id: Date.now().toString(),
@@ -4747,18 +4810,75 @@ const Dashboard = () => {
     const updated = (notifications || []).map(n => ({ ...n, unread: false }));
     setNotifications(updated);
     localStorage.setItem("crm_notifications_v2", JSON.stringify(updated));
+    markAllServerNotificationsRead()
+      .then(() => window.dispatchEvent(new Event("crm_notifications_updated")))
+      .catch(() => {});
   };
 
   const handleUpdateNotification = (updatedNotif) => {
     const updated = (notifications || []).map(n => n.id === updatedNotif.id ? updatedNotif : n);
     setNotifications(updated);
     localStorage.setItem("crm_notifications_v2", JSON.stringify(updated));
+    // Sync read-state back to the backend for server-sourced notifications
+    // so the sidebar badge (which counts from the backend) clears in step.
+    if (updatedNotif.serverId && updatedNotif.unread === false) {
+      markServerNotificationRead(updatedNotif.serverId)
+        .then(() => window.dispatchEvent(new Event("crm_notifications_updated")))
+        .catch(() => {});
+    }
   };
 
   const handleDeleteNotification = (notifId) => {
     const updated = (notifications || []).filter(n => n.id !== notifId);
     setNotifications(updated);
     localStorage.setItem("crm_notifications_v2", JSON.stringify(updated));
+  };
+
+  // "Request Leave" modal — submits straight to the admin via POST /api/leave
+  // (adminController-style: creates a row + notifies every admin in real time).
+  const emptyLeaveForm = { type: "Casual Leave", startDate: "", endDate: "", reason: "" };
+  const [leaveModalOpen, setLeaveModalOpen] = useState(false);
+  const [leaveForm, setLeaveForm] = useState(emptyLeaveForm);
+  const [leaveSubmitting, setLeaveSubmitting] = useState(false);
+  const [leaveFormError, setLeaveFormError] = useState("");
+
+  const openLeaveModal = () => {
+    setLeaveForm(emptyLeaveForm);
+    setLeaveFormError("");
+    setLeaveModalOpen(true);
+  };
+
+  const handleLeaveFormChange = (e) => {
+    setLeaveForm((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleSubmitLeaveRequest = async (e) => {
+    e.preventDefault();
+    if (!leaveForm.startDate || !leaveForm.endDate) {
+      setLeaveFormError("Start and end date are required.");
+      return;
+    }
+    if (leaveForm.endDate < leaveForm.startDate) {
+      setLeaveFormError("End date can't be before the start date.");
+      return;
+    }
+    setLeaveSubmitting(true);
+    setLeaveFormError("");
+    try {
+      await submitLeaveRequest(leaveForm);
+      setLeaveModalOpen(false);
+      syncLeaveData();
+      triggerNotification(
+        "Leave Request Sent",
+        `Your ${leaveForm.type} request has been sent to admin for approval.`,
+        "Medium",
+        "Leave Request"
+      );
+    } catch (err) {
+      setLeaveFormError(err.response?.data?.message || "Couldn't submit your request — please try again.");
+    } finally {
+      setLeaveSubmitting(false);
+    }
   };
 
   // Single Source of Truth Documents State (starts empty by default for production CRM style)
@@ -7106,7 +7226,7 @@ body {
                           <span className="ew-holiday-stat-val">{leaveBalance?.earnedLeave ?? 0}</span>
                         </div>
                       </div>
-                      <button className="ew-btn-primary" onClick={() => alert("Leave Request modal will open here.")}>
+                      <button className="ew-btn-primary" onClick={openLeaveModal}>
                         Request Leave
                       </button>
                     </div>
@@ -7128,6 +7248,80 @@ body {
 
                 </div>
               </div>
+
+              {/* MODAL: Request Leave */}
+              {leaveModalOpen && (
+                <div style={{
+                  position: "fixed",
+                  top: 0,
+                  right: 0,
+                  bottom: 0,
+                  left: 0,
+                  background: "rgba(15, 23, 42, 0.45)",
+                  backdropFilter: "blur(2px)",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  zIndex: 1200
+                }}>
+                  <div className="dashboard-card-flat" style={{ width: "420px", maxWidth: "95%" }}>
+                    <div className="card-flat-title-bar">
+                      <h3>Request Leave</h3>
+                      <button
+                        type="button"
+                        className="btn-close"
+                        style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
+                        onClick={() => setLeaveModalOpen(false)}
+                      >
+                        <i className="bi bi-x-lg"></i>
+                      </button>
+                    </div>
+
+                    <form onSubmit={handleSubmitLeaveRequest}>
+                      <div className="modal-form-group mb-3">
+                        <label>Leave Type</label>
+                        <select name="type" value={leaveForm.type} onChange={handleLeaveFormChange}>
+                          <option>Casual Leave</option>
+                          <option>Sick Leave</option>
+                          <option>Earned Leave</option>
+                          <option>Unpaid Leave</option>
+                        </select>
+                      </div>
+                      <div className="d-flex gap-2">
+                        <div className="modal-form-group mb-3" style={{ flex: 1 }}>
+                          <label>Start Date</label>
+                          <input type="date" name="startDate" value={leaveForm.startDate} onChange={handleLeaveFormChange} required />
+                        </div>
+                        <div className="modal-form-group mb-3" style={{ flex: 1 }}>
+                          <label>End Date</label>
+                          <input type="date" name="endDate" value={leaveForm.endDate} onChange={handleLeaveFormChange} required />
+                        </div>
+                      </div>
+                      <div className="modal-form-group mb-3">
+                        <label>Reason</label>
+                        <textarea
+                          name="reason"
+                          rows={3}
+                          value={leaveForm.reason}
+                          onChange={handleLeaveFormChange}
+                          placeholder="Let admin know why you're requesting this leave (optional)"
+                        />
+                      </div>
+
+                      {leaveFormError && <div className="alert alert-danger py-2 small">{leaveFormError}</div>}
+
+                      <div className="d-flex justify-content-end gap-2 mt-4 pt-2 border-top">
+                        <button type="button" className="btn-profile-secondary" onClick={() => setLeaveModalOpen(false)}>
+                          Cancel
+                        </button>
+                        <button type="submit" className="btn-profile-primary" disabled={leaveSubmitting}>
+                          {leaveSubmitting ? "Sending..." : "Send to Admin"}
+                        </button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              )}
             </>
           )}
           {/* VIEW: ME PROFILE TAB */}
