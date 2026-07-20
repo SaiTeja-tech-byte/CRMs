@@ -19,6 +19,12 @@ const Conversation = sequelize.define(
     userAId: { type: DataTypes.UUID, allowNull: false },
     userBId: { type: DataTypes.UUID, allowNull: false },
     lastMessageAt: { type: DataTypes.DATE, allowNull: true },
+    // Simple unread-count approach (no separate message_reads table needed):
+    // bumped for the recipient on every new message, zeroed out for whoever
+    // opens the conversation (GET /api/chat/messages/:id). Powers the Chat
+    // sidebar badge.
+    userAUnread: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
+    userBUnread: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 0 },
   },
   {
     tableName: "conversations",
