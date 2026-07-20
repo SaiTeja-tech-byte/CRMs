@@ -163,6 +163,7 @@ const getConversations = async (req, res) => {
     const enriched = conversations.map((c) => ({
       ...c.toJSON(),
       otherUser: otherMap[c.userAId === userId ? c.userBId : c.userAId] || null,
+      unreadCount: c.userAId === userId ? c.userAUnread : c.userBUnread,
     }));
 
     return res.status(200).json({ success: true, conversations: enriched });
@@ -186,6 +187,24 @@ const getMessages = async (req, res) => {
       limit: 200,
     });
 
+    // Opening the conversation = read. Zero out this user's unread counter.
+    const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
+    if (conversation[unreadField] !== 0) {
+      conversation[unreadField] = 0;
+      await conversation.save();
+    }
+
+    // Mark every message the OTHER person sent (and I haven't seen yet) as
+    // read, then tell them live so their ticks flip from sent -> read.
+    const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+    const [updatedCount] = await ChatMessage.update(
+      { readAt: new Date() },
+      { where: { conversationId: req.params.conversationId, senderId: otherUserId, readAt: null } }
+    );
+    if (updatedCount > 0) {
+      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.conversationId, readerId: req.user.id });
+    }
+
     return res.status(200).json({ success: true, messages });
   } catch (error) {
     console.error("Get messages error:", error);
@@ -193,15 +212,19 @@ const getMessages = async (req, res) => {
   }
 };
 
-// POST /api/chat/messages  body: { conversationId, message }
+// POST /api/chat/messages  body: { conversationId, message, attachmentUrl?, attachmentName?, attachmentType? }
 // REST fallback for sending — the frontend can call this OR emit a socket
 // event; either path ends up persisting + broadcasting the same way.
+// attachmentUrl is a data: URL (base64) — fine at this scale given the 15mb
+// JSON body limit already set in server.js; swap for real object storage
+// (S3/Cloudinary) later if attachment volume grows.
 const sendMessage = async (req, res) => {
   try {
-    const { conversationId, message } = req.body;
+    const { conversationId, message, attachmentUrl, attachmentName, attachmentType } = req.body;
+    const text = (message || "").trim();
 
-    if (!conversationId || !message?.trim()) {
-      return res.status(400).json({ success: false, message: "conversationId and message are required" });
+    if (!conversationId || (!text && !attachmentUrl)) {
+      return res.status(400).json({ success: false, message: "conversationId and either a message or an attachment are required" });
     }
 
     const conversation = await Conversation.findByPk(conversationId);
@@ -212,19 +235,152 @@ const sendMessage = async (req, res) => {
     const chatMessage = await ChatMessage.create({
       conversationId,
       senderId: req.user.id,
-      message: message.trim(),
+      message: text,
+      attachmentUrl: attachmentUrl || null,
+      attachmentName: attachmentName || null,
+      attachmentType: attachmentType || null,
     });
 
     conversation.lastMessageAt = new Date();
+    const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+    const recipientUnreadField = conversation.userAId === recipientId ? "userAUnread" : "userBUnread";
+    conversation[recipientUnreadField] = (conversation[recipientUnreadField] || 0) + 1;
     await conversation.save();
 
-    const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
     emitToUser(recipientId, "chat:message-received", { message: chatMessage, conversationId });
 
     return res.status(201).json({ success: true, chatMessage });
   } catch (error) {
     console.error("Send message error:", error);
     return res.status(500).json({ success: false, message: "Server error sending message" });
+  }
+};
+
+// PATCH /api/chat/conversations/:id/read — used when a conversation is
+// already open and a new message arrives via socket, so it gets marked read
+// immediately instead of waiting for the next GET /messages fetch.
+const markConversationRead = async (req, res) => {
+  try {
+    const conversation = await Conversation.findByPk(req.params.id);
+    if (!conversation || (conversation.userAId !== req.user.id && conversation.userBId !== req.user.id)) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
+    if (conversation[unreadField] !== 0) {
+      conversation[unreadField] = 0;
+      await conversation.save();
+    }
+
+    const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+    const [updatedCount] = await ChatMessage.update(
+      { readAt: new Date() },
+      { where: { conversationId: req.params.id, senderId: otherUserId, readAt: null } }
+    );
+    if (updatedCount > 0) {
+      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.id, readerId: req.user.id });
+    }
+
+    return res.status(200).json({ success: true });
+  } catch (error) {
+    console.error("Mark conversation read error:", error);
+    return res.status(500).json({ success: false, message: "Server error marking conversation read" });
+  }
+};
+
+// PATCH /api/chat/messages/:id  body: { message }
+// Only the original sender can edit their own message, and only while it
+// hasn't been deleted.
+const editMessage = async (req, res) => {
+  try {
+    const text = (req.body.message || "").trim();
+    if (!text) {
+      return res.status(400).json({ success: false, message: "message text is required" });
+    }
+
+    const chatMessage = await ChatMessage.findByPk(req.params.id);
+    if (!chatMessage || chatMessage.deleted) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+    if (chatMessage.senderId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You can only edit your own messages" });
+    }
+
+    chatMessage.message = text;
+    chatMessage.edited = true;
+    await chatMessage.save();
+
+    const conversation = await Conversation.findByPk(chatMessage.conversationId);
+    if (conversation) {
+      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+      emitToUser(recipientId, "chat:message-edited", { message: chatMessage, conversationId: chatMessage.conversationId });
+    }
+
+    return res.status(200).json({ success: true, chatMessage });
+  } catch (error) {
+    console.error("Edit message error:", error);
+    return res.status(500).json({ success: false, message: "Server error editing message" });
+  }
+};
+
+// DELETE /api/chat/messages/:id
+// Soft delete ("This message was deleted") — only the original sender can
+// delete their own message. Clears the text/attachment but keeps the row so
+// the timeline placeholder stays put for both sides.
+const deleteMessage = async (req, res) => {
+  try {
+    const chatMessage = await ChatMessage.findByPk(req.params.id);
+    if (!chatMessage) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+    if (chatMessage.senderId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You can only delete your own messages" });
+    }
+
+    chatMessage.deleted = true;
+    chatMessage.message = "";
+    chatMessage.attachmentUrl = null;
+    chatMessage.attachmentName = null;
+    chatMessage.attachmentType = null;
+    await chatMessage.save();
+
+    const conversation = await Conversation.findByPk(chatMessage.conversationId);
+    if (conversation) {
+      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+      emitToUser(recipientId, "chat:message-deleted", { messageId: chatMessage.id, conversationId: chatMessage.conversationId });
+    }
+
+    return res.status(200).json({ success: true, chatMessage });
+  } catch (error) {
+    console.error("Delete message error:", error);
+    return res.status(500).json({ success: false, message: "Server error deleting message" });
+  }
+};
+
+// GET /api/chat/unread-count — powers the badge next to "Chat" in the sidebar
+const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversations = await Conversation.findAll({
+      where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },
+      attributes: ["id", "userAId", "userBId", "userAUnread", "userBUnread"],
+    });
+    const unreadMessages = conversations.reduce(
+      (sum, c) => sum + (c.userAId === userId ? c.userAUnread : c.userBUnread),
+      0
+    );
+
+    const pendingRequests = await ChatRequest.count({ where: { receiverId: userId, status: "pending" } });
+
+    return res.status(200).json({
+      success: true,
+      unreadMessages,
+      pendingRequests,
+      total: unreadMessages + pendingRequests,
+    });
+  } catch (error) {
+    console.error("Get unread count error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching unread count" });
   }
 };
 
@@ -236,4 +392,8 @@ module.exports = {
   getConversations,
   getMessages,
   sendMessage,
+  markConversationRead,
+  editMessage,
+  deleteMessage,
+  getUnreadCount,
 };
