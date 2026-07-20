@@ -1,8 +1,18 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
-import { Users, Plus, Pencil, Trash2, X, Share2 } from "lucide-react";
+import { Users, Plus, Pencil, Trash2, X, Share2, ImagePlus } from "lucide-react";
 import { getOrgChart, createOrgNode, updateOrgNode, deleteOrgNode } from "../../services/orgChartService";
 import { connectSocket, onSocketEvent } from "../../services/socketService";
 import "./OrgChartTree.css";
+
+// Reads a File into a base64 data URL for storage in avatarUrl — same
+// pattern documentService.fileToDataUrl uses for document uploads.
+const fileToDataUrl = (file) =>
+  new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
 
 // Cycled by depth so each generation of the chart reads as a distinct tier,
 // the way the reference chart colors President / VP / Manager differently.
@@ -43,7 +53,7 @@ const eligibleParents = (allNodes, excludeId) => {
   return allNodes.filter((n) => !blocked.has(n.id));
 };
 
-const emptyForm = { name: "", title: "", department: "", email: "", phone: "" };
+const emptyForm = { name: "", title: "", department: "", email: "", phone: "", avatarUrl: "" };
 
 const OrgChartTree = ({ isAdmin }) => {
   const [tree, setTree] = useState([]);
@@ -122,6 +132,7 @@ const OrgChartTree = ({ isAdmin }) => {
       department: node.department || "",
       email: node.email || "",
       phone: node.phone || "",
+      avatarUrl: node.avatarUrl || "",
     });
     setFormError("");
     setFormOpen(true);
@@ -132,9 +143,36 @@ const OrgChartTree = ({ isAdmin }) => {
     setFormError("");
   };
 
+  const [photoUploading, setPhotoUploading] = useState(false);
+
   const handleFormChange = (e) => {
     setFormValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
+
+  const handlePhotoChange = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith("image/")) {
+      setFormError("Please choose an image file.");
+      return;
+    }
+    if (file.size > 3 * 1024 * 1024) {
+      setFormError("Photo is too large — please use one under 3MB.");
+      return;
+    }
+    setPhotoUploading(true);
+    setFormError("");
+    try {
+      const dataUrl = await fileToDataUrl(file);
+      setFormValues((prev) => ({ ...prev, avatarUrl: dataUrl }));
+    } catch (err) {
+      setFormError("Couldn't read that photo — please try another.");
+    } finally {
+      setPhotoUploading(false);
+    }
+  };
+
+  const removePhoto = () => setFormValues((prev) => ({ ...prev, avatarUrl: "" }));
 
   const handleFormSubmit = async (e) => {
     e.preventDefault();
@@ -189,7 +227,13 @@ const OrgChartTree = ({ isAdmin }) => {
               </button>
             </div>
           )}
-          <div className="org-node-avatar">{initials(node.name)}</div>
+          <div className="org-node-avatar">
+            {node.avatarUrl ? (
+              <img src={node.avatarUrl} alt={node.name} className="org-node-avatar-img" />
+            ) : (
+              initials(node.name)
+            )}
+          </div>
           <div className="org-node-name">{node.name}</div>
           {node.title && <div className="org-node-title">{node.title}</div>}
           <div className="org-node-meta">
@@ -354,6 +398,31 @@ const OrgChartTree = ({ isAdmin }) => {
             </div>
 
             <form onSubmit={handleFormSubmit}>
+              <div className="mb-3 d-flex align-items-center gap-3">
+                <div
+                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
+                  style={{ width: "56px", height: "56px", background: "#f1f5f9", overflow: "hidden", fontWeight: 700, color: "#64748b" }}
+                >
+                  {formValues.avatarUrl ? (
+                    <img src={formValues.avatarUrl} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                  ) : (
+                    initials(formValues.name)
+                  )}
+                </div>
+                <div>
+                  <label className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mb-0" style={{ cursor: "pointer" }}>
+                    <ImagePlus size={14} />
+                    {photoUploading ? "Uploading..." : "Upload Photo"}
+                    <input type="file" accept="image/*" onChange={handlePhotoChange} disabled={photoUploading} hidden />
+                  </label>
+                  {formValues.avatarUrl && (
+                    <button type="button" className="btn btn-sm btn-link text-danger p-0 ms-2" onClick={removePhoto}>
+                      Remove
+                    </button>
+                  )}
+                </div>
+              </div>
+
               <div className="mb-2">
                 <label className="form-label small text-muted mb-1">Name *</label>
                 <input type="text" name="name" className="form-control" value={formValues.name} onChange={handleFormChange} autoFocus />
