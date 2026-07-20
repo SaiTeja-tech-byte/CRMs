@@ -13,7 +13,7 @@ import { createAdminUser } from '../services/adminService';
 import { adminGetAllEvents, adminAssignEvent, adminDeleteEvent } from '../services/eventService';
 import { onSocketEvent, connectSocket, disconnectSocket } from '../services/socketService';
 import { describeApiError } from '../services/errorHelper';
-
+import AdminOrganizationChart from './AdminOrganizationChart';
 // =========================
 // AdminHome
 // =========================
@@ -3224,6 +3224,9 @@ const AdminDashboard = () => {
 
       case "settings":
         return <AdminSettings />;
+
+      case "orgchart":
+        return <AdminOrganizationChart />;
 
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;
