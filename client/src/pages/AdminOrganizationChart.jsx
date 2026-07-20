@@ -24,14 +24,44 @@ const AdminOrganizationChart = () => {
         </div>
       </div>
 
-      {/* MAIN CONTENT AREA */}
-      <div className="card shadow-sm" style={{ border: "1px solid #e2e8f0", borderRadius: "10px", minHeight: "500px", backgroundColor: "#fff" }}>
-        <div className="card-body d-flex flex-column align-items-center justify-content-center text-center h-100" style={{ minHeight: "500px" }}>
-          <i className="bi bi-diagram-3 text-muted mb-3" style={{ fontSize: "48px" }}></i>
-          <h4 className="fw-bold mb-2">Organization Chart Not Available</h4>
-          <p className="text-muted" style={{ maxWidth: "400px" }}>
-            The organizational hierarchy will appear here once it has been configured.
-          </p>
+      <div className="d-flex gap-3" style={{ alignItems: "stretch", minHeight: "500px" }}>
+        {/* LEFT FILTER PANEL */}
+        <div className="card shadow-sm" style={{ width: "260px", minWidth: "260px", border: "1px solid #e2e8f0", borderRadius: "10px", backgroundColor: "#fff" }}>
+          <div className="card-body p-3">
+            <div className="mb-3">
+              <label className="form-label text-muted fw-semibold mb-1" style={{ fontSize: "12px" }}>Search by Name</label>
+              <input type="text" className="form-control" placeholder="Type a name..." style={{ fontSize: "13px", height: "34px" }} />
+            </div>
+            <div className="mb-3">
+              <label className="form-label text-muted fw-semibold mb-1" style={{ fontSize: "12px" }}>Location</label>
+              <select className="form-select" style={{ fontSize: "13px", height: "34px", padding: "4px 32px 4px 12px" }}>
+                <option value="All">All</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label text-muted fw-semibold mb-1" style={{ fontSize: "12px" }}>Department</label>
+              <select className="form-select" style={{ fontSize: "13px", height: "34px", padding: "4px 32px 4px 12px" }}>
+                <option value="All">All</option>
+              </select>
+            </div>
+            <div className="mb-3">
+              <label className="form-label text-muted fw-semibold mb-1" style={{ fontSize: "12px" }}>Job Role</label>
+              <select className="form-select" style={{ fontSize: "13px", height: "34px", padding: "4px 32px 4px 12px" }}>
+                <option value="All">All</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* MAIN CONTENT AREA */}
+        <div className="card shadow-sm flex-grow-1" style={{ border: "1px solid #e2e8f0", borderRadius: "10px", backgroundColor: "#fff" }}>
+          <div className="card-body d-flex flex-column align-items-center justify-content-center text-center h-100" style={{ minHeight: "500px" }}>
+            <i className="bi bi-diagram-3 text-muted mb-3" style={{ fontSize: "48px" }}></i>
+            <h4 className="fw-bold mb-2">Organization Chart Not Available</h4>
+            <p className="text-muted" style={{ maxWidth: "400px" }}>
+              The organizational hierarchy will appear here once it has been configured.
+            </p>
+          </div>
         </div>
       </div>
     </div>
