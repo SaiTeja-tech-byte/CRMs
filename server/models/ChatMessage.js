@@ -15,7 +15,11 @@ const ChatMessage = sequelize.define(
     },
     conversationId: { type: DataTypes.UUID, allowNull: false },
     senderId: { type: DataTypes.UUID, allowNull: false },
-    message: { type: DataTypes.TEXT, allowNull: false },
+    // message can be blank if the send is attachment-only (a photo/file with no caption)
+    message: { type: DataTypes.TEXT, allowNull: true, defaultValue: "" },
+    attachmentUrl: { type: DataTypes.TEXT, allowNull: true },
+    attachmentName: { type: DataTypes.STRING, allowNull: true },
+    attachmentType: { type: DataTypes.STRING, allowNull: true }, // MIME type, e.g. "image/png", "application/pdf"
     edited: { type: DataTypes.BOOLEAN, defaultValue: false },
     deleted: { type: DataTypes.BOOLEAN, defaultValue: false },
   },
