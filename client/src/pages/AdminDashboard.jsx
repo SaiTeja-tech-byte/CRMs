@@ -51,12 +51,12 @@ const AdminHome = () => {
     designation: "System Administrator",
     department: "Management",
     employmentStatus: "Active",
-    employeeId: "ADMIN-001",
-    company: "SHNOOR International LLC",
-    officeLocation: "Headquarters",
-    officialEmail: "admin@shnoor.com",
-    phoneNumber: "+1 800 123 4567",
-    joiningDate: "2024-01-01"
+    employeeId: "",
+    company: "",
+    officeLocation: "",
+    officialEmail: "",
+    phoneNumber: "",
+    joiningDate: ""
   };
 
   const totalEmployees = stats?.totalEmployees || 0;
@@ -1397,8 +1397,8 @@ const AdminTeam = () => {
       )}
 
       <div>
-        <h2 className="fw-bold mb-1" style={{ color: "var(--crm-dark)" }}>Team Management</h2>
-        <p className="text-muted">
+        <h3 className="fw-bold mb-1" style={{ color: "var(--crm-dark)", fontSize: "22px" }}>Team Management</h3>
+        <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
           Employees appear here automatically once they sign up or sign in — edit their department, role, or status below.
         </p>
       </div>
@@ -1406,7 +1406,7 @@ const AdminTeam = () => {
       {error && <div className="alert alert-danger">{error}</div>}
 
       {/* SUMMARY CARDS */}
-      <div className="row g-3">
+      <div className="row g-2">
         {[
           { title: "Total Team Members", value: teamMembers.length, icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
           { title: "Departments", value: uniqueDepartments.length, icon: "bi-diagram-3", color: "#8b5cf6", bg: "#ede9fe" },
@@ -1414,14 +1414,14 @@ const AdminTeam = () => {
           { title: "Active Employees", value: activeEmployees, icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
         ].map((stat, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-3">
-            <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "14px" }}>
-              <div className="card-body p-3 d-flex align-items-center gap-3">
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: stat.bg, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
+            <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
+              <div className="card-body p-2 d-flex align-items-center gap-2">
+                <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: stat.bg, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>
                   <i className={stat.icon}></i>
                 </div>
                 <div>
-                  <h6 className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.title}</h6>
-                  <h3 className="mb-0 fw-bold" style={{ color: "var(--crm-dark)" }}>{loading ? "—" : stat.value}</h3>
+                  <h6 className="text-muted mb-0" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase" }}>{stat.title}</h6>
+                  <h4 className="mb-0 fw-bold" style={{ color: "var(--crm-dark)", fontSize: "20px" }}>{loading ? "—" : stat.value}</h4>
                 </div>
               </div>
             </div>
@@ -1429,19 +1429,19 @@ const AdminTeam = () => {
         ))}
       </div>
 
-      <div className="row g-4">
+      <div className="row g-3">
         {/* LEFT COLUMN: Department Panel */}
         <div className="col-12 col-xl-2">
           <div className="card border-0 shadow-sm" style={{ borderRadius: "14px" }}>
-            <div className="card-header bg-white border-0 pt-4 pb-2 px-4">
-              <h6 className="fw-bold mb-0 text-muted text-uppercase small">Departments</h6>
+            <div className="card-header bg-white border-0 pt-3 pb-2 px-3">
+              <h6 className="fw-bold mb-0 text-muted text-uppercase" style={{ fontSize: "11px" }}>Departments</h6>
             </div>
-            <div className="card-body px-3 pb-4 pt-2 d-flex flex-column gap-1">
-              <button className={`btn w-100 text-start px-3 py-2 ${deptFilter === "" ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "8px" }} onClick={() => setDeptFilter("")}>
+            <div className="card-body px-2 pb-3 pt-1 d-flex flex-column gap-1">
+              <button className={`btn w-100 text-start px-2 py-1 ${deptFilter === "" ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter("")}>
                 <i className="bi bi-grid-fill me-2"></i> All Departments
               </button>
               {uniqueDepartments.map(dept => (
-                <button key={dept} className={`btn w-100 text-start px-3 py-2 ${deptFilter === dept ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "8px" }} onClick={() => setDeptFilter(dept)}>
+                <button key={dept} className={`btn w-100 text-start px-2 py-1 ${deptFilter === dept ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter(dept)}>
                   <i className="bi bi-folder-fill me-2 text-muted"></i> {dept}
                 </button>
               ))}
@@ -1451,26 +1451,26 @@ const AdminTeam = () => {
 
         {/* RIGHT COLUMN: Table */}
         <div className="col-12 col-xl-10">
-          <div className="card border-0 shadow-sm" style={{ borderRadius: "14px" }}>
-            <div className="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-              <div className="d-flex flex-wrap align-items-center gap-3">
-                <div className="position-relative" style={{ minWidth: "250px" }}>
-                  <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "12px" }}></i>
-                  <input type="text" className="form-control ps-5" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "8px" }} />
+          <div className="card border-0 shadow-sm" style={{ borderRadius: "10px" }}>
+            <div className="card-header bg-white border-bottom py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
+              <div className="d-flex flex-wrap align-items-center gap-2">
+                <div className="position-relative" style={{ minWidth: "200px" }}>
+                  <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "10px", fontSize: "13px" }}></i>
+                  <input type="text" className="form-control ps-4" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} />
                 </div>
-                <select className="form-select w-auto" style={{ borderRadius: "8px" }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
+                <select className="form-select w-auto" style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
                   <option value="">All Roles</option>
                   <option value="admin">Admin</option>
                   <option value="employee">Employee</option>
                 </select>
-                <select className="form-select w-auto" style={{ borderRadius: "8px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+                <select className="form-select w-auto" style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
                   <option value="">All Statuses</option>
                   <option value="Active">Active</option>
                   <option value="Inactive">Inactive</option>
                 </select>
               </div>
-              <button className="btn btn-primary px-3" style={{ borderRadius: "8px" }} onClick={() => setShowAddModal(true)}>
-                <i className="bi bi-person-plus me-2"></i>Add Member
+              <button className="btn btn-primary px-3" style={{ borderRadius: "6px", fontSize: "13px", height: "34px", padding: "0 12px" }} onClick={() => setShowAddModal(true)}>
+                <i className="bi bi-person-plus me-1"></i> Add Member
               </button>
             </div>
             <div className="card-body p-0">
@@ -1487,42 +1487,42 @@ const AdminTeam = () => {
                   <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
                     <thead className="table-light">
                       <tr>
-                        <th className="px-4 py-3 text-muted small fw-semibold text-uppercase">Employee</th>
-                        <th className="py-3 text-muted small fw-semibold text-uppercase">ID</th>
-                        <th className="py-3 text-muted small fw-semibold text-uppercase">Role & Dept</th>
-                        <th className="py-3 text-muted small fw-semibold text-uppercase">Manager</th>
-                        <th className="py-3 text-muted small fw-semibold text-uppercase">Status</th>
-                        <th className="py-3 text-muted small fw-semibold text-uppercase text-end px-4">Actions</th>
+                        <th className="px-3 py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Employee</th>
+                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>ID</th>
+                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Role & Dept</th>
+                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Manager</th>
+                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Status</th>
+                        <th className="py-2 text-muted fw-semibold text-uppercase text-end px-3" style={{ fontSize: "11px" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredMembers.map(m => (
                         <tr key={m.id}>
-                          <td className="px-4 py-3">
-                            <div className="d-flex align-items-center gap-3">
-                              <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "700", color: "#2563eb" }}>
+                          <td className="px-3 py-2">
+                            <div className="d-flex align-items-center gap-2">
+                              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700", color: "#2563eb" }}>
                                 {initials(m.fullName)}
                               </div>
                               <div>
-                                <div className="fw-semibold text-dark">{m.fullName}</div>
-                                <div className="text-muted small">{m.email}</div>
+                                <div className="fw-semibold text-dark" style={{ fontSize: "13px" }}>{m.fullName}</div>
+                                <div className="text-muted" style={{ fontSize: "12px" }}>{m.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="py-3 text-muted">{m.employeeId || "—"}</td>
-                          <td className="py-3">
-                            <div className="fw-semibold text-dark text-capitalize">{m.role}</div>
-                            <div className="text-muted small">{m.designation || m.department || "—"}</div>
+                          <td className="py-2 text-muted" style={{ fontSize: "13px" }}>{m.employeeId || "—"}</td>
+                          <td className="py-2">
+                            <div className="fw-semibold text-dark text-capitalize" style={{ fontSize: "13px" }}>{m.role}</div>
+                            <div className="text-muted" style={{ fontSize: "12px" }}>{m.designation || m.department || "—"}</div>
                           </td>
-                          <td className="py-3 text-muted">{m.reportingManager || "N/A"}</td>
-                          <td className="py-3">
-                            <span className={`badge rounded-pill ${m.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`}>
+                          <td className="py-2 text-muted" style={{ fontSize: "13px" }}>{m.reportingManager || "N/A"}</td>
+                          <td className="py-2">
+                            <span className={`badge rounded-pill px-2 py-1 ${m.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`} style={{ fontSize: "11px" }}>
                               {m.employmentStatus || "Active"}
                             </span>
                           </td>
-                          <td className="py-3 px-4 text-end">
-                            <button className="btn btn-sm btn-light border me-2" title="View" onClick={() => { setSelectedMember(m); setShowViewModal(true); }}><i className="bi bi-eye text-primary"></i></button>
-                            <button className="btn btn-sm btn-light border" title="Edit" onClick={() => { setSelectedMember(m); setShowEditModal(true); }}><i className="bi bi-pencil"></i></button>
+                          <td className="py-2 px-3 text-end">
+                            <button className="btn btn-sm btn-light border me-1 p-1" style={{ fontSize: "12px" }} title="View" onClick={() => { setSelectedMember(m); setShowViewModal(true); }}><i className="bi bi-eye text-primary"></i></button>
+                            <button className="btn btn-sm btn-light border p-1" style={{ fontSize: "12px" }} title="Edit" onClick={() => { setSelectedMember(m); setShowEditModal(true); }}><i className="bi bi-pencil"></i></button>
                           </td>
                         </tr>
                       ))}
