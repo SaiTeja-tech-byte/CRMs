@@ -1,0 +1,193 @@
+/* Classic pure-CSS "connected boxes" org chart tree. Scoped under .org-tree
+   so it can't leak into/collide with the rest of the dashboard's styles. */
+
+.org-tree-scroll {
+  width: 100%;
+  overflow: auto;
+  padding: 24px 16px 40px;
+}
+
+.org-tree,
+.org-tree ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.org-tree {
+  display: flex;
+  justify-content: center;
+  min-width: max-content;
+}
+
+.org-tree > li {
+  display: inline-block;
+}
+
+.org-tree ul {
+  display: flex;
+  justify-content: center;
+  padding-top: 32px;
+  position: relative;
+}
+
+.org-tree li {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  padding: 32px 14px 0 14px;
+}
+
+/* Connector lines: every li (except the root's own li) gets a horizontal
+   half-line to its left/right meeting siblings, plus a vertical drop to its
+   own box. */
+.org-tree li::before,
+.org-tree li::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  right: 50%;
+  width: 50%;
+  height: 32px;
+  border-top: 2px solid #cbd5e1;
+}
+.org-tree li::after {
+  right: auto;
+  left: 50%;
+  border-left: 2px solid #cbd5e1;
+}
+.org-tree li:only-child::before,
+.org-tree li:only-child::after {
+  display: none;
+}
+.org-tree li:only-child {
+  padding-top: 0;
+}
+.org-tree li:first-child::before,
+.org-tree li:last-child::after {
+  border: 0 none;
+}
+.org-tree li:last-child::before {
+  border-right: 2px solid #cbd5e1;
+  border-radius: 0 6px 0 0;
+}
+.org-tree li:first-child::after {
+  border-radius: 6px 0 0 0;
+}
+.org-tree > li {
+  padding-top: 0;
+}
+.org-tree > li::before,
+.org-tree > li::after {
+  display: none;
+}
+/* Vertical stem dropping from a parent box down to its children's row */
+.org-tree ul::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 50%;
+  border-left: 2px solid #cbd5e1;
+  width: 0;
+  height: 32px;
+}
+
+/* ---- Node card ---- */
+.org-node {
+  position: relative;
+  width: 200px;
+  border-radius: 10px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-top: 4px solid var(--org-accent, #2563eb);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
+  padding: 12px 10px 10px;
+  transition: opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+}
+.org-node:hover {
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+}
+.org-node-dim {
+  opacity: 0.35;
+  filter: grayscale(60%);
+}
+
+.org-node-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin: 0 auto 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+  background: var(--org-accent, #2563eb);
+}
+
+.org-node-name {
+  font-weight: 700;
+  font-size: 13.5px;
+  color: #0f172a;
+  line-height: 1.25;
+}
+
+.org-node-title {
+  font-size: 11.5px;
+  font-weight: 600;
+  color: var(--org-accent, #2563eb);
+  margin-top: 2px;
+}
+
+.org-node-meta {
+  margin-top: 6px;
+  font-size: 11px;
+  color: #64748b;
+  line-height: 1.5;
+  word-break: break-word;
+}
+
+.org-node-actions {
+  position: absolute;
+  top: -10px;
+  right: -8px;
+  display: flex;
+  gap: 4px;
+}
+.org-node-add {
+  position: absolute;
+  bottom: -12px;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.org-node-btn {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  padding: 0;
+}
+.org-node-btn:hover {
+  background: #f1f5f9;
+}
+.org-node-btn.danger:hover {
+  background: #fee2e2;
+  color: #dc2626;
+}
+.org-node-btn.brand {
+  background: var(--crm-primary, #2563eb);
+  color: #fff;
+  border-color: var(--crm-primary, #2563eb);
+}
+.org-node-btn.brand:hover {
+  filter: brightness(1.1);
+}
