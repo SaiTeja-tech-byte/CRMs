@@ -9,12 +9,10 @@ const {
   getConversations,
   getMessages,
   sendMessage,
-  getUnreadCount,
 } = require("../controllers/chatController");
 
 router.use(requireAuth);
 
-router.get("/unread-count", getUnreadCount);
 router.post("/request", sendChatRequest);
 router.get("/requests", getIncomingRequests);
 router.post("/request/:id/accept", acceptChatRequest);
