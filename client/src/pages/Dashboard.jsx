@@ -1850,9 +1850,6 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
               <option value="Medium">Medium</option>
               <option value="Low">Low</option>
             </select>
-            <button type="button" className="btn btn-primary ms-auto" style={{ borderRadius: "8px" }} onClick={() => setShowAddModal(true)}>
-              <i className="bi bi-plus-lg me-2"></i>Add Task
-            </button>
           </div>
 
           {finalTasks.length === 0 ? (
@@ -7109,7 +7106,7 @@ body {
                           <span className="ew-holiday-stat-val">{leaveBalance?.earnedLeave ?? 0}</span>
                         </div>
                       </div>
-                      <button className="ew-btn-primary" disabled>
+                      <button className="ew-btn-primary" onClick={() => alert("Leave Request modal will open here.")}>
                         Request Leave
                       </button>
                     </div>
@@ -7119,7 +7116,6 @@ body {
                   <div className="ew-card ew-events-card">
                     <div className="ew-events-header">
                       <h4 className="ew-events-title">Other Events</h4>
-                      <button className="ew-btn-outline" disabled>Request Event</button>
                     </div>
                     <p className="ew-events-sub">Track your additional leave types and custom events</p>
                     {(!otherEvents || otherEvents.length === 0) && (
