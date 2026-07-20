@@ -1,0 +1,222 @@
+/* Auth pages theme — overrides Bootstrap's default blue/purple with the
+   brand palette already used across the rest of the app (navy/blue). */
+
+:root {
+  --brand-ink: #0f172a;
+  --brand-blue: #2563eb;
+  --brand-blue-dark: #1d4ed8;
+  --brand-slate: #475569;
+  --brand-line: #e2e8f0;
+  --brand-canvas: #f8fafc;
+  --brand-mist: #eff6ff;
+
+  --bs-primary: var(--brand-blue);
+  --bs-primary-rgb: 37, 99, 235;
+}
+
+.auth-page {
+  min-height: 100vh;
+  background: var(--brand-canvas);
+  font-family: inherit;
+}
+
+.auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.5rem;
+}
+
+.auth-logo-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: var(--brand-blue);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.auth-card {
+  background: #fff;
+  border: 1px solid var(--brand-line);
+  border-radius: 1rem;
+  padding: 2rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.auth-role-toggle {
+  display: flex;
+  gap: 0.4rem;
+  background: var(--brand-canvas);
+  border: 1px solid var(--brand-line);
+  border-radius: 0.75rem;
+  padding: 0.3rem;
+  margin-bottom: 1.25rem;
+}
+
+.auth-role-btn {
+  flex: 1;
+  text-align: center;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.55rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--brand-slate);
+  text-decoration: none;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.auth-role-btn:hover {
+  color: var(--brand-blue);
+  text-decoration: none;
+}
+
+.auth-role-btn.active {
+  background: var(--brand-blue);
+  color: #fff;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.08);
+}
+
+.auth-role-btn.active:hover {
+  color: #fff;
+}
+
+.auth-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--brand-mist);
+  color: var(--brand-blue);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+}
+
+.auth-feature-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  background: #fff;
+  border: 1px solid var(--brand-line);
+  border-radius: 0.75rem;
+  padding: 0.75rem 1rem;
+  margin-bottom: 0.6rem;
+}
+
+.auth-feature-icon {
+  width: 32px;
+  height: 32px;
+  min-width: 32px;
+  border-radius: 8px;
+  background: var(--brand-mist);
+  color: var(--brand-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.auth-testimonial {
+  background: #fff;
+  border: 1px solid var(--brand-line);
+  border-radius: 0.75rem;
+  padding: 1.1rem 1.25rem;
+}
+
+.auth-form-control {
+  border-radius: 0.5rem;
+  border-color: var(--brand-line);
+  padding: 0.6rem 0.85rem;
+}
+
+.auth-form-control:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
+}
+
+.auth-input-icon {
+  position: absolute;
+  left: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #94a3b8;
+  pointer-events: none;
+}
+
+.auth-input-wrap {
+  position: relative;
+}
+
+.auth-input-wrap .auth-form-control {
+  padding-left: 2.5rem;
+}
+
+.auth-toggle-eye {
+  position: absolute;
+  right: 0.85rem;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  color: #94a3b8;
+  padding: 0;
+}
+
+.auth-toggle-eye:hover {
+  color: var(--brand-blue);
+}
+
+.btn-brand {
+  background: var(--brand-blue);
+  border-color: var(--brand-blue);
+  color: #fff;
+  font-weight: 600;
+  border-radius: 0.5rem;
+}
+
+.btn-brand:hover {
+  background: var(--brand-blue-dark);
+  border-color: var(--brand-blue-dark);
+  color: #fff;
+}
+
+.auth-link {
+  color: var(--brand-blue);
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.auth-link:hover {
+  text-decoration: underline;
+  color: var(--brand-blue-dark);
+}
+
+.otp-box {
+  width: 48px;
+  height: 56px;
+  text-align: center;
+  font-size: 1.25rem;
+  font-weight: 700;
+  border-radius: 0.5rem;
+  border: 1px solid var(--brand-line);
+}
+
+.otp-box:focus {
+  border-color: var(--brand-blue);
+  box-shadow: 0 0 0 0.2rem rgba(37, 99, 235, 0.12);
+  outline: none;
+}
+
+@media (max-width: 576px) {
+  .otp-box {
+    width: 38px;
+    height: 48px;
+    font-size: 1.05rem;
+  }
+}
