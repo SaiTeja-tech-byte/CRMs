@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import keshavAvatar from "../assets/images/keshav_avatar.jpg";
+import useChatUnreadCount from "../hooks/useChatUnreadCount";
 import { getMyTasks, createMyTask, updateMyTask, deleteMyTask } from "../services/taskService";
 import { getMyEvents, createMyEvent, updateMyEvent, deleteMyEvent } from "../services/eventService";
 import { getTeam } from "../services/teamService";
@@ -167,6 +168,7 @@ const SalesChartComponent = () => {
 // ----------------------------------------------------
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
   const navigate = useNavigate();
+  const chatUnread = useChatUnreadCount();
   const menuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { key: "me", label: "Me", icon: "bi-person" },
@@ -200,9 +202,18 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
             <button
               title={item.label}
               onClick={() => handleItemClick(item)}
+              style={{ position: "relative" }}
             >
               <i className={`bi ${item.icon}`}></i>
               <span className="sidebar-nav-label">{item.label}</span>
+              {item.key === "chat" && chatUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {chatUnread > 99 ? "99+" : chatUnread}
+                </span>
+              )}
             </button>
           </li>
         ))}
