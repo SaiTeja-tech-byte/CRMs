@@ -111,34 +111,7 @@ export const CRMProvider = ({ children }) => {
   ]);
   
   // Example Documents
-  const [documents, setDocuments] = useState([
-    {
-      id: "doc-1",
-      name: "Employee Handbook 2026.pdf",
-      type: "File",
-      extension: ".pdf",
-      category: "HR Policies",
-      department: "HR",
-      size: "2.4 MB",
-      uploadedBy: "Admin",
-      lastModified: "2026-01-10",
-      status: "Shared",
-      visibility: "Everyone"
-    },
-    {
-      id: "doc-2",
-      name: "Sales Targets Q3.xlsx",
-      type: "File",
-      extension: ".xlsx",
-      category: "Sales",
-      department: "Sales",
-      size: "1.1 MB",
-      uploadedBy: "John Doe",
-      lastModified: "2026-07-01",
-      status: "Private",
-      visibility: "Specific Department"
-    }
-  ]);
+  const [documents, setDocuments] = useState([]);
 
   // Company Settings
   const [companySettings, setCompanySettings] = useState({

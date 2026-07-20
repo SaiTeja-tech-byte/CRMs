@@ -2052,7 +2052,7 @@ const AdminDocuments = () => {
 
   const [pendingFile, setPendingFile] = useState(null);
   const [newDoc, setNewDoc] = useState({
-    name: "", category: "General", department: "All", visibility: "Everyone"
+    name: "", category: "General", department: "All", visibility: "Everyone", description: "", tags: ""
   });
 
   const categories = [
@@ -2127,10 +2127,12 @@ const AdminDocuments = () => {
         department: newDoc.department,
         size: formatFileSize(pendingFile.size),
         visibility: newDoc.visibility,
+        description: newDoc.description,
+        tags: newDoc.tags,
       });
       await loadDocs();
       setShowUploadModal(false);
-      setNewDoc({ name: "", category: "General", department: "All", visibility: "Everyone" });
+      setNewDoc({ name: "", category: "General", department: "All", visibility: "Everyone", description: "", tags: "" });
       setPendingFile(null);
       if (fileInputRef.current) fileInputRef.current.value = "";
       notify("Document uploaded successfully.");
@@ -2189,20 +2191,18 @@ const AdminDocuments = () => {
       {/* SUMMARY CARDS */}
       <div className="row g-3">
         {[
-          { title: "Total Documents", value: documents.length, icon: "bi-files", color: "#2563eb", bg: "#dbeafe" },
-          { title: "Recently Uploaded", value: recentCount, icon: "bi-cloud-arrow-up", color: "#10b981", bg: "#d1fae5" },
-          { title: "Shared Documents", value: sharedCount, icon: "bi-share", color: "#f59e0b", bg: "#fef3c7" }
+          { title: "Total Documents", value: documents.length, icon: "bi-files" },
+          { title: "Recently Uploaded", value: recentCount, icon: "bi-cloud-arrow-up" },
+          { title: "Shared Documents", value: sharedCount, icon: "bi-share" }
         ].map((stat, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-4">
-            <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "14px" }}>
-              <div className="card-body p-3 d-flex align-items-center gap-3">
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: stat.bg, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
-                  <i className={stat.icon}></i>
+            <div className="card bg-white h-100" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+              <div className="card-body p-3 d-flex flex-column justify-content-center">
+                <div className="d-flex justify-content-between align-items-center mb-2">
+                  <span className="text-secondary" style={{ fontSize: "13px", fontWeight: "500" }}>{stat.title}</span>
+                  <i className={`bi ${stat.icon} text-secondary`}></i>
                 </div>
-                <div>
-                  <h6 className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.title}</h6>
-                  <h3 className="mb-0 fw-bold" style={{ color: "var(--crm-dark)" }}>{loading ? "—" : stat.value}</h3>
-                </div>
+                <h3 className="mb-0 fw-semibold text-dark" style={{ fontSize: "24px" }}>{loading ? "—" : stat.value}</h3>
               </div>
             </div>
           </div>
@@ -2210,74 +2210,71 @@ const AdminDocuments = () => {
       </div>
 
       {/* TOP TOOLBAR & TABLE */}
-      <div className="card border-0 shadow-sm" style={{ borderRadius: "14px" }}>
-        <div className="card-header bg-white border-bottom py-3 px-4 d-flex flex-wrap align-items-center justify-content-between gap-3">
-          <div className="d-flex flex-wrap align-items-center gap-3">
-            <div className="position-relative" style={{ minWidth: "250px" }}>
-              <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "12px" }}></i>
-              <input type="text" className="form-control ps-5" placeholder="Search documents..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "8px" }} />
-            </div>
-            <select className="form-select w-auto" style={{ borderRadius: "8px" }} value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
-              <option value="">All Departments</option>
-              <option value="HR">HR</option>
-              <option value="Sales">Sales</option>
-              <option value="Engineering">Engineering</option>
-              <option value="Marketing">Marketing</option>
-              <option value="All">All (company-wide)</option>
-            </select>
-          </div>
-          <button className="btn btn-primary px-3" style={{ borderRadius: "8px" }} onClick={() => setShowUploadModal(true)} disabled={loading}>
-            <i className="bi bi-cloud-arrow-up me-2"></i>Upload Document
-          </button>
+      <div className="d-flex flex-wrap align-items-center gap-3">
+        <div className="position-relative flex-grow-1" style={{ minWidth: "200px" }}>
+          <i className="bi bi-search position-absolute top-50 translate-middle-y text-secondary" style={{ left: "12px", fontSize: "14px" }}></i>
+          <input type="text" className="form-control ps-5" placeholder="Search Documents" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", border: "1px solid #e2e8f0", fontSize: "14px", height: "38px" }} />
         </div>
+        <select className="form-select w-auto" style={{ borderRadius: "6px", border: "1px solid #e2e8f0", fontSize: "14px", height: "38px" }} value={deptFilter} onChange={e => setDeptFilter(e.target.value)}>
+          <option value="">All Departments</option>
+          <option value="HR">HR</option>
+          <option value="Sales">Sales</option>
+          <option value="Engineering">Engineering</option>
+          <option value="Marketing">Marketing</option>
+        </select>
+        
+        <button className="btn btn-primary ms-auto" style={{ borderRadius: "6px", fontSize: "14px", height: "38px", padding: "0 16px", backgroundColor: "#0d6efd", border: "none" }} onClick={() => setShowUploadModal(true)} disabled={loading}>
+          Upload Document
+        </button>
+      </div>
+
+      <div className="card bg-white" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
         <div className="card-body p-0">
           {loading ? (
-            <div className="text-center py-5 text-muted">Loading documents...</div>
+            <div className="text-center py-5 text-secondary">Loading documents...</div>
           ) : filteredDocs.length === 0 ? (
             <div className="text-center py-5">
-              <div className="mb-3"><i className="bi bi-file-earmark-x text-muted" style={{ fontSize: "36px" }}></i></div>
-              <h5 className="fw-bold text-dark mb-1">No Documents Available</h5>
-              <p className="text-muted">Upload your first company document to get started.</p>
-              <button className="btn btn-primary px-4 mt-2" onClick={() => setShowUploadModal(true)}>Upload Document</button>
+              <div className="mb-3"><i className="bi bi-file-earmark text-secondary" style={{ fontSize: "24px" }}></i></div>
+              <h6 className="fw-semibold text-dark mb-1">No Documents Found</h6>
+              <p className="text-secondary" style={{ fontSize: "14px" }}>No documents have been uploaded yet. Click 'Upload Document' to add your first document.</p>
+              <button className="btn btn-primary mt-2" style={{ borderRadius: "6px", fontSize: "14px", padding: "8px 16px", border: "none" }} onClick={() => setShowUploadModal(true)}>Upload Document</button>
             </div>
           ) : (
             <div className="table-responsive">
-              <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
-                <thead className="table-light">
+              <table className="table mb-0" style={{ verticalAlign: "middle", fontSize: "14px" }}>
+                <thead style={{ backgroundColor: "#f8fafc" }}>
                   <tr>
-                    <th className="px-4 py-3 text-muted small fw-semibold text-uppercase">Document Name</th>
-                    <th className="py-3 text-muted small fw-semibold text-uppercase">Category & Dept</th>
-                    <th className="py-3 text-muted small fw-semibold text-uppercase">Uploaded By</th>
-                    <th className="py-3 text-muted small fw-semibold text-uppercase">Date & Size</th>
-                    <th className="py-3 text-muted small fw-semibold text-uppercase">Visibility</th>
-                    <th className="py-3 text-muted small fw-semibold text-uppercase text-end px-4">Actions</th>
+                    <th className="px-4 py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Document Name</th>
+                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Category & Dept</th>
+                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Uploaded By</th>
+                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Date & Size</th>
+                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Visibility</th>
+                    <th className="py-3 px-4 text-secondary fw-semibold text-end border-bottom" style={{ fontSize: "13px" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
                   {filteredDocs.map(d => (
-                    <tr key={d.id}>
-                      <td className="px-4 py-3">
-                        <div className="d-flex align-items-center gap-3">
-                          {getFileIcon(d.extension)}
-                          <div className="fw-semibold text-dark" style={{ cursor: "pointer" }} onClick={() => { setSelectedDoc(d); setShowViewModal(true); }}>{d.name}</div>
+                    <tr key={d.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
+                      <td className="px-4 py-3 fw-medium text-dark">
+                        <div className="d-flex align-items-center gap-2">
+                          <i className="bi bi-file-earmark text-secondary"></i>
+                          <span style={{ cursor: "pointer" }} onClick={() => { setSelectedDoc(d); setShowViewModal(true); }}>{d.name}</span>
                         </div>
                       </td>
                       <td className="py-3">
-                        <div className="fw-semibold text-dark">{d.category}</div>
-                        <div className="text-muted small">{d.department || "All"}</div>
+                        <div className="fw-medium text-dark">{d.category}</div>
+                        <div className="text-secondary" style={{ fontSize: "13px" }}>{d.department || "All"}</div>
                       </td>
-                      <td className="py-3 text-muted">{d.uploadedByName || "—"}</td>
-                      <td className="py-3">
-                        <div className="fw-semibold text-dark">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</div>
-                        <div className="text-muted small">{d.size}</div>
+                      <td className="py-3 text-secondary">{d.uploadedByName || "—"}</td>
+                      <td className="py-3 text-secondary">
+                        <div className="fw-medium text-dark">{d.createdAt ? new Date(d.createdAt).toLocaleDateString() : "—"}</div>
+                        <div className="text-secondary" style={{ fontSize: "13px" }}>{d.size}</div>
                       </td>
-                      <td className="py-3">
-                        <span className="badge bg-light text-dark border"><i className={`bi ${d.visibility === 'Everyone' ? 'bi-globe' : 'bi-lock'} me-1`}></i>{d.visibility}</span>
-                      </td>
+                      <td className="py-3 text-secondary">{d.visibility}</td>
                       <td className="py-3 px-4 text-end">
-                        <button className="btn btn-sm btn-light border me-2" title="View" onClick={() => { setSelectedDoc(d); setShowViewModal(true); }}><i className="bi bi-eye text-primary"></i></button>
-                        <a className="btn btn-sm btn-light border me-2" title="Download" href={d.fileUrl} download={d.name}><i className="bi bi-download text-success"></i></a>
-                        <button className="btn btn-sm btn-light border" title="Delete" onClick={() => { setSelectedDoc(d); setShowDeleteModal(true); }}><i className="bi bi-trash text-danger"></i></button>
+                        <button className="btn btn-sm btn-link text-secondary p-0 me-3 text-decoration-none" title="View" onClick={() => { setSelectedDoc(d); setShowViewModal(true); }}>View</button>
+                        <a className="btn btn-sm btn-link text-secondary p-0 me-3 text-decoration-none" title="Download" href={d.fileUrl} download={d.name}>Download</a>
+                        <button className="btn btn-sm btn-link text-danger p-0 text-decoration-none" title="Delete" onClick={() => { setSelectedDoc(d); setShowDeleteModal(true); }}>Delete</button>
                       </td>
                     </tr>
                   ))}
@@ -2336,6 +2333,14 @@ const AdminDocuments = () => {
                         <option>Specific Department</option>
                         <option>Admins Only</option>
                       </select>
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label text-muted small fw-semibold">Description (optional)</label>
+                      <textarea className="form-control" rows="2" value={newDoc.description} onChange={e => setNewDoc({...newDoc, description: e.target.value})} placeholder="Brief description of the document..."></textarea>
+                    </div>
+                    <div className="col-12">
+                      <label className="form-label text-muted small fw-semibold">Tags (optional)</label>
+                      <input type="text" className="form-control" value={newDoc.tags} onChange={e => setNewDoc({...newDoc, tags: e.target.value})} placeholder="e.g. policies, 2026, onboarding" />
                     </div>
                   </div>
                 </div>
