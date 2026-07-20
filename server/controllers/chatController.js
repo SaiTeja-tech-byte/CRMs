@@ -163,6 +163,7 @@ const getConversations = async (req, res) => {
     const enriched = conversations.map((c) => ({
       ...c.toJSON(),
       otherUser: otherMap[c.userAId === userId ? c.userBId : c.userAId] || null,
+      unreadCount: c.userAId === userId ? c.userAUnread : c.userBUnread,
     }));
 
     return res.status(200).json({ success: true, conversations: enriched });
@@ -186,6 +187,13 @@ const getMessages = async (req, res) => {
       limit: 200,
     });
 
+    // Opening the conversation = read. Zero out this user's unread counter.
+    const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
+    if (conversation[unreadField] !== 0) {
+      conversation[unreadField] = 0;
+      await conversation.save();
+    }
+
     return res.status(200).json({ success: true, messages });
   } catch (error) {
     console.error("Get messages error:", error);
@@ -193,15 +201,19 @@ const getMessages = async (req, res) => {
   }
 };
 
-// POST /api/chat/messages  body: { conversationId, message }
+// POST /api/chat/messages  body: { conversationId, message, attachmentUrl?, attachmentName?, attachmentType? }
 // REST fallback for sending — the frontend can call this OR emit a socket
 // event; either path ends up persisting + broadcasting the same way.
+// attachmentUrl is a data: URL (base64) — fine at this scale given the 15mb
+// JSON body limit already set in server.js; swap for real object storage
+// (S3/Cloudinary) later if attachment volume grows.
 const sendMessage = async (req, res) => {
   try {
-    const { conversationId, message } = req.body;
+    const { conversationId, message, attachmentUrl, attachmentName, attachmentType } = req.body;
+    const text = (message || "").trim();
 
-    if (!conversationId || !message?.trim()) {
-      return res.status(400).json({ success: false, message: "conversationId and message are required" });
+    if (!conversationId || (!text && !attachmentUrl)) {
+      return res.status(400).json({ success: false, message: "conversationId and either a message or an attachment are required" });
     }
 
     const conversation = await Conversation.findByPk(conversationId);
@@ -212,19 +224,51 @@ const sendMessage = async (req, res) => {
     const chatMessage = await ChatMessage.create({
       conversationId,
       senderId: req.user.id,
-      message: message.trim(),
+      message: text,
+      attachmentUrl: attachmentUrl || null,
+      attachmentName: attachmentName || null,
+      attachmentType: attachmentType || null,
     });
 
     conversation.lastMessageAt = new Date();
+    const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+    const recipientUnreadField = conversation.userAId === recipientId ? "userAUnread" : "userBUnread";
+    conversation[recipientUnreadField] = (conversation[recipientUnreadField] || 0) + 1;
     await conversation.save();
 
-    const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
     emitToUser(recipientId, "chat:message-received", { message: chatMessage, conversationId });
 
     return res.status(201).json({ success: true, chatMessage });
   } catch (error) {
     console.error("Send message error:", error);
     return res.status(500).json({ success: false, message: "Server error sending message" });
+  }
+};
+
+// GET /api/chat/unread-count — powers the badge next to "Chat" in the sidebar
+const getUnreadCount = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const conversations = await Conversation.findAll({
+      where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },
+      attributes: ["id", "userAId", "userBId", "userAUnread", "userBUnread"],
+    });
+    const unreadMessages = conversations.reduce(
+      (sum, c) => sum + (c.userAId === userId ? c.userAUnread : c.userBUnread),
+      0
+    );
+
+    const pendingRequests = await ChatRequest.count({ where: { receiverId: userId, status: "pending" } });
+
+    return res.status(200).json({
+      success: true,
+      unreadMessages,
+      pendingRequests,
+      total: unreadMessages + pendingRequests,
+    });
+  } catch (error) {
+    console.error("Get unread count error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching unread count" });
   }
 };
 
@@ -236,4 +280,5 @@ module.exports = {
   getConversations,
   getMessages,
   sendMessage,
+  getUnreadCount,
 };
