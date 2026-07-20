@@ -1,6 +1,9 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin = false }) => {
+  const navigate = useNavigate();
+
   const employeeMenuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { key: "me", label: "Me", icon: "bi-person" },
@@ -8,6 +11,9 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "team", label: "Team", icon: "bi-people" },
+    // Chat lives at its own route (/chat), not a tab inside Dashboard.jsx's
+    // activeMenu switch, so it needs `to` instead of relying on setActiveMenu.
+    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Settings", icon: "bi-gear" },
@@ -21,6 +27,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "news", label: "News", icon: "bi-newspaper" },
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
+    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Company Settings", icon: "bi-gear" },
@@ -29,6 +36,15 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
 
   const menuItems = isAdmin ? adminMenuItems : employeeMenuItems;
 
+  const handleItemClick = (item) => {
+    setMobileActive(false);
+    if (item.to) {
+      navigate(item.to);
+    } else {
+      setActiveMenu(item.key);
+    }
+  };
+
   return (
     <aside className="crm-sidebar-menu">
       <ul className="sidebar-links-stack">
@@ -36,7 +52,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
           <li className={activeMenu === item.key ? "active" : ""} key={item.key}>
             <button
               title={item.label}
-              onClick={() => { setActiveMenu(item.key); setMobileActive(false); }}
+              onClick={() => handleItemClick(item)}
             >
               <i className={`bi ${item.icon}`}></i>
               <span className="sidebar-nav-label">{item.label}</span>
