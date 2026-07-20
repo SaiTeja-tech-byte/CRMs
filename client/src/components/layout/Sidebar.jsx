@@ -1,8 +1,10 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import useChatUnreadCount from '../../hooks/useChatUnreadCount';
 
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin = false }) => {
   const navigate = useNavigate();
+  const chatUnread = useChatUnreadCount();
 
   const employeeMenuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
@@ -53,9 +55,18 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
             <button
               title={item.label}
               onClick={() => handleItemClick(item)}
+              style={{ position: "relative" }}
             >
               <i className={`bi ${item.icon}`}></i>
               <span className="sidebar-nav-label">{item.label}</span>
+              {item.key === "chat" && chatUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {chatUnread > 99 ? "99+" : chatUnread}
+                </span>
+              )}
             </button>
           </li>
         ))}
