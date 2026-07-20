@@ -19,6 +19,7 @@ import Contact from "./pages/Contact";
 import Resources from "./pages/Resources";
 import TrustCenter from "./pages/TrustCenter";
 import Dashboard from "./pages/Dashboard";
+import ChatPage from "./pages/ChatPage";
 
 // Auth pages
 import Register from "./pages/auth/Register";
@@ -68,6 +69,16 @@ function App() {
           element={
             <RequireAuth>
               <Dashboard />
+            </RequireAuth>
+          }
+        />
+
+        {/* Chat - requires login, available to both employees and admins */}
+        <Route
+          path="/chat"
+          element={
+            <RequireAuth>
+              <ChatPage />
             </RequireAuth>
           }
         />
