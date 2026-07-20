@@ -34,6 +34,26 @@ const initSocket = (httpServer) => {
     socket.join("broadcast:all");
     if (socket.userDepartment) socket.join(`dept:${socket.userDepartment}`);
     if (socket.userRole === "admin") socket.join("role:admin");
+
+    // Chat: let a client join a specific conversation's room, and relay
+    // typing indicators to the other participant. Actual message
+    // persistence still goes through the REST endpoint (POST /api/chat/messages)
+    // so history stays reliable even if a socket event gets dropped.
+    socket.on("chat:join", (conversationId) => {
+      if (conversationId) socket.join(`conversation:${conversationId}`);
+    });
+
+    socket.on("chat:typing", ({ conversationId, recipientId }) => {
+      if (recipientId) {
+        emitToUser(recipientId, "chat:typing", { conversationId, userId: socket.userId });
+      }
+    });
+
+    socket.on("chat:stop-typing", ({ conversationId, recipientId }) => {
+      if (recipientId) {
+        emitToUser(recipientId, "chat:stop-typing", { conversationId, userId: socket.userId });
+      }
+    });
   });
 
   return io;
