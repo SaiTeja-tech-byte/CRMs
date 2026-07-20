@@ -25,6 +25,7 @@ const eventRoutes = require("./routes/eventRoutes");
 const teamRoutes = require("./routes/teamRoutes");
 const chatRoutes = require("./routes/chatRoutes");
 const orgChartRoutes = require("./routes/orgChartRoutes");
+const leaveRoutes = require("./routes/leaveRoutes");
 
 
 require("./models/User");
@@ -42,6 +43,7 @@ require("./models/ChatRequest");
 require("./models/Conversation");
 require("./models/ChatMessage");
 require("./models/OrgChartNode");
+require("./models/LeaveRequest");
 
 const app = express();
 // Socket.IO needs the raw http server (not the express app) so it can
@@ -78,6 +80,7 @@ app.use("/api/events", eventRoutes);
 app.use("/api/team", teamRoutes);
 app.use("/api/chat", chatRoutes);
 app.use("/api/org-chart", orgChartRoutes);
+app.use("/api/leave", leaveRoutes);
 
 app.get("/", (req, res) => {
   res.send("CRM Backend Running");
