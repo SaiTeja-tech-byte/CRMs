@@ -174,7 +174,8 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "team", label: "Team", icon: "bi-people" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
-    { key: "settings", label: "Settings", icon: "bi-gear" }
+    { key: "settings", label: "Settings", icon: "bi-gear" },
+    { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
   ];
 
   return (
