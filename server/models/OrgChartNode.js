@@ -19,7 +19,10 @@ const OrgChartNode = sequelize.define(
     department: { type: DataTypes.STRING, allowNull: true },
     email: { type: DataTypes.STRING, allowNull: true },
     phone: { type: DataTypes.STRING, allowNull: true },
-    avatarUrl: { type: DataTypes.STRING, allowNull: true },
+    // Base64 data URL (or an external image URL) — kept as TEXT since a
+    // base64-encoded photo is far bigger than VARCHAR(255) allows. Same
+    // pattern as Document.fileUrl.
+    avatarUrl: { type: DataTypes.TEXT, allowNull: true },
     // Optional link to a real employee account, so the chart can stay in
     // sync with who they are — not required, since a chart may include
     // roles that aren't tied to a system login.
