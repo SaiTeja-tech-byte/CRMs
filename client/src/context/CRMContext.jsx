@@ -65,11 +65,7 @@ export const CRMProvider = ({ children }) => {
 
   const [tasks, setTasks] = useState([]);
   
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Contract signed by Stark Corp", time: "5 mins ago", icon: "bi-file-earmark-check", color: "text-success", isRead: false },
-    { id: 2, text: "Payment received from Google", time: "30 mins ago", icon: "bi-wallet2", color: "text-success", isRead: false },
-    { id: 3, text: "Lead assigned: Amazon Web Services", time: "1 hour ago", icon: "bi-person-badge", color: "text-info", isRead: false }
-  ]);
+  const [notifications, setNotifications] = useState([]);
   
   const [messages, setMessages] = useState([
     { id: 1, sender: "Sarah Connor", excerpt: "Can you review the Amazon budget outline?", time: "9:40 AM" },

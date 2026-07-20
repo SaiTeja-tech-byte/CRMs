@@ -2556,8 +2556,8 @@ const AdminNotifications = () => {
             <div className="text-center py-5">
               <div className="mb-3"><i className="bi bi-bell text-secondary" style={{ fontSize: "24px" }}></i></div>
               <h6 className="fw-semibold text-dark mb-1">No Notifications Found</h6>
-              <p className="text-secondary" style={{ fontSize: "14px" }}>You have not created any notifications yet.</p>
-              <button className="btn btn-primary mt-2" style={{ borderRadius: "6px", fontSize: "14px", padding: "8px 16px" }} onClick={() => setShowCreateModal(true)}>Create Notification</button>
+              <p className="text-secondary" style={{ fontSize: "14px" }}>No notifications have been created yet. Click 'Create Notification' to add your first notification.</p>
+              <button className="btn btn-primary mt-2" style={{ borderRadius: "6px", fontSize: "14px", padding: "8px 16px", border: "none" }} onClick={() => setShowCreateModal(true)}>Create Notification</button>
             </div>
           ) : (
             <div className="table-responsive">
