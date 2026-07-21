@@ -16,6 +16,7 @@ import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import AdminOrganizationChart from './AdminOrganizationChart';
 import GlobalSearch from '../components/layout/GlobalSearch';
+import ChatPage from './ChatPage';
 // =========================
 // AdminHome
 // =========================
@@ -3339,6 +3340,9 @@ const AdminDashboard = () => {
 
       case "tasks":
         return <AdminTasks />;
+
+      case "chat":
+        return <ChatPage />;
 
       case "documents":
         return <AdminDocuments />;

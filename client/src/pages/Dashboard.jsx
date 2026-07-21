@@ -11,6 +11,7 @@ import { getNotifications as fetchServerNotifications, markNotificationRead as m
 import { getMyLeaveRequests, getMyLeaveBalance, createLeaveRequest as submitLeaveRequest } from "../services/leaveService";
 import OrganizationChart from "./OrganizationChart";
 import GlobalSearch from "../components/layout/GlobalSearch";
+import ChatPage from "./ChatPage";
 
 // Was hardcoded to TODAY_STR throughout this file, which drifts stale
 // the moment the calendar moves past that day. Computed once here instead,
@@ -7367,6 +7368,11 @@ body {
               onDeleteTask={handleDeleteTask}
               profile={profile}
             />
+          )}
+
+          {/* VIEW: CHAT TAB */}
+          {activeMenu === "chat" && (
+            <ChatPage />
           )}
 
           {/* VIEW: TEAM TAB */}
