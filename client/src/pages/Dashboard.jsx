@@ -7319,7 +7319,7 @@ body {
           )}
 
           {/* VIEW: OTHER WORKSPACE PLACEHOLDERS */}
-          {activeMenu !== "dashboard" && activeMenu !== "me" && activeMenu !== "news" && activeMenu !== "settings" && activeMenu !== "calendar" && activeMenu !== "tasks" && activeMenu !== "team" && activeMenu !== "notifications" && activeMenu !== "documents" && activeMenu !== "orgchart" && (
+          {activeMenu !== "dashboard" && activeMenu !== "me" && activeMenu !== "news" && activeMenu !== "settings" && activeMenu !== "calendar" && activeMenu !== "tasks" && activeMenu !== "team" && activeMenu !== "notifications" && activeMenu !== "documents" && activeMenu !== "orgchart" && activeMenu !== "chat" && (
             <div className="dashboard-card-flat text-center py-5">
               <h3><i className="bi bi-lock-fill text-muted"></i> {activeMenu.charAt(0).toUpperCase() + activeMenu.slice(1)} Section</h3>
               <p className="text-muted mt-2">This module is coming soon.</p>
