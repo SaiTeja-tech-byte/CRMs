@@ -15,6 +15,7 @@ import { onSocketEvent, connectSocket, disconnectSocket } from '../services/sock
 import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import AdminOrganizationChart from './AdminOrganizationChart';
+import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
 import ChatPage from './ChatPage';
 // =========================
@@ -3338,6 +3339,9 @@ const AdminDashboard = () => {
 
       case "orgchart":
         return <AdminOrganizationChart />;
+
+      case "contact-queries":
+        return <AdminContactQueries />;
 
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;
