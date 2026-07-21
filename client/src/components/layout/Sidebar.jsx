@@ -32,7 +32,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
-    { key: "contact-queries", label: "Customer Queries", icon: "bi-envelope-paper", to: "/admin/queries" },
+    { key: "contact-queries", label: "Customer Queries", icon: "bi-envelope-paper" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Company Settings", icon: "bi-gear" },
