@@ -1,32 +1,7 @@
 const ContactQuery = require("../models/ContactQuery");
 const User = require("../models/User");
 const { emitToAdmins, emitToUser } = require("../utils/socket");
-
-// sendEmail.js only exports OTP/reset-specific helpers today - build a small
-// generic sender here using the same Resend API pattern rather than
-// stretching those functions to mean something else.
-const RESEND_API_URL = "https://api.resend.com/emails";
-const isEmailConfigured = process.env.RESEND_API_KEY;
-
-const sendGenericEmail = async ({ to, subject, html }) => {
-  if (!isEmailConfigured) {
-    console.log("=".repeat(50));
-    console.log(`[DEV MODE - no email configured] Email to ${to}: ${subject}`);
-    console.log("=".repeat(50));
-    return;
-  }
-  const response = await fetch(RESEND_API_URL, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
-    },
-    body: JSON.stringify({ from: "CRM App <onboarding@resend.dev>", to: [to], subject, html }),
-  });
-  if (!response.ok) {
-    console.error("Contact email send failed:", await response.text());
-  }
-};
+const { sendMail } = require("../utils/sendEmail");
 
 // POST /api/contact - PUBLIC, no auth required
 const submitQuery = async (req, res) => {
@@ -47,7 +22,7 @@ const submitQuery = async (req, res) => {
     try {
       const admins = await User.findAll({ where: { role: "admin" }, attributes: ["email"] });
       for (const admin of admins) {
-        await sendGenericEmail({
+        await sendMail({
           to: admin.email,
           subject: `New contact query from ${name}`,
           html: `<p><strong>${name}</strong> (${email}) sent a message:</p><p>${message}</p>`,
@@ -116,18 +91,27 @@ const replyToQuery = async (req, res) => {
     query.status = "replied";
     await query.save();
 
-    await sendGenericEmail({
-      to: query.email,
-      subject: "Re: Your message to our team",
-      html: `
-        <p>Hi ${query.name},</p>
-        <p>Thanks for reaching out. Here's our reply:</p>
-        <blockquote style="border-left:3px solid #2563eb;padding-left:12px;color:#0f172a;">${query.reply}</blockquote>
-        <p>— The team</p>
-      `,
-    });
+    // Best-effort: the reply is already saved above, so a mail hiccup
+    // shouldn't make the admin think their reply vanished. It's logged
+    // either way so a real delivery problem is still visible in the logs.
+    let emailWarning = null;
+    try {
+      await sendMail({
+        to: query.email,
+        subject: "Re: Your message to our team",
+        html: `
+          <p>Hi ${query.name},</p>
+          <p>Thanks for reaching out. Here's our reply:</p>
+          <blockquote style="border-left:3px solid #2563eb;padding-left:12px;color:#0f172a;">${query.reply}</blockquote>
+          <p>— The team</p>
+        `,
+      });
+    } catch (emailErr) {
+      console.error("Reply email failed to send:", emailErr.message);
+      emailWarning = "Reply was saved, but the email to the customer could not be sent.";
+    }
 
-    return res.status(200).json({ success: true, query });
+    return res.status(200).json({ success: true, query, emailWarning });
   } catch (error) {
     console.error("Reply to contact query error:", error);
     return res.status(500).json({ success: false, message: "Server error sending reply" });
