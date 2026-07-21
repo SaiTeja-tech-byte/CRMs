@@ -9,14 +9,12 @@ const Chatbot = () => {
   const [inputVal, setInputVal] = useState("");
   const messagesEndRef = useRef(null);
 
-  // Scroll to bottom of message list on new messages
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isOpen]);
 
-  // Listen for custom event to open the chatbot from external components
   useEffect(() => {
     const handleOpenChatbot = () => {
       setIsOpen(true);
@@ -66,7 +64,6 @@ const Chatbot = () => {
     setMessages((prev) => [...prev, userMsg]);
     setInputVal("");
 
-    // Simulate bot response after a brief delay
     setTimeout(() => {
       const botResponse = {
         id: Date.now() + 1,

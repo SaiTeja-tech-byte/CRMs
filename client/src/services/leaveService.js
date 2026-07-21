@@ -6,7 +6,6 @@ const authHeaders = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 });
 
-// request: { type, startDate, endDate, reason }
 export const createLeaveRequest = async (request) => {
   const res = await axios.post(`${API_BASE}/leave`, request, authHeaders());
   return res.data.leaveRequest;

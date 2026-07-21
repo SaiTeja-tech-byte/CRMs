@@ -69,9 +69,8 @@ const PrivacyPolicy = () => {
   // ScrollSpy implementation
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 180; // offset to trigger slightly before center
+      const scrollPosition = window.scrollY + 180;
 
-      // Check which section is in view
       for (const section of sections) {
         const el = document.getElementById(section.id);
         if (el) {
@@ -92,7 +91,7 @@ const PrivacyPolicy = () => {
   // PDF Download Action
   const handleDownloadPDF = (e) => {
     e.preventDefault();
-    window.print(); // Native print dialog provides clean PDF export capability
+    window.print();
   };
 
   // Cookie Preference Save
@@ -1196,7 +1195,6 @@ input:disabled + .slider {
               </ul>
             </article>
 
-            {/* 3. How We Use Your Information */}
             <article id="use" className="privacy-card">
               <div className="privacy-card-header">
                 <div className="privacy-card-icon"><i className="bi bi-eye text-primary" style={{ fontSize: "1.3rem" }}></i></div>
@@ -1360,7 +1358,6 @@ input:disabled + .slider {
               </p>
             </article>
 
-            {/* 11. Changes to This Policy */}
             <article id="changes" className="privacy-card">
               <div className="privacy-card-header">
                 <div className="privacy-card-icon"><i className="bi bi-file-earmark-check text-primary" style={{ fontSize: "1.3rem" }}></i></div>

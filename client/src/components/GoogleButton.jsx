@@ -21,7 +21,6 @@ const GoogleIcon = () => (
   </svg>
 );
 
-// onSuccess receives a Google access token string
 const GoogleButton = ({ onSuccess, onError }) => {
   const login = useGoogleLogin({
     onSuccess: (tokenResponse) => onSuccess(tokenResponse.access_token),

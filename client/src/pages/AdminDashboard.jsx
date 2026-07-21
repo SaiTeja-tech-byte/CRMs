@@ -65,9 +65,6 @@ const AdminHome = () => {
   const totalEmployees = stats?.totalEmployees || 0;
   const activeEmployees = stats?.activeEmployees || 0;
 
-  // Calculate system usage % from real counts returned by the backend.
-  // NOTE: fixed — previously "|| 25" clobbered a legitimate 0% result
-  // because 0 is falsy in JS.
   const systemUsage = stats
     ? Math.min(
         100,
@@ -79,7 +76,6 @@ const AdminHome = () => {
 
   const employeeActivity = totalEmployees > 0 ? Math.round((activeEmployees / totalEmployees) * 100) : 0;
 
-  // Leave tracking isn't built on the backend yet — kept empty rather than mocked.
   const teamOnLeave = [];
   const leaveRequests = [];
 
@@ -361,7 +357,6 @@ const AdminHome = () => {
       `}</style>
 
       <div className="ew-root">
-        {/* ════════════ LEFT COLUMN ════════════ */}
         <div className="ew-left">
           {/* Profile Card */}
           <div className="ew-card ew-profile-card">
@@ -406,10 +401,8 @@ const AdminHome = () => {
           </div>
         </div>
 
-        {/* ════════════ RIGHT COLUMN ════════════ */}
         <div className="ew-right">
 
-          {/* ROW 1 — Today's Work Summary */}
           <div className="ew-card ew-summary-card">
             <div className="ew-summary-header">
               <h3 className="ew-summary-title">Today's Work Summary</h3>
@@ -434,7 +427,6 @@ const AdminHome = () => {
             </div>
           </div>
 
-          {/* ROW 2 — System Usage + Employee Activity */}
           <div className="ew-progress-row">
             <div className="ew-card ew-progress-card">
               <p className="ew-progress-title">System Usage</p>
@@ -461,7 +453,6 @@ const AdminHome = () => {
             </div>
           </div>
 
-          {/* ROW 3 — Team Members on Leave + Leave Requests */}
           <div className="ew-two-col">
             <div className="ew-card ew-leave-card">
               <h4 className="ew-leave-title">Team Members On Leave</h4>
@@ -570,7 +561,6 @@ const AdminProfile = () => {
       </div>
 
       <div className="row g-3">
-        {/* LEFT COLUMN: Profile Card & Summary */}
         <div className="col-12 col-xl-4 d-flex flex-column gap-3">
           
           {/* SECTION 1: PROFILE CARD */}
@@ -708,7 +698,6 @@ const AdminProfile = () => {
             </div>
           </div>
 
-          {/* SECTION 3: WORK INFORMATION (Read Only for Admin Profile? Wait, prompt says: "These fields should look exactly like normal input fields but non-editable") */}
           {/* SECTION 3: WORK INFORMATION */}
           <div className="card border-0 shadow-sm" style={{ borderRadius: "10px" }}>
             <div className="card-header bg-white border-0 pt-3 pb-2 px-3">
@@ -968,7 +957,6 @@ const AdminCalendar = () => {
   const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
   const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
-  // Real calendar grid for the actual current month (was hardcoded to "July 2026" / day 16 before).
   const firstOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
   const startOffset = firstOfMonth.getDay();
   const daysInMonth = new Date(today.getFullYear(), today.getMonth() + 1, 0).getDate();
@@ -1280,7 +1268,7 @@ const AdminTeam = () => {
 
   const [showAddModal, setShowAddModal] = useState(false);
   const [adding, setAdding] = useState(false);
-  const [createdCredentials, setCreatedCredentials] = useState(null); // { email, tempPassword } — shown once
+  const [createdCredentials, setCreatedCredentials] = useState(null);
   const [newMember, setNewMember] = useState({
     firstName: "", lastName: "", email: "", phone: "", employeeId: "",
     department: "", designation: "", role: "employee", manager: "", officeLocation: "",
@@ -2423,9 +2411,6 @@ const AdminDocuments = () => {
 // AdminNotifications
 // =========================
 // =========================
-// AdminLeaveRequests — reviewing/approving the requests employees send from
-// the "Request Leave" button on their dashboard. Shown at the top of the
-// Notifications tab since it's the "things needing your attention" page.
 // =========================
 const AdminLeaveRequests = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
@@ -3294,8 +3279,6 @@ const AdminDashboard = () => {
 
   const profileRef = useRef(null);
 
-  // Establish the real-time connection once for the whole admin session —
-  // sub-tabs (Tasks, Calendar, Team, etc.) subscribe to events as they mount.
   useEffect(() => {
     connectSocket();
   }, []);
@@ -3383,7 +3366,6 @@ const AdminDashboard = () => {
           onClick={() => setMobileSidebarActive(false)}
         />
       )}
-
 
         <header className="crm-top-navbar">
           <div

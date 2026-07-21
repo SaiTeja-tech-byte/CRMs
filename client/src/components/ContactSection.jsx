@@ -185,7 +185,6 @@ const ContactSection = () => {
         </div>
 
         <div className="contact-grid">
-          {/* Left Column: Simple Contact Info */}
           <div className="contact-info">
             <div className="info-item">
               <span>Email</span>
@@ -201,7 +200,6 @@ const ContactSection = () => {
             </div>
           </div>
 
-          {/* Right Column: Short Contact Form */}
           <div className="contact-form-wrap">
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="contact-form">

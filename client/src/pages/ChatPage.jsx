@@ -20,17 +20,12 @@ import { connectSocket, onSocketEvent } from "../services/socketService";
 
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
-// Small fixed set covering the common reactions people actually reach for in
-// a work chat — avoids pulling in a whole emoji-picker dependency for this.
 const EMOJI_OPTIONS = [
   "😀", "😂", "😊", "🙂", "😉", "😍", "😎", "🤔", "😅", "😢",
   "😮", "🙌", "👍", "👎", "🙏", "👏", "🔥", "🎉", "✅", "❌",
   "❤️", "💯", "🚀", "😴", "🤝", "📌", "⚠️", "👀", "💪", "🤷",
 ];
 
-// 5MB cap keeps a base64-encoded attachment comfortably under the server's
-// 15mb JSON body limit (base64 adds ~33% overhead) with room for other files
-// in the same conversation history.
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
 const ChatPage = () => {
@@ -42,9 +37,9 @@ const ChatPage = () => {
   const [draft, setDraft] = useState("");
   const [showStartChat, setShowStartChat] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [pendingAttachment, setPendingAttachment] = useState(null); // { url, name, type }
+  const [pendingAttachment, setPendingAttachment] = useState(null);
   const [attachError, setAttachError] = useState("");
-  const [openMenuId, setOpenMenuId] = useState(null); // message id whose action menu is open
+  const [openMenuId, setOpenMenuId] = useState(null);
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
   const messagesEndRef = useRef(null);
@@ -105,8 +100,6 @@ const ChatPage = () => {
         setActiveConversation((current) => {
           if (current?.id === conversationId) {
             setMessages((prev) => [...prev, message]);
-            // Already viewing this conversation — mark it read immediately
-            // instead of waiting for the next time it's opened.
             markConversationRead(conversationId).catch(() => {});
           }
           return current;
@@ -156,9 +149,6 @@ const ChatPage = () => {
     try {
       const data = await getMessages(conversation.id);
       setMessages(data || []);
-      // The server already zeroed this conversation's unread counter (opening
-      // it = reading it) — reflect that locally so the sidebar badge and the
-      // conversation-list badge update immediately without a refetch.
       setConversations((prev) => prev.map((c) => (c.id === conversation.id ? { ...c, unreadCount: 0 } : c)));
       window.dispatchEvent(new Event("crm_chat_unread_updated"));
     } catch (err) {

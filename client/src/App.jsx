@@ -4,7 +4,6 @@ import ScrollToTop from "./components/ScrollToTop";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./components/RequireAdmin";
 
-// Marketing / existing pages (all built by teammate)
 import Landing from "./pages/Landing";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import LegalCenter from "./pages/LegalCenter";
@@ -49,7 +48,6 @@ function App() {
         <Route path="/responsible-disclosure" element={<ResponsibleDisclosure />} />
         <Route path="/cookie-preferences" element={<CookiePreferences />} />
 
-        {/* Detail sub-pages, each keyed by its own path (same as before) */}
         <Route path="/cookie-policy" element={<PolicyDetail path="/cookie-policy" />} />
         <Route path="/accessibility" element={<PolicyDetail path="/accessibility" />} />
         <Route path="/acceptable-use" element={<PolicyDetail path="/acceptable-use" />} />
@@ -73,9 +71,6 @@ function App() {
           }
         />
 
-
-
-        {/* Admin dashboard - requires login AND admin role */}
         <Route
           path="/admin/dashboard"
           element={
@@ -85,7 +80,6 @@ function App() {
           }
         />
 
-        {/* Anything unmatched falls back to the landing page */}
         <Route path="*" element={<Landing />} />
       </Routes>
     </>

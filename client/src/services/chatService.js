@@ -40,7 +40,6 @@ export const getMessages = async (conversationId) => {
   return res.data.messages;
 };
 
-// attachment: optional { url, name, type } — url is a base64 data: URL
 export const sendMessage = async (conversationId, message, attachment) => {
   const res = await axios.post(
     `${API_BASE}/chat/messages`,
@@ -71,8 +70,7 @@ export const deleteMessage = async (messageId) => {
   return res.data.chatMessage;
 };
 
-// Powers the unread badge next to "Chat" in the sidebar.
 export const getUnreadCount = async () => {
   const res = await axios.get(`${API_BASE}/chat/unread-count?_=${Date.now()}`, authHeaders());
-  return res.data; // { unreadMessages, pendingRequests, total }
+  return res.data;
 };

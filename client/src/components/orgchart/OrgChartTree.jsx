@@ -4,8 +4,6 @@ import { getOrgChart, createOrgNode, updateOrgNode, deleteOrgNode } from "../../
 import { connectSocket, onSocketEvent } from "../../services/socketService";
 import "./OrgChartTree.css";
 
-// Reads a File into a base64 data URL for storage in avatarUrl — same
-// pattern documentService.fileToDataUrl uses for document uploads.
 const fileToDataUrl = (file) =>
   new Promise((resolve, reject) => {
     const reader = new FileReader();
@@ -14,8 +12,6 @@ const fileToDataUrl = (file) =>
     reader.readAsDataURL(file);
   });
 
-// Cycled by depth so each generation of the chart reads as a distinct tier,
-// the way the reference chart colors President / VP / Manager differently.
 const LEVEL_COLORS = ["#e11d48", "#2563eb", "#ea580c", "#0d9488", "#7c3aed"];
 
 const initials = (name = "") =>
@@ -26,9 +22,6 @@ const initials = (name = "") =>
     .map((p) => p[0]?.toUpperCase())
     .join("") || "?";
 
-// "< 1 Month" / "3 Months" / "1 Year" / "2 Years 3 Months" — same tenure
-// badge style as the reference chart, computed from createdAt so it needs
-// no new backend field.
 const tenureLabel = (createdAt) => {
   if (!createdAt) return "";
   const start = new Date(createdAt);
@@ -52,9 +45,6 @@ const flatten = (nodes, acc = []) => {
   return acc;
 };
 
-// Every node id except `excludeId` and any of its own descendants — used to
-// populate the "Reports to" dropdown so you can't move a manager under
-// their own report.
 const eligibleParents = (allNodes, excludeId) => {
   if (!excludeId) return allNodes;
   const blocked = new Set([excludeId]);
@@ -432,7 +422,6 @@ const OrgChartTree = ({ isAdmin }) => {
         </div>
       </div>
 
-      {/* Add / Edit modal — admin only */}
       {isAdmin && formOpen && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"

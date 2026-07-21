@@ -7,7 +7,6 @@ const Resources = () => {
   return (
     <div className="resources-page">
       <Navbar />
-      {/* Spacer to push content below sticky header */}
       <div style={{ height: "80px" }}></div>
       <main>
         <ResourcesSection />

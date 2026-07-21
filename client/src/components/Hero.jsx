@@ -484,7 +484,6 @@ const Hero = () => {
     <section className="hero" id="home">
       {/* Responsive Unified Hero Layout */}
       <div className="container hero-content">
-        {/* Left Side: Headline, Description, Email Signup, Social Proof */}
         <div className="hero-copy">
           <div className="hero-badge">
             <span>Built for growing sales teams</span>
@@ -526,7 +525,6 @@ const Hero = () => {
           </div>
         </div>
 
-        {/* Right Side: Realistic CRM App Mockup */}
         <div className="hero-dashboard-container">
           <div className="dashboard-browser-frame">
             <div className="browser-header">

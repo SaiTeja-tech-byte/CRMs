@@ -457,7 +457,6 @@ const EmployeeHome = ({
 
       <div className="ew-root">
 
-        {/* ════════════ LEFT COLUMN ════════════ */}
         <div className="ew-left">
 
           {/* Profile Card */}
@@ -522,10 +521,8 @@ const EmployeeHome = ({
 
         </div>
 
-        {/* ════════════ RIGHT COLUMN ════════════ */}
         <div className="ew-right">
 
-          {/* ROW 1 — Today's Work Summary */}
           <div className="ew-card ew-summary-card">
             <div className="ew-summary-header">
               <h3 className="ew-summary-title">Today's Work Summary</h3>
@@ -550,7 +547,6 @@ const EmployeeHome = ({
             </div>
           </div>
 
-          {/* ROW 2 — Productivity + Attendance */}
           <div className="ew-progress-row">
             <div className="ew-card ew-progress-card">
               <p className="ew-progress-title">Productivity</p>
@@ -577,7 +573,6 @@ const EmployeeHome = ({
             </div>
           </div>
 
-          {/* ROW 3 — Team Members on Leave + Leave Requests */}
           <div className="ew-two-col">
             <div className="ew-card ew-leave-card">
               <h4 className="ew-leave-title">Team Members On Leave</h4>
@@ -612,7 +607,6 @@ const EmployeeHome = ({
             </div>
           </div>
 
-          {/* ROW 4 — Holiday / Leave Balance */}
           <div className="ew-card ew-holiday-card">
             {/* Circular progress */}
             <div className="ew-circle-wrap">
@@ -650,7 +644,6 @@ const EmployeeHome = ({
             </div>
           </div>
 
-          {/* ROW 5 — Other Events */}
           <div className="ew-card ew-events-card">
             <div className="ew-events-header">
               <h4 className="ew-events-title">Other Events</h4>

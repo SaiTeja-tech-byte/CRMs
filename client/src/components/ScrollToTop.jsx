@@ -1,9 +1,6 @@
 import { useEffect } from "react";
 import { useLocation } from "react-router-dom";
 
-// Real React Router doesn't auto-scroll to top on navigation the way the
-// old custom router used to (it called window.scrollTo manually). This
-// restores that behavior for every route change, hash links excluded.
 const ScrollToTop = () => {
   const { pathname, hash } = useLocation();
 

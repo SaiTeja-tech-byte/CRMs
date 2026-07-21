@@ -49,7 +49,7 @@ const TermsOfService = () => {
   // ScrollSpy implementation
   useEffect(() => {
     const handleScroll = () => {
-      const scrollPosition = window.scrollY + 180; // Offset to trigger slightly before center
+      const scrollPosition = window.scrollY + 180;
 
       for (const section of sections) {
         const el = document.getElementById(section.id);
@@ -703,7 +703,6 @@ const TermsOfService = () => {
               </ul>
             </article>
 
-            {/* 4. Acceptable Use (Highlighted Warning Card) */}
             <article id="acceptable" className="terms-card highlight-caution">
               <div className="terms-card-header">
                 <div className="terms-card-icon"><i className="bi bi-slash-circle text-primary" style={{ fontSize: "1.3rem" }}></i></div>
@@ -788,7 +787,6 @@ const TermsOfService = () => {
               </div>
             </article>
 
-            {/* 9. Limitation of Liability (Highlighted Info Card) */}
             <article id="liability" className="terms-card highlight-info">
               <div className="terms-card-header">
                 <div className="terms-card-icon"><i className="bi bi-slash-circle text-primary" style={{ fontSize: "1.3rem" }}></i></div>
@@ -802,7 +800,6 @@ const TermsOfService = () => {
               </p>
             </article>
 
-            {/* 10. Account Suspension & Termination */}
             <article id="termination" className="terms-card">
               <div className="terms-card-header">
                 <div className="terms-card-icon"><i className="bi bi-x-circle text-primary" style={{ fontSize: "1.3rem" }}></i></div>

@@ -1,9 +1,5 @@
 import axios from "axios";
 
-// Defensively strips a trailing "/auth" first (in case VITE_API_URL is set
-// to end in "/auth", which your deployed Render env currently does), THEN
-// appends "/auth" exactly once — works correctly whichever way the env var
-// is set, instead of assuming one format and silently doubling the path.
 const RAW_BASE = import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 const API_BASE = RAW_BASE.replace(/\/auth\/?$/, "");
 const API = `${API_BASE}/auth`;

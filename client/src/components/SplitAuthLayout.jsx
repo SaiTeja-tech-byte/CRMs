@@ -27,7 +27,6 @@ const SplitAuthLayout = ({
 
       <div className="container pb-5 pt-2">
         <div className="row justify-content-center align-items-center g-4 g-lg-5">
-          {/* Left marketing panel - hidden below lg, like the original */}
           <div className="col-lg-6 d-none d-lg-block">
             {leftBadge && <Badge>{leftBadge}</Badge>}
             <h1 className="fw-bold mt-3" style={{ fontSize: "2.25rem", lineHeight: 1.2 }}>

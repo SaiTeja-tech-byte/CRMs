@@ -629,7 +629,6 @@ const CookiePreferences = () => {
             </div>
           </div>
 
-          {/* Action Cards (Accept All, Reject Optional, Customize) */}
           <div className="actions-list-grid">
             <article className="action-card">
               <div>
@@ -888,7 +887,6 @@ const CookiePreferences = () => {
         </div>
       </section>
 
-      {/* Privacy Notice highlight blue card */}
       <section className="cookies-pref-section" style={{ padding: "3rem 0" }}>
         <div className="section-container">
           <div className="commitment-card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "2rem" }}>
@@ -903,7 +901,6 @@ const CookiePreferences = () => {
         </div>
       </section>
 
-      {/* Contact Privacy Team HQ Details card */}
       <section className="cookies-pref-section">
         <div className="section-container">
           <div className="legal-contact-card">

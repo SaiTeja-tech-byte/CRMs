@@ -701,7 +701,6 @@ const ResponsibleDisclosure = () => {
         </div>
       </header>
 
-      {/* connected process timeline cards */}
       <section className="disclosure-section">
         <div className="section-container">
           <div className="section-header">
@@ -747,7 +746,6 @@ const ResponsibleDisclosure = () => {
             })}
           </div>
 
-          {/* Out of Scope Highlight Card */}
           <div className="scope-caution-card">
             <div className="scope-caution-header">
               <div className="scope-caution-icon"><AlertOctagon size={20} /></div>

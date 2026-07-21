@@ -7,7 +7,6 @@ const Contact = () => {
   return (
     <div className="contact-page">
       <Navbar />
-      {/* Spacer to push content below sticky header */}
       <div style={{ height: "80px" }}></div>
       <main>
         <ContactSection />

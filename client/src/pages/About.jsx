@@ -909,7 +909,6 @@ const About = () => {
         </div>
       )}
 
-      {/* Main sticky navigation layout grid */}
       <main className="about-container">
         <div className="about-content-layout">
           
@@ -1107,7 +1106,6 @@ const About = () => {
               </div>
             </section>
 
-            {/* Section 7: Best CRM Software Comparisons */}
             <section id="comparisons" className="about-sec">
               <div className="about-sec-header">
                 <h2>Why CRM Platform is the Best Choice</h2>

@@ -3088,10 +3088,8 @@ function Navbar() {
 `}</style>
     <>
       <nav className={`navbar-wrapper ${scrolled ? "scrolled" : ""}`}>
-      {/* 1. Top Utility Navbar Row */}
       <div className="nav-top-row">
         <div className="nav-container nav-top-container">
-          {/* Left Section: Logo + Navigation */}
           <div className="nav-top-left">
             {/* Logo */}
             <a href="#home" className="nav-logo">
@@ -3406,7 +3404,6 @@ function Navbar() {
                         ))}
                       </div>
 
-                      {/* Middle Panel - Selected Tab Detail */}
                       <div className="learning-middle-panel">
                         {(() => {
                           const activeTab = learningData.find(t => t.id === activeLearningTab) || learningData[0];
@@ -3435,7 +3432,6 @@ function Navbar() {
                         })()}
                       </div>
 
-                      {/* Right Panel - Featured Course Card */}
                       <div className="learning-right-panel">
                         <div className="featured-course-header">
                           <span className="course-eyebrow">Featured Course</span>
@@ -3521,7 +3517,6 @@ function Navbar() {
                         ))}
                       </div>
 
-                      {/* Middle Panel - Selected Tab Detail */}
                       <div className="support-middle-panel">
                         {(() => {
                           const activeTab = supportData.find(t => t.id === activeSupportTab) || supportData[0];
@@ -3550,7 +3545,6 @@ function Navbar() {
                         })()}
                       </div>
 
-                      {/* Right Panel - Featured Help Desk */}
                       <div className="support-right-panel">
                         <div className="featured-support-header">
                           <span className="support-eyebrow">Featured Help</span>
@@ -3647,7 +3641,6 @@ function Navbar() {
                         ))}
                       </div>
 
-                      {/* Middle Panel - Selected Tab Detail */}
                       <div className="company-middle-panel">
                         {(() => {
                           const activeTab = companyData.find(t => t.id === activeCompanyTab) || companyData[0];
@@ -3676,7 +3669,6 @@ function Navbar() {
                         })()}
                       </div>
 
-                      {/* Right Panel - Featured Company Card */}
                       <div className="company-right-panel">
                         <div className="featured-company-header">
                           <span className="company-eyebrow">Featured Company</span>
@@ -3741,7 +3733,6 @@ function Navbar() {
           </div>
         </div>
 
-        {/* Right Section: Contact + Globe + Login + Button */}
         <div className="nav-top-right">
             <div className="nav-contact-us">
               <a href="#contact" className="contact-link">Contact Us</a>

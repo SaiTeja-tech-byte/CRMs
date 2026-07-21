@@ -1,6 +1,5 @@
 import React from "react";
 
-// SVG Components for integration logos to ensure they look beautiful and load instantly
 const GoogleIcon = () => (
   <svg viewBox="0 0 24 24" width="32" height="32" xmlns="http://www.w3.org/2000/svg">
     <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114A5.625 5.625 0 0 1 8.36 12.89a5.625 5.625 0 0 1 5.631-5.63c1.554 0 2.977.568 4.07 1.503l3.208-3.21a10.057 10.057 0 0 0-7.278-2.923C8.423 2.63 3.864 7.189 3.864 12.766c0 5.578 4.559 10.137 10.127 10.137 5.807 0 9.646-4.08 9.646-9.82 0-.66-.06-1.297-.17-1.798H12.24Z" fill="#4285F4"/>
@@ -191,7 +190,6 @@ const Companies = () => {
   background: #FFFFFF;
   box-shadow: 0 10px 25px rgba(37, 99, 235, 0.1);
 }
-
 
 /* Responsive adjustments */
 @media (max-width: 768px) {

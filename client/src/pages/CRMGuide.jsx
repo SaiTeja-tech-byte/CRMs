@@ -1039,7 +1039,6 @@ const CRMGuide = () => {
         </div>
       </header>
 
-      {/* Main sticky navigation layout grid */}
       <main className="guide-container">
         <div className="guide-content-layout">
           
@@ -1096,7 +1095,6 @@ const CRMGuide = () => {
               </div>
             </section>
 
-            {/* Section 2: What is CRM Infographic */}
             <section id="what-is-crm" className="guide-sec">
               <div className="guide-sec-header">
                 <h2>What is CRM?</h2>
@@ -1120,7 +1118,6 @@ const CRMGuide = () => {
               </div>
             </section>
 
-            {/* Section 3: Explore Products (10 modules) */}
             <section id="explore-products" className="guide-sec">
               <div className="guide-sec-header">
                 <h2>Explore Products</h2>
@@ -1149,7 +1146,6 @@ const CRMGuide = () => {
               </div>
             </section>
 
-            {/* Section 4: SaaS Solutions Cloud details */}
             <section id="saas-solutions" className="guide-sec">
               <div className="guide-sec-header">
                 <h2>SaaS Solutions</h2>
@@ -1194,7 +1190,6 @@ const CRMGuide = () => {
               </div>
             </section>
 
-            {/* Section 5: Customer Success Testimonials */}
             <section id="customer-success" className="guide-sec">
               <div className="guide-sec-header">
                 <h2>Customer Success</h2>
@@ -1221,7 +1216,6 @@ const CRMGuide = () => {
               </div>
             </section>
 
-            {/* Section 6: Product Pricing Tables */}
             <section id="product-pricing" className="guide-sec">
               <div className="guide-sec-header">
                 <h2>Product Pricing Plans</h2>

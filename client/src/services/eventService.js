@@ -1,7 +1,5 @@
 import axios from "axios";
 
-// Defensively strips a trailing "/auth" in case VITE_API_URL was set to
-// match authService.js's convention instead of this file's — works either way.
 const API_BASE = (import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "");
 
 const authHeaders = () => ({
@@ -36,9 +34,6 @@ export const adminGetAllEvents = async () => {
   return res.data.events;
 };
 
-// event: { targetType: "employee"|"department"|"all", employeeId, department,
-//          title, description, type, date, startTime, endTime, location, priority }
-// Returns { count, events, event } — event/events depending on how many were created.
 export const adminAssignEvent = async (event) => {
   const res = await axios.post(`${API_BASE}/admin/events`, event, authHeaders());
   return res.data;

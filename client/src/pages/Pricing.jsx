@@ -7,7 +7,6 @@ const Pricing = () => {
   return (
     <div className="pricing-page">
       <Navbar />
-      {/* Spacer to push content below sticky header */}
       <div style={{ height: "80px" }}></div>
       <main>
         <PricingSection />

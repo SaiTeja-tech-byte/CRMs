@@ -2,11 +2,6 @@ import { useState, useEffect, useRef } from "react";
 import { getUnreadNotificationCount } from "../services/notificationService";
 import { onSocketEvent } from "../services/socketService";
 
-// Powers the badge next to "Notifications" in both sidebars (Dashboard.jsx's
-// own copy and the shared components/layout/Sidebar.jsx used by
-// AdminDashboard.jsx) — same pattern as useChatUnreadCount, so the count is
-// global (backend-backed, not tied to whichever tab happens to be open) and
-// updates live no matter which tab the user is currently on.
 const useNotificationUnreadCount = () => {
   const [count, setCount] = useState(0);
   const mountedRef = useRef(true);

@@ -367,7 +367,6 @@ const Footer = () => {
 }
 `}</style>
   <footer className="footer" id="footer">
-    {/* Upper Footer: Pure White Background */}
     <div className="footer-upper">
       <div className="container footer-upper-inner">
         
@@ -401,7 +400,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Links Column 1: New to CRM Platform? */}
         <div className={`footer-links-column ${openColumns.newToCrm ? 'open' : ''}`}>
           <h4 onClick={() => toggleColumn('newToCrm')}>
             <span>New to CRM Platform?</span>
@@ -417,7 +415,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Links Column 2: About CRM Platform */}
         <div className={`footer-links-column ${openColumns.aboutCrm ? 'open' : ''}`}>
           <h4 onClick={() => toggleColumn('aboutCrm')}>
             <span>About CRM Platform</span>
@@ -437,7 +434,6 @@ const Footer = () => {
           </div>
         </div>
 
-        {/* Links Column 3: Popular Links */}
         <div className={`footer-links-column ${openColumns.popularLinks ? 'open' : ''}`}>
           <h4 onClick={() => toggleColumn('popularLinks')}>
             <span>Popular Links</span>
@@ -457,11 +453,9 @@ const Footer = () => {
       </div>
     </div>
 
-    {/* Lower Footer: Dark Blue Background Banner */}
     <div className="footer-lower">
       <div className="container footer-lower-inner">
         
-        {/* Top Row: Region, Links, Pill Button */}
         <div className="footer-lower-top-row">
           
           {/* Region selector */}

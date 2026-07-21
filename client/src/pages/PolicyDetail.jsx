@@ -509,7 +509,6 @@ const PolicyDetail = ({ path }) => {
                 </section>
               ))}
 
-              {/* Action Buttons inside cards if needed */}
               {currentPolicy.showCookiePrefsBtn && (
                 <div className="policy-extra-action">
                   <button className="btn-primary" onClick={() => setShowCookiesModal(true)}>

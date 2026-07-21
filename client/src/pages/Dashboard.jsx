@@ -13,17 +13,8 @@ import OrganizationChart from "./OrganizationChart";
 import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
 
-// Was hardcoded to TODAY_STR throughout this file, which drifts stale
-// the moment the calendar moves past that day. Computed once here instead,
-// so every "today" comparison below (tasks, events, notifications) stays correct.
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
-// TeamPage was originally built for local mock data shaped like
-// { firstName, lastName, status: "Online"|"Away"|"Offline" }. The real
-// backend (GET /api/team) returns actual User records shaped like
-// { fullName, employmentStatus: "Active"|"Inactive" }. Without this
-// adapter, TeamPage crashes to a blank screen the moment it tries to call
-// member.status.toLowerCase() on a real record, since "status" doesn't exist.
 const mapUserToTeamMember = (u) => {
   const nameParts = (u.fullName || "").trim().split(" ");
   return {
@@ -60,7 +51,6 @@ const mockMessages = [
   { id: 2, sender: "John Doe", excerpt: "Tesla proposal looks ready to close.", time: "Yesterday" }
 ];
 
-// Default profile information (Single source of truth)
 const defaultProfileData = {
   firstName: "",
   lastName: "",
@@ -125,10 +115,8 @@ const defaultProfileData = {
   notifPush: true
 };
 
-// Initial Events List (Single Source of Truth)
 const initialEvents = [];
 
-// Helper to resolve color style depending on Type & Status
 const getEventColor = (type, status) => {
   if (status === "Completed") return "#10b981"; // Green (Completed)
   if (status === "Missed") return "#ef4444"; // Red (Missed)
@@ -154,7 +142,6 @@ const getEventBootstrapIcon = (type) => {
 };
 
 // ----------------------------------------------------
-// SALES ANALYTICS CHART COMPONENT (Dependency-free Responsive SVG)
 // ----------------------------------------------------
 const SalesChartComponent = () => {
   return (
@@ -182,7 +169,6 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "team", label: "Team", icon: "bi-people" },
-    // Chat is integrated directly into the dashboard
     { key: "chat", label: "Chat", icon: "bi-chat-dots" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
@@ -241,7 +227,6 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
   );
 };
 
-// Helper for rendering circular image initials avatar
 const AvatarRenderer = ({ profile, size }) => {
   if (profile && profile.avatar) {
     return <img src={profile.avatar} alt="Profile" style={{ width: size, height: size, borderRadius: "50%", objectFit: "cover" }} />;
@@ -266,7 +251,6 @@ const AvatarRenderer = ({ profile, size }) => {
 };
 
 // ----------------------------------------------------
-// ME PROFILE PAGE COMPONENT (EDITABLE FORM)
 // ----------------------------------------------------
 const MeProfile = ({ profile, onSave, onCancel }) => {
   const [formData, setFormData] = useState({ ...profile });
@@ -314,7 +298,6 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
     showToastMsg("Profile updated successfully!");
   };
 
-  // ── Delete Account ──
   const handleDeleteAccount = async () => {
     setDeleteLoading(true);
     setDeleteError("");
@@ -330,7 +313,6 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
       });
       const data = await res.json();
       if (res.ok && data.success) {
-        // Clear all local auth data
         localStorage.removeItem("token");
         localStorage.removeItem("crm_profile_v2");
         localStorage.removeItem("crm_events_v2");
@@ -595,7 +577,6 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
             <div className="p-3 border rounded-3">
               <h4 className="mb-3" style={{ fontSize: "13px", fontWeight: "800", color: "var(--crm-primary)" }}>Work Information</h4>
               <div className="row g-3">
-                {/* Read-only fields — clean white, no disabled look */}
                 <div className="col-md-4 modal-form-group">
                   <label>Employee ID</label>
                   <input type="text" value={formData.employeeId || ""} className="readonly-clean" readOnly />
@@ -691,7 +672,6 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
             </div>
           </div>
 
-          {/* Action Buttons — Cancel | Reset | Delete Account | Save Changes */}
           <div className="col-12 d-flex justify-content-end gap-3 mt-4 flex-wrap">
             <button type="button" className="btn-profile-secondary" style={{ padding: "10px 24px" }} onClick={onCancel}>
               Cancel
@@ -831,9 +811,7 @@ const SettingsPage = ({ profile, onSaveSettings }) => {
   );
 };
 
-
 // ----------------------------------------------------
-// SIMPLE CRM INTERACTIVE CALENDAR COMPONENT (WITH CRUD)
 // ----------------------------------------------------
 const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profile }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -878,7 +856,6 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
     location: ""
   });
 
-  // Month structure generator (July 2026 Monthly Grid)
   const calendarCells = [];
   for (let i = 28; i <= 30; i++) {
     calendarCells.push({ dayNum: i, dateStr: `2026-06-${i}`, inMonth: false });
@@ -966,7 +943,6 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
     setShowAddModal(true);
   };
 
-  // Filter Logic (Search + Type dropdown)
   const filteredEvents = (events || []).filter(ev => {
     const matchesSearch = (ev.title || "").toLowerCase().includes(searchQuery.toLowerCase()) || 
                           (ev.customer || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -981,15 +957,12 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
     return matchesSearch && matchesFilter;
   });
 
-  // Today's list (July 14, 2026)
   const todaysList = filteredEvents.filter(ev => ev.date === TODAY_STR)
     .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
 
-  // Upcoming list (after July 14, 2026)
   const upcomingList = filteredEvents.filter(ev => ev.date > TODAY_STR)
     .sort((a, b) => (a.date || "").localeCompare(b.date || ""));
 
-  // Date Formatter helper: YYYY-MM-DD to "DD Month"
   const formatUpcomingDate = (dateStr) => {
     const parts = dateStr.split("-");
     if (parts.length === 3) {
@@ -1049,7 +1022,6 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
       {/* 2. Split Workspace Layout */}
       <div className="calendar-layout-wrapper">
         
-        {/* Left Hand Block: Grid Calendar (70%) */}
         <div className="calendar-left-main">
           <div className="calendar-grid-header">
             <div>Sun</div>
@@ -1084,7 +1056,6 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
                     )}
                   </div>
                   
-                  {/* Event list rows inside cell */}
                   <div className="d-flex flex-column gap-1 overflow-hidden" style={{ flex: 1 }}>
                     {dayEvents.slice(0, 3).map(ev => (
                       <div 
@@ -1116,10 +1087,8 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
           </div>
         </div>
 
-        {/* Right Hand Block: Schedule & Quick Controls (30%) */}
         <div className="calendar-right-side">
           
-          {/* A. Upcoming Events list card */}
           <div className="p-3 border rounded-3 bg-light">
             <h4 style={{ fontSize: "11.5px", fontWeight: "800", textTransform: "uppercase", color: "#475569", letterSpacing: "0.02em", marginBottom: "12px" }}>
               Upcoming Events
@@ -1646,13 +1615,9 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
   );
 };
 
-
 // ----------------------------------------------------
-// SIMPLE CRM TASKS MODULE COMPONENT (WITH CRUD)
 // ----------------------------------------------------
 const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) => {
-  // Was hardcoded to a fixed date string (todayStr), which drifts stale
-  // the moment the calendar moves past that day. Compute it fresh instead.
   const todayStr = new Date().toISOString().slice(0, 10);
   const [activeCategory, setActiveCategory] = useState("My Tasks");
   const [searchQuery, setSearchQuery] = useState("");
@@ -1776,7 +1741,6 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
 
   const categoryTasks = getCategoryTasks();
 
-  // Apply search and dropdown filters
   const finalTasks = categoryTasks.filter(t => {
     const matchesSearch = (t.title || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
                           (t.description || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -1821,7 +1785,6 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
 
       <div className="tasks-layout-wrapper">
         
-        {/* LEFT PANEL: Task categories sidebar */}
         <div className="tasks-left-sidebar">
           {[
             { name: "My Tasks", count: myTasksCount },
@@ -2361,7 +2324,6 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
 };
 
 // ----------------------------------------------------
-// CRM TEAM MANAGEMENT COMPONENT (WITH CRUD & SIDE DRAWER)
 // ----------------------------------------------------
 const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -2527,10 +2489,8 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
 
       <hr />
 
-      {/* 3. Main Split View Wrapper */}
       <div className="team-layout-wrapper">
         
-        {/* Left Column: Departments Filter Panel */}
         <div className="team-left-sidebar d-none d-md-flex flex-column gap-2">
           <h4 style={{ fontSize: "11.5px", fontWeight: "800", textTransform: "uppercase", color: "#475569", letterSpacing: "0.02em", marginBottom: "4px" }}>
             Departments
@@ -2980,7 +2940,6 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
         </div>
       )}
 
-      {/* Team Member Profile Details Side panel / Drawer */}
       {showDetailsDrawer && selectedMember && (
         <>
           {/* Overlay mask */}
@@ -3408,7 +3367,6 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
 // ----------------------------------------------------
 
 // ----------------------------------------------------
-// CRM DOCUMENTS COMPONENT (WITH FOLDER & FILE CRUD)
 // ----------------------------------------------------
 const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate, profile }) => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -3513,7 +3471,6 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
   const handleRenameSubmit = (e) => {
     e.preventDefault();
     if (!renameValue.trim() || !selectedDoc) return;
-    // Keep original extension if file
     let newName = renameValue.trim();
     if (selectedDoc.type === "File" && selectedDoc.extension && !newName.endsWith(selectedDoc.extension)) {
       newName += selectedDoc.extension;
@@ -3623,7 +3580,6 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
         </p>
       </div>
 
-      {/* 2. Top Filter and Sort Controls */}
       <div className="d-flex flex-wrap align-items-center justify-content-between gap-3 mb-4">
         <div className="d-flex flex-wrap align-items-center gap-2">
           <div className="nav-search-bar" style={{ width: "200px", background: "var(--crm-bg)", border: "1px solid var(--crm-border)" }}>
@@ -3682,7 +3638,6 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
         </div>
       </div>
 
-      {/* 3. Main Split View Layout */}
       <div className="team-layout-wrapper">
         
         {/* Left Side: Document Listing */}
@@ -4387,7 +4342,6 @@ const Dashboard = () => {
   const [showMsgMenu, setShowMsgMenu] = useState(false);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
-  // Single Source of Truth Profile State (synchronized via LocalStorage)
   const [profile, setProfile] = useState(() => {
     try {
       const saved = localStorage.getItem("crm_profile_v2");
@@ -4403,30 +4357,20 @@ const Dashboard = () => {
     return defaultProfileData;
   });
 
-  // ── Employee Workspace Dashboard State (backend-ready, all default to 0) ──
-  // TODO: Replace each null with an API call (e.g. useEffect → fetch/axios)
   const [employeeStats, setEmployeeStats] = useState(null);
-  // Shape: { leavesThisYear: 0, overdueTasks: 0, overtimeHours: 0, projects: 0 }
 
   const [workSummary, setWorkSummary] = useState(null);
-  // Shape: { todaysMeetings: 0, pendingTasks: 0, openDeals: 0, upcomingEvents: 0, recentActivity: 0, notifications: 0 }
 
   const [productivity, setProductivity] = useState(null);
-  // Shape: { weeklyPercent: 0 }
 
   const [attendance, setAttendance] = useState(null);
-  // Shape: { monthlyPercent: 0 }
 
   const [leaveData, setLeaveData] = useState(null);
-  // Shape: { teamOnLeave: [], requests: [] }
 
   const [leaveBalance, setLeaveBalance] = useState(null);
-  // Shape: { remainingLeave: 0, earnedLeave: 0 }
 
   const [otherEvents, setOtherEvents] = useState([]);
-  // Shape: Array of event objects
 
-  // Single Source of Truth Events State (synchronized via LocalStorage)
   const [events, setEvents] = useState(() => {
     try {
       const saved = localStorage.getItem("crm_events_v2");
@@ -4442,7 +4386,6 @@ const Dashboard = () => {
     return initialEvents;
   });
 
-  // Tasks — loaded from the real backend (includes tasks an admin assigned).
   const [tasks, setTasks] = useState([]);
   const [tasksLoading, setTasksLoading] = useState(true);
   const [tasksError, setTasksError] = useState("");
@@ -4464,7 +4407,6 @@ const Dashboard = () => {
   }, []);
   const [aiExpanded, setAiExpanded] = useState(false);
 
-  // ── Sync Dashboard Data from Backend API ──
   const syncDashboardData = async () => {
     const token = localStorage.getItem("token");
     if (!token) return;
@@ -4500,7 +4442,6 @@ const Dashboard = () => {
     } catch (e) { console.error("Error syncing tasks:", e); }
 
     try {
-      // 3. Sync Calendar Events (includes admin-assigned ones)
       const eventsRes = await fetch(`${base}/events`, { headers });
       if (eventsRes.ok) {
         const data = await eventsRes.json();
@@ -4512,7 +4453,6 @@ const Dashboard = () => {
     } catch (e) { console.error("Error syncing events:", e); }
 
     try {
-      // 5. Sync Team (colleague directory, read-only)
       const teamRes = await fetch(`${base}/team`, { headers });
       if (teamRes.ok) {
         const data = await teamRes.json();
@@ -4547,8 +4487,6 @@ const Dashboard = () => {
 
   React.useEffect(() => {
     syncDashboardData();
-    // Poll every 10s as a fallback (covers reconnect gaps); the socket
-    // listeners below make updates feel instant the rest of the time.
     const interval = setInterval(syncDashboardData, 10000);
     return () => clearInterval(interval);
   }, []);
@@ -4557,10 +4495,6 @@ const Dashboard = () => {
     syncLeaveData();
   }, []);
 
-  // Real-time push: when an admin assigns a task/event, posts news, or
-  // updates settings/documents, this fires immediately instead of waiting
-  // for the next poll. Resyncing everything on any of these is simpler and
-  // more reliable than hand-merging each partial payload into state.
   React.useEffect(() => {
     connectSocket();
     const unsubscribers = [
@@ -4608,8 +4542,6 @@ const Dashboard = () => {
       "System Update"
     );
   };
-
-  // Dark mode removed — light theme only
 
   const handleAddEvent = async (newEvent) => {
     const token = localStorage.getItem("token");
@@ -4705,9 +4637,6 @@ const Dashboard = () => {
     } catch (e) { console.error("Error deleting task:", e); }
   };
 
-  // Employees browse the real company directory (read-only) — fetched live
-  // via syncDashboardData()/getTeam(). Managing membership (add/edit/remove)
-  // is an admin-only capability on the Admin Dashboard.
   const [teamMembers, setTeamMembers] = useState(() => {
     try {
       const saved = localStorage.getItem("crm_team_members_v2");
@@ -4735,7 +4664,6 @@ const Dashboard = () => {
     alert("Only admins can remove team members.");
   };
 
-  // Single Source of Truth Notifications State (starts empty by default for production CRM style)
   const [notifications, setNotifications] = useState(() => {
     try {
       const saved = localStorage.getItem("crm_notifications_v2");
@@ -4751,9 +4679,6 @@ const Dashboard = () => {
     return [];
   });
 
-  // Converts a backend Notification row (from admins assigning tasks/events,
-  // approving/rejecting leave, etc.) into this page's local notification
-  // shape, tagged with serverId so read-state can be synced back to the API.
   const serverNotifToLocal = (n) => ({
     id: `server-${n.id}`,
     serverId: n.id,
@@ -4767,10 +4692,6 @@ const Dashboard = () => {
     type: "System",
   });
 
-  // Pulls real notifications sent by the backend (task/event assignments,
-  // leave approvals, etc.) into the list shown on the Notifications tab —
-  // this is what makes the sidebar badge count mean something concrete
-  // instead of just tracking locally-triggered toasts.
   const syncServerNotifications = () => {
     fetchServerNotifications()
       .then((serverList) => {
@@ -4820,8 +4741,6 @@ const Dashboard = () => {
     const updated = (notifications || []).map(n => n.id === updatedNotif.id ? updatedNotif : n);
     setNotifications(updated);
     localStorage.setItem("crm_notifications_v2", JSON.stringify(updated));
-    // Sync read-state back to the backend for server-sourced notifications
-    // so the sidebar badge (which counts from the backend) clears in step.
     if (updatedNotif.serverId && updatedNotif.unread === false) {
       markServerNotificationRead(updatedNotif.serverId)
         .then(() => window.dispatchEvent(new Event("crm_notifications_updated")))
@@ -4835,8 +4754,6 @@ const Dashboard = () => {
     localStorage.setItem("crm_notifications_v2", JSON.stringify(updated));
   };
 
-  // "Request Leave" modal — submits straight to the admin via POST /api/leave
-  // (adminController-style: creates a row + notifies every admin in real time).
   const emptyLeaveForm = { type: "Casual Leave", startDate: "", endDate: "", reason: "" };
   const [leaveModalOpen, setLeaveModalOpen] = useState(false);
   const [leaveForm, setLeaveForm] = useState(emptyLeaveForm);
@@ -4882,7 +4799,6 @@ const Dashboard = () => {
     }
   };
 
-  // Single Source of Truth Documents State (starts empty by default for production CRM style)
   const [documents, setDocuments] = useState(() => {
     try {
       const saved = localStorage.getItem("crm_documents_v2");
@@ -4974,7 +4890,6 @@ const Dashboard = () => {
   const pendingTasksCount = (tasks || []).filter(t => t.status !== "Completed").length;
   const taskProgressPercent = (tasks || []).length > 0 ? Math.round((completedTasksCount / (tasks || []).length) * 100) : 0;
 
-  // Sync dashboard stat card and schedules with the actual dynamic events list!
   const todaysEventsList = (events || []).filter(ev => ev.date === TODAY_STR)
     .sort((a, b) => (a.startTime || "").localeCompare(b.startTime || ""));
 
@@ -6552,7 +6467,6 @@ body {
 
           <div className="nav-right-controls" style={{ display: "flex", alignItems: "center", gap: "16px", paddingRight: "24px" }}>
 
-            {/* Admin profile widget - dynamically binds from unified profile state */}
             <div className="profile-trigger" onClick={() => setShowProfileMenu(!showProfileMenu)} style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer", height: "40px" }}>
               <div className="avatar-circle" style={{ width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "13px", fontWeight: "700", background: "var(--crm-hover)", color: "var(--crm-primary)", overflow: "hidden" }}>
                 {profile && profile.avatar ? <img src={profile.avatar} alt="Profile" style={{ width: "40px", height: "40px", borderRadius: "50%", objectFit: "cover" }} /> : `${profile?.firstName?.[0] || ""}${profile?.lastName?.[0] || ""}`}
@@ -6594,7 +6508,6 @@ body {
         {/* MAIN VIEWPORT */}
         <main className="crm-viewport-content">
 
-          {/* VIEW: DASHBOARD TAB — Employee Workspace */}
           {activeMenu === "dashboard" && (
             <>
               <style>{`
@@ -7042,7 +6955,6 @@ body {
 
               <div className="ew-root">
 
-                {/* ════════════ LEFT COLUMN ════════════ */}
                 <div className="ew-left">
 
                   {/* Profile Card */}
@@ -7107,10 +7019,8 @@ body {
 
                 </div>
 
-                {/* ════════════ RIGHT COLUMN ════════════ */}
                 <div className="ew-right">
 
-                  {/* ROW 1 — Today's Work Summary */}
                   <div className="ew-card ew-summary-card">
                     <div className="ew-summary-header">
                       <h3 className="ew-summary-title">Today's Work Summary</h3>
@@ -7135,7 +7045,6 @@ body {
                     </div>
                   </div>
 
-                  {/* ROW 2 — Productivity + Attendance */}
                   <div className="ew-progress-row">
                     <div className="ew-card ew-progress-card">
                       <p className="ew-progress-title">Productivity</p>
@@ -7162,7 +7071,6 @@ body {
                     </div>
                   </div>
 
-                  {/* ROW 3 — Team Members on Leave + Leave Requests */}
                   <div className="ew-two-col">
                     <div className="ew-card ew-leave-card">
                       <h4 className="ew-leave-title">Team Members On Leave</h4>
@@ -7197,7 +7105,6 @@ body {
                     </div>
                   </div>
 
-                  {/* ROW 4 — Holiday / Leave Balance */}
                   <div className="ew-card ew-holiday-card">
                     {/* Circular progress */}
                     <div className="ew-circle-wrap">
@@ -7235,7 +7142,6 @@ body {
                     </div>
                   </div>
 
-                  {/* ROW 5 — Other Events */}
                   <div className="ew-card ew-events-card">
                     <div className="ew-events-header">
                       <h4 className="ew-events-title">Other Events</h4>
