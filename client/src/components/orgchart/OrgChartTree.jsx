@@ -1,16 +1,8 @@
 import React, { useState, useEffect, useCallback, useMemo } from "react";
-import { Users, ZoomIn, ZoomOut, Maximize, RotateCcw, Download, Eye, Search, FilterX, ChevronDown, ChevronUp, Pencil, Trash2, Plus, X, ImagePlus } from "lucide-react";
+import { Users, ZoomIn, ZoomOut, Maximize, RotateCcw, Download, Eye, Search, FilterX, ChevronDown, ChevronUp, Pencil, Trash2, Plus, X } from "lucide-react";
 import { getOrgChart, createOrgNode, updateOrgNode, deleteOrgNode } from "../../services/orgChartService";
 import { connectSocket, onSocketEvent } from "../../services/socketService";
 import "./OrgChartTree.css";
-
-const fileToDataUrl = (file) =>
-  new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result);
-    reader.onerror = reject;
-    reader.readAsDataURL(file);
-  });
 
 const initials = (name = "") =>
   name
@@ -44,7 +36,7 @@ const eligibleParents = (allNodes, excludeId) => {
   return allNodes.filter((n) => !blocked.has(n.id));
 };
 
-const emptyForm = { name: "", title: "", department: "", email: "", phone: "", avatarUrl: "" };
+const emptyForm = { name: "", title: "", department: "", employeeId: "" };
 
 const OrgChartTree = ({ isAdmin }) => {
   const [tree, setTree] = useState([]);
@@ -70,7 +62,6 @@ const OrgChartTree = ({ isAdmin }) => {
   const [editingNode, setEditingNode] = useState(null);
   const [saving, setSaving] = useState(false);
   const [formError, setFormError] = useState("");
-  const [photoUploading, setPhotoUploading] = useState(false);
 
   const load = useCallback(async () => {
     try {
@@ -158,9 +149,7 @@ const OrgChartTree = ({ isAdmin }) => {
       name: node.name || "",
       title: node.title || "",
       department: node.department || "",
-      email: node.email || "",
-      phone: node.phone || "",
-      avatarUrl: node.avatarUrl || "",
+      employeeId: node.employeeId || "",
     });
     setFormError("");
     setFormOpen(true);
@@ -175,35 +164,10 @@ const OrgChartTree = ({ isAdmin }) => {
     setFormValues((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handlePhotoChange = async (e) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (!file.type.startsWith("image/")) {
-      setFormError("Please choose an image file.");
-      return;
-    }
-    if (file.size > 3 * 1024 * 1024) {
-      setFormError("Photo is too large — please use one under 3MB.");
-      return;
-    }
-    setPhotoUploading(true);
-    setFormError("");
-    try {
-      const dataUrl = await fileToDataUrl(file);
-      setFormValues((prev) => ({ ...prev, avatarUrl: dataUrl }));
-    } catch (err) {
-      setFormError("Couldn't read that photo — please try another.");
-    } finally {
-      setPhotoUploading(false);
-    }
-  };
-
-  const removePhoto = () => setFormValues((prev) => ({ ...prev, avatarUrl: "" }));
-
   const handleFormSubmit = async (e) => {
     e.preventDefault();
-    if (!formValues.name.trim()) {
-      setFormError("Name is required.");
+    if (!formValues.name.trim() || !formValues.title.trim() || !formValues.department.trim()) {
+      setFormError("Employee Name, Designation, and Department are required.");
       return;
     }
     setSaving(true);
@@ -531,70 +495,43 @@ const OrgChartTree = ({ isAdmin }) => {
           style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
           onClick={closeForm}
         >
-          <div className="bg-white rounded-3 p-4 shadow" style={{ width: "400px", maxWidth: "90vw" }} onClick={(e) => e.stopPropagation()}>
-            <div className="d-flex justify-content-between align-items-center mb-3">
-              <h6 className="fw-bold m-0 text-dark">
-                {formMode === "add" ? "Add Team Member" : "Edit Employee"}
-              </h6>
+          <div className="bg-white rounded-4 p-4 shadow-lg" style={{ width: "500px", maxWidth: "95vw" }} onClick={(e) => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-start mb-4">
+              <div>
+                <h5 className="fw-bold m-0 text-dark">
+                  {formMode === "add" ? "Add Team Member" : "Edit Employee"}
+                </h5>
+                <p className="text-muted small mb-0 mt-1">
+                  Add a new employee to the organization hierarchy.
+                </p>
+              </div>
               <button type="button" className="btn btn-sm btn-light p-1 text-muted" onClick={closeForm}>
-                <X size={16} />
+                <X size={18} />
               </button>
             </div>
 
             <form onSubmit={handleFormSubmit}>
-              <div className="mb-4 d-flex align-items-center gap-3">
-                <div
-                  className="rounded-circle d-flex align-items-center justify-content-center flex-shrink-0"
-                  style={{ width: "56px", height: "56px", background: "#f1f5f9", overflow: "hidden", fontWeight: 700, color: "#64748b", border: "1px solid #e2e8f0" }}
-                >
-                  {formValues.avatarUrl ? (
-                    <img src={formValues.avatarUrl} alt="Preview" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
-                  ) : (
-                    initials(formValues.name)
-                  )}
-                </div>
-                <div>
-                  <label className="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mb-0" style={{ cursor: "pointer" }}>
-                    <ImagePlus size={14} />
-                    {photoUploading ? "Uploading..." : "Upload Photo"}
-                    <input type="file" accept="image/*" onChange={handlePhotoChange} disabled={photoUploading} hidden />
-                  </label>
-                  {formValues.avatarUrl && (
-                    <button type="button" className="btn btn-sm btn-link text-danger p-0 ms-2" onClick={removePhoto}>
-                      Remove
-                    </button>
-                  )}
-                </div>
-              </div>
-
               <div className="mb-3">
                 <label className="form-label small text-muted fw-semibold mb-1">Employee Name *</label>
-                <input type="text" name="name" className="form-control form-control-sm" value={formValues.name} onChange={handleFormChange} autoFocus />
+                <input type="text" name="name" className="form-control" style={{ borderRadius: "8px" }} value={formValues.name} onChange={handleFormChange} autoFocus />
               </div>
               <div className="mb-3">
-                <label className="form-label small text-muted fw-semibold mb-1">Designation</label>
-                <input type="text" name="title" className="form-control form-control-sm" placeholder="e.g. VP - Sales" value={formValues.title} onChange={handleFormChange} />
+                <label className="form-label small text-muted fw-semibold mb-1">Designation *</label>
+                <input type="text" name="title" className="form-control" style={{ borderRadius: "8px" }} value={formValues.title} onChange={handleFormChange} />
               </div>
               <div className="mb-3">
-                <label className="form-label small text-muted fw-semibold mb-1">Department</label>
-                <input type="text" name="department" className="form-control form-control-sm" value={formValues.department} onChange={handleFormChange} />
+                <label className="form-label small text-muted fw-semibold mb-1">Department *</label>
+                <input type="text" name="department" className="form-control" style={{ borderRadius: "8px" }} value={formValues.department} onChange={handleFormChange} />
               </div>
-              
-              <div className="row">
-                <div className="col-6 mb-3">
-                  <label className="form-label small text-muted fw-semibold mb-1">Email</label>
-                  <input type="email" name="email" className="form-control form-control-sm" value={formValues.email} onChange={handleFormChange} />
-                </div>
-                <div className="col-6 mb-3">
-                  <label className="form-label small text-muted fw-semibold mb-1">Phone</label>
-                  <input type="text" name="phone" className="form-control form-control-sm" value={formValues.phone} onChange={handleFormChange} />
-                </div>
+              <div className="mb-3">
+                <label className="form-label small text-muted fw-semibold mb-1">Employee ID (Optional)</label>
+                <input type="text" name="employeeId" className="form-control" style={{ borderRadius: "8px" }} value={formValues.employeeId} onChange={handleFormChange} />
               </div>
-
               <div className="mb-4">
-                <label className="form-label small text-muted fw-semibold mb-1">Reporting To</label>
+                <label className="form-label small text-muted fw-semibold mb-1">Reporting To *</label>
                 <select
-                  className="form-select form-select-sm"
+                  className="form-select"
+                  style={{ borderRadius: "8px" }}
                   value={formParentId || ""}
                   onChange={(e) => setFormParentId(e.target.value || null)}
                 >
@@ -607,9 +544,9 @@ const OrgChartTree = ({ isAdmin }) => {
 
               {formError && <div className="alert alert-danger py-2 small">{formError}</div>}
 
-              <div className="d-flex gap-2 justify-content-end pt-2 border-top">
-                <button type="button" className="btn btn-light" onClick={closeForm}>Cancel</button>
-                <button type="submit" className="btn btn-brand" disabled={saving}>
+              <div className="d-flex gap-2 justify-content-end pt-3 mt-2 border-top">
+                <button type="button" className="btn btn-light" style={{ borderRadius: "8px" }} onClick={closeForm}>Cancel</button>
+                <button type="submit" className="btn btn-brand" style={{ borderRadius: "8px" }} disabled={saving}>
                   {saving ? "Saving..." : formMode === "add" ? "Add Employee" : "Save Changes"}
                 </button>
               </div>
