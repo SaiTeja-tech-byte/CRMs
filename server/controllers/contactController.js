@@ -17,25 +17,29 @@ const submitQuery = async (req, res) => {
     // Notify every currently-connected admin in real time
     emitToAdmins("contact:new-query", { query });
 
-    // Best-effort email notification to admins - failure here shouldn't
-    // block the customer's submission from succeeding.
-    try {
-      const admins = await User.findAll({ where: { role: "admin" }, attributes: ["email"] });
-      for (const admin of admins) {
-        await sendMail({
-          to: admin.email,
-          subject: `New contact query from ${name}`,
-          html: `<p><strong>${name}</strong> (${email}) sent a message:</p><p>${message}</p>`,
-        });
-      }
-    } catch (emailErr) {
-      console.error("Admin notification email failed:", emailErr.message);
-    }
-
-    return res.status(201).json({
+    // Respond to the customer right away — don't make them wait on Gmail's
+    // SMTP round trip (this was the cause of the slow submit). The emails
+    // still go out, just after the response, not before it.
+    res.status(201).json({
       success: true,
       message: "Thanks for reaching out — our team will get back to you soon.",
     });
+
+    User.findAll({ where: { role: "admin" }, attributes: ["email"] })
+      .then((admins) =>
+        Promise.all(
+          admins.map((admin) =>
+            sendMail({
+              to: admin.email,
+              subject: `New contact query from ${name}`,
+              html: `<p><strong>${name}</strong> (${email}) sent a message:</p><p>${message}</p>`,
+            }).catch((emailErr) =>
+              console.error(`Admin notification email to ${admin.email} failed:`, emailErr.code || "", emailErr.message)
+            )
+          )
+        )
+      )
+      .catch((err) => console.error("Admin notification lookup failed:", err.message));
   } catch (error) {
     console.error("Submit contact query error:", error);
     return res.status(500).json({ success: false, message: "Server error submitting your message" });
@@ -107,7 +111,7 @@ const replyToQuery = async (req, res) => {
         `,
       });
     } catch (emailErr) {
-      console.error("Reply email failed to send:", emailErr.message);
+      console.error("Reply email failed to send:", emailErr.code || "", emailErr.message);
       emailWarning = "Reply was saved, but the email to the customer could not be sent.";
     }
 
