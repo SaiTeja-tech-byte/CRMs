@@ -26,6 +26,24 @@ const initials = (name = "") =>
     .map((p) => p[0]?.toUpperCase())
     .join("") || "?";
 
+// "< 1 Month" / "3 Months" / "1 Year" / "2 Years 3 Months" — same tenure
+// badge style as the reference chart, computed from createdAt so it needs
+// no new backend field.
+const tenureLabel = (createdAt) => {
+  if (!createdAt) return "";
+  const start = new Date(createdAt);
+  const now = new Date();
+  let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+  if (now.getDate() < start.getDate()) months -= 1;
+  if (months < 1) return "< 1 Month";
+  if (months < 12) return `${months} Month${months > 1 ? "s" : ""}`;
+  const years = Math.floor(months / 12);
+  const remMonths = months % 12;
+  return remMonths === 0
+    ? `${years} Year${years > 1 ? "s" : ""}`
+    : `${years} Yr${years > 1 ? "s" : ""} ${remMonths} Mo`;
+};
+
 const flatten = (nodes, acc = []) => {
   nodes.forEach((n) => {
     acc.push(n);
@@ -59,6 +77,7 @@ const OrgChartTree = ({ isAdmin }) => {
   const [tree, setTree] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [collapsed, setCollapsed] = useState(() => new Set());
 
   const [search, setSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("All");
@@ -211,9 +230,20 @@ const OrgChartTree = ({ isAdmin }) => {
     }
   };
 
+  const toggleCollapse = (nodeId) => {
+    setCollapsed((prev) => {
+      const next = new Set(prev);
+      if (next.has(nodeId)) next.delete(nodeId);
+      else next.add(nodeId);
+      return next;
+    });
+  };
+
   const renderNode = (node, depth) => {
     const color = LEVEL_COLORS[depth % LEVEL_COLORS.length];
     const dim = hasActiveFilter && !matchesFilter(node);
+    const hasChildren = node.children?.length > 0;
+    const isCollapsed = collapsed.has(node.id);
     return (
       <li key={node.id}>
         <div className={`org-node ${dim ? "org-node-dim" : ""}`} style={{ "--org-accent": color }}>
@@ -227,20 +257,27 @@ const OrgChartTree = ({ isAdmin }) => {
               </button>
             </div>
           )}
-          <div className="org-node-avatar">
-            {node.avatarUrl ? (
-              <img src={node.avatarUrl} alt={node.name} className="org-node-avatar-img" />
-            ) : (
-              initials(node.name)
-            )}
+          <div className="org-node-row">
+            <div className="org-node-avatar">
+              {node.avatarUrl ? (
+                <img src={node.avatarUrl} alt={node.name} className="org-node-avatar-img" />
+              ) : (
+                initials(node.name)
+              )}
+            </div>
+            <div className="org-node-info">
+              <div className="org-node-name">{node.name}</div>
+              {node.title && <div className="org-node-title">{node.title}</div>}
+              <div className="org-node-tenure">{tenureLabel(node.createdAt)}</div>
+            </div>
           </div>
-          <div className="org-node-name">{node.name}</div>
-          {node.title && <div className="org-node-title">{node.title}</div>}
-          <div className="org-node-meta">
-            {node.department && <div>{node.department}</div>}
-            {node.phone && <div>{node.phone}</div>}
-            {node.email && <div className="text-truncate">{node.email}</div>}
-          </div>
+          {(node.department || node.phone || node.email) && (
+            <div className="org-node-meta">
+              {node.department && <div>{node.department}</div>}
+              {node.phone && <div>{node.phone}</div>}
+              {node.email && <div className="text-truncate">{node.email}</div>}
+            </div>
+          )}
           {isAdmin && (
             <div className="org-node-add">
               <button
@@ -253,9 +290,24 @@ const OrgChartTree = ({ isAdmin }) => {
               </button>
             </div>
           )}
+          {hasChildren && (
+            <button
+              type="button"
+              className={`org-node-chevron ${isCollapsed ? "collapsed" : ""}`}
+              title={isCollapsed ? "Expand direct reports" : "Collapse direct reports"}
+              onClick={() => toggleCollapse(node.id)}
+            >
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+                <path d="M1 3L5 7L9 3" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+          )}
         </div>
-        {node.children?.length > 0 && (
+        {hasChildren && !isCollapsed && (
           <ul>{node.children.map((child) => renderNode(child, depth + 1))}</ul>
+        )}
+        {hasChildren && isCollapsed && (
+          <div className="org-node-collapsed-hint">{node.children.length} hidden</div>
         )}
       </li>
     );
