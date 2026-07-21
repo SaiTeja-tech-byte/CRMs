@@ -10,6 +10,7 @@ import { onSocketEvent, connectSocket, disconnectSocket } from "../services/sock
 import { getNotifications as fetchServerNotifications, markNotificationRead as markServerNotificationRead, markAllNotificationsRead as markAllServerNotificationsRead } from "../services/notificationService";
 import { getMyLeaveRequests, getMyLeaveBalance, createLeaveRequest as submitLeaveRequest } from "../services/leaveService";
 import OrganizationChart from "./OrganizationChart";
+import GlobalSearch from "../components/layout/GlobalSearch";
 
 // Was hardcoded to TODAY_STR throughout this file, which drifts stale
 // the moment the calendar moves past that day. Computed once here instead,
@@ -6546,6 +6547,8 @@ body {
               <span style={{ color: "var(--crm-dark)", marginLeft: "4px" }}>Platform</span>
             </span>
           </div>
+
+          <GlobalSearch scope="employee" />
 
           <div className="nav-right-controls" style={{ display: "flex", alignItems: "center", gap: "16px", paddingRight: "24px" }}>
 

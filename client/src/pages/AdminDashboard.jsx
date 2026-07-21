@@ -15,6 +15,7 @@ import { onSocketEvent, connectSocket, disconnectSocket } from '../services/sock
 import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import AdminOrganizationChart from './AdminOrganizationChart';
+import GlobalSearch from '../components/layout/GlobalSearch';
 // =========================
 // AdminHome
 // =========================
@@ -3424,6 +3425,8 @@ const AdminDashboard = () => {
               />
             </button>
           </div>
+
+          <GlobalSearch scope="admin" />
 
           <div
             className="nav-right-controls"
