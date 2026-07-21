@@ -3426,7 +3426,7 @@ const AdminDashboard = () => {
             </button>
           </div>
 
-          <GlobalSearch scope="admin" />
+          <GlobalSearch scope="admin" onNavigate={(path) => setActiveMenu(path)} />
 
           <div
             className="nav-right-controls"

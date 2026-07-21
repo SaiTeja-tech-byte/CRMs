@@ -6548,7 +6548,7 @@ body {
             </span>
           </div>
 
-          <GlobalSearch scope="employee" />
+          <GlobalSearch scope="employee" onNavigate={(path) => setActiveMenu(path)} />
 
           <div className="nav-right-controls" style={{ display: "flex", alignItems: "center", gap: "16px", paddingRight: "24px" }}>
 
