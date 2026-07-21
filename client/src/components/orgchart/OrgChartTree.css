@@ -1,267 +1,272 @@
-/* Pure-CSS "connected boxes" org chart tree — horizontal cards (photo left,
-   details right) with dotted connectors, matching the reference chart style.
-   Scoped under .org-tree so it can't leak into the rest of the dashboard. */
-
-.org-tree-scroll {
-  width: 100%;
-  overflow: auto;
-  padding: 24px 16px 48px;
+/* Org Chart Container styling */
+.orgchart-container {
+  font-family: inherit;
 }
 
-.org-tree,
-.org-tree ul {
-  list-style: none;
-  margin: 0;
-  padding: 0;
+.org-sidebar .form-label {
+  font-size: 13px;
 }
 
+.org-sidebar .form-control,
+.org-sidebar .form-select {
+  border: 1px solid #e2e8f0;
+  box-shadow: none;
+}
+
+.org-sidebar .form-control:focus,
+.org-sidebar .form-select:focus {
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* 
+ * CSS-BASED TREE
+ * We use nested UL and LI tags with ::before and ::after pseudo-elements 
+ * to draw the thin gray connector lines.
+ */
 .org-tree {
-  display: flex;
-  justify-content: center;
-  min-width: max-content;
-}
-
-.org-tree > li {
   display: inline-block;
+  white-space: nowrap;
 }
 
 .org-tree ul {
+  padding-top: 30px;
+  position: relative;
   display: flex;
   justify-content: center;
-  gap: 4px;
-  padding-top: 36px;
-  position: relative;
+  margin: 0;
+  padding-left: 0;
+  transition: all 0.5s;
 }
 
 .org-tree li {
-  display: inline-flex;
-  flex-direction: column;
-  align-items: center;
+  float: left;
   text-align: center;
+  list-style-type: none;
   position: relative;
-  padding: 36px 12px 0 12px;
+  padding: 30px 10px 0 10px;
+  transition: all 0.5s;
 }
 
-/* Connector lines — dotted, per the reference chart, instead of solid. */
+/* Horizontal connectors */
 .org-tree li::before,
 .org-tree li::after {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   right: 50%;
+  border-top: 2px solid #cbd5e1; /* thin gray line */
   width: 50%;
-  height: 36px;
-  border-top: 2px dotted #94a3b8;
+  height: 30px;
 }
+
 .org-tree li::after {
   right: auto;
   left: 50%;
-  border-left: 2px dotted #94a3b8;
+  border-left: 2px solid #cbd5e1; /* vertical connector to child */
 }
-.org-tree li:only-child::before,
-.org-tree li:only-child::after {
+
+/* Remove connectors from a single child */
+.org-tree li:only-child::after,
+.org-tree li:only-child::before {
   display: none;
 }
+
+/* Remove padding from single children so they stack closer to parent */
 .org-tree li:only-child {
   padding-top: 0;
 }
+
+/* Remove left/right connectors from first/last child respectively */
 .org-tree li:first-child::before,
 .org-tree li:last-child::after {
   border: 0 none;
 }
+
+/* Rounded corners for the horizontal lines */
 .org-tree li:last-child::before {
-  border-right: 2px dotted #94a3b8;
+  border-right: 2px solid #cbd5e1;
+  border-radius: 0 8px 0 0;
 }
 .org-tree li:first-child::after {
-  /* no radius on a dotted line — keeps corners clean */
+  border-radius: 8px 0 0 0;
 }
-.org-tree > li {
-  padding-top: 0;
-}
-.org-tree > li::before,
-.org-tree > li::after {
-  display: none;
-}
-/* Vertical stem dropping from a parent box down to its children's row,
-   with a small dot where it meets the child row — echoes the arrowed
-   connector dots in the reference chart. */
+
+/* Vertical connector coming down from the parent node to this UL */
 .org-tree ul::before {
-  content: "";
+  content: '';
   position: absolute;
   top: 0;
   left: 50%;
-  border-left: 2px dotted #94a3b8;
+  border-left: 2px solid #cbd5e1;
   width: 0;
-  height: 36px;
+  height: 30px;
+}
+/* If it's the very first UL (root), don't draw a line above it */
+.org-tree > ul::before {
+  display: none;
+}
+.org-tree > ul {
+  padding-top: 0;
 }
 
-.org-node-collapsed-hint {
-  margin-top: 8px;
-  font-size: 10.5px;
-  color: #94a3b8;
-  font-style: italic;
-}
 
-/* ---- Node card: horizontal layout, photo left / details right ---- */
-.org-node {
+/* 
+ * NODE CARDS 
+ */
+.org-card-container {
+  display: inline-block;
   position: relative;
-  width: 236px;
-  border-radius: 10px;
-  background: #fff;
+  transition: transform 0.4s ease;
+}
+
+.org-card-container.dimmed .org-card {
+  opacity: 0.4;
+  filter: grayscale(100%);
+}
+
+.org-card {
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  border-bottom: 4px solid var(--org-accent, #2563eb);
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-  padding: 12px 12px 14px;
-  transition: opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
-  text-align: left;
-}
-.org-node:hover {
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
-}
-.org-node-dim {
-  opacity: 0.35;
-  filter: grayscale(60%);
-}
-
-.org-node-row {
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  min-width: 180px;
+  max-width: 200px;
+  padding: 16px;
+  text-align: center;
+  position: relative;
+  z-index: 2;
+  transition: all 0.2s ease-in-out;
+  cursor: pointer;
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
 }
 
-.org-node-avatar {
-  width: 46px;
-  height: 46px;
-  min-width: 46px;
-  border-radius: 8px;
+.org-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+  border-color: #cbd5e1;
+}
+
+.org-card-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.org-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-  color: #fff;
-  background: var(--org-accent, #2563eb);
   overflow: hidden;
+  border: 2px solid #ffffff;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+  flex-shrink: 0;
 }
 
-.org-node-avatar-img {
+.org-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 8px;
 }
 
-.org-node-info {
-  min-width: 0;
-  flex: 1;
-}
-
-.org-node-name {
-  font-weight: 700;
-  font-size: 13px;
-  color: #0f172a;
-  line-height: 1.3;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.org-node-title {
-  font-size: 11.5px;
-  font-weight: 500;
+.org-avatar span {
+  font-weight: 600;
   color: #64748b;
-  margin-top: 1px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  font-size: 16px;
+  letter-spacing: 0.5px;
 }
 
-.org-node-tenure {
-  font-size: 10.5px;
-  font-weight: 500;
-  color: #94a3b8;
-  margin-top: 4px;
-}
-
-.org-node-meta {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px dashed #e2e8f0;
-  font-size: 11px;
-  color: #64748b;
-  line-height: 1.5;
-  word-break: break-word;
-}
-
-.org-node-actions {
-  position: absolute;
-  top: -10px;
-  right: -8px;
+.org-details {
   display: flex;
-  gap: 4px;
+  flex-direction: column;
+  gap: 2px;
+  width: 100%;
 }
-.org-node-add {
+
+.org-name {
+  font-weight: 600;
+  color: #1e293b;
+  font-size: 14px;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.org-title {
+  font-size: 12px;
+  color: #64748b;
+  white-space: normal;
+  line-height: 1.3;
+}
+
+.org-dept {
+  font-size: 11px;
+  color: #3b82f6;
+  font-weight: 500;
+  margin-top: 4px;
+  background: rgba(59, 130, 246, 0.1);
+  padding: 3px 8px;
+  border-radius: 20px;
+  display: inline-block;
+}
+
+/* Expand / Collapse Button */
+.org-expand-btn {
   position: absolute;
   bottom: -12px;
   left: 50%;
   transform: translateX(-50%);
-}
-.org-node-btn {
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
+  background: #ffffff;
   border: 1px solid #e2e8f0;
-  background: #fff;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #475569;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
-  padding: 0;
-}
-.org-node-btn:hover {
-  background: #f1f5f9;
-}
-.org-node-btn.danger:hover {
-  background: #fee2e2;
-  color: #dc2626;
-}
-.org-node-btn.brand {
-  background: var(--crm-primary, #2563eb);
-  color: #fff;
-  border-color: var(--crm-primary, #2563eb);
-}
-.org-node-btn.brand:hover {
-  filter: brightness(1.1);
+  cursor: pointer;
+  color: #64748b;
+  z-index: 10;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+  transition: all 0.2s ease;
 }
 
-/* Chevron — sits centered on the card's bottom edge; click to
-   collapse/expand that branch, matching the caret in the reference chart. */
-.org-node-chevron {
-  position: absolute;
-  bottom: -11px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 22px;
-  height: 22px;
-  border-radius: 50%;
-  border: 1px solid #e2e8f0;
-  background: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748b;
-  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
-  padding: 0;
-  cursor: pointer;
-  transition: transform 0.15s ease, background 0.15s ease;
+.org-expand-btn:hover {
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #cbd5e1;
 }
-.org-node-chevron:hover {
+
+/* Fix connector line z-index so hover button is on top */
+.org-tree li > ul {
+  position: relative;
+  z-index: 1;
+}
+
+/* Zoom/Pan Canvas adjustments */
+.org-canvas-wrapper::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.org-canvas-wrapper::-webkit-scrollbar-track {
   background: #f1f5f9;
+  border-radius: 4px;
 }
-.org-node-chevron.collapsed {
-  transform: translateX(-50%) rotate(-90deg);
-  background: var(--org-accent, #2563eb);
-  border-color: var(--org-accent, #2563eb);
-  color: #fff;
+
+.org-canvas-wrapper::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.org-canvas-wrapper::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
 }
