@@ -1,22 +1,38 @@
-const express = require("express");
-const router = express.Router();
-const requireAuth = require("../middleware/authMiddleware");
-const requireAdmin = require("../middleware/adminMiddleware");
-const {
-  submitQuery,
-  getQueries,
-  assignQuery,
-  replyToQuery,
-  closeQuery,
-} = require("../controllers/contactController");
+const { DataTypes } = require("sequelize");
+const { sequelize } = require("../config/db");
 
-// Public - no login required, this is the landing page "Get in Touch" form
-router.post("/", submitQuery);
+// Public-facing - no user account required to submit. The customer is
+// identified purely by the email they typed in, which is also where any
+// admin reply gets sent.
+const ContactQuery = sequelize.define(
+  "ContactQuery",
+  {
+    id: {
+      type: DataTypes.UUID,
+      defaultValue: DataTypes.UUIDV4,
+      primaryKey: true,
+    },
+    name: { type: DataTypes.STRING, allowNull: false },
+    email: { type: DataTypes.STRING, allowNull: false },
+    phone: { type: DataTypes.STRING, allowNull: true },
+    company: { type: DataTypes.STRING, allowNull: true },
+    message: { type: DataTypes.TEXT, allowNull: false },
 
-// Everything below is admin-only
-router.get("/", requireAuth, requireAdmin, getQueries);
-router.patch("/:id/assign", requireAuth, requireAdmin, assignQuery);
-router.patch("/:id/reply", requireAuth, requireAdmin, replyToQuery);
-router.patch("/:id/close", requireAuth, requireAdmin, closeQuery);
+    status: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "new", // new | assigned | replied | closed
+    },
+    assignedToId: { type: DataTypes.UUID, allowNull: true },
 
-module.exports = router;
+    reply: { type: DataTypes.TEXT, allowNull: true },
+    repliedAt: { type: DataTypes.DATE, allowNull: true },
+    repliedById: { type: DataTypes.UUID, allowNull: true },
+  },
+  {
+    tableName: "contact_queries",
+    timestamps: true,
+  }
+);
+
+module.exports = ContactQuery;
