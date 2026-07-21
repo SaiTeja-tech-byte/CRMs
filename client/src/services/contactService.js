@@ -22,7 +22,7 @@ export const assignContactQuery = async (id, assignedToId) => {
 
 export const replyToContactQuery = async (id, reply) => {
   const res = await axios.patch(`${API_BASE}/contact/${id}/reply`, { reply }, authHeaders());
-  return res.data.query;
+  return { ...res.data.query, emailWarning: res.data.emailWarning || null };
 };
 
 export const closeContactQuery = async (id) => {
