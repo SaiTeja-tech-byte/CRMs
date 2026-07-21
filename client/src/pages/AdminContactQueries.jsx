@@ -11,6 +11,8 @@ const statusColors = {
 
 const AdminContactQueries = () => {
   const [queries, setQueries] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
   const [selected, setSelected] = useState(null);
   const [replyText, setReplyText] = useState("");
   const [sending, setSending] = useState(false);
@@ -18,15 +20,23 @@ const AdminContactQueries = () => {
 
   const loadQueries = useCallback(async () => {
     try {
+      setError("");
       const data = await getContactQueries();
       setQueries(data || []);
     } catch (err) {
       console.error("Failed to load contact queries:", err);
+      setError(err.response?.data?.message || "Failed to load customer queries.");
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   useEffect(() => {
     loadQueries();
+    const interval = setInterval(() => {
+      loadQueries();
+    }, 15000);
+    return () => clearInterval(interval);
   }, [loadQueries]);
 
   useEffect(() => {
@@ -85,11 +95,16 @@ const AdminContactQueries = () => {
           </select>
         </div>
 
-        {filtered.length === 0 && (
+        {loading && <div className="p-4 text-center text-muted small">Loading queries...</div>}
+
+        {error && <div className="p-3 text-center text-danger small">{error}</div>}
+
+        {!loading && !error && filtered.length === 0 && (
           <div className="p-4 text-center text-muted small">No queries here.</div>
         )}
 
-        {filtered.map((q) => (
+        {!loading &&
+          filtered.map((q) => (
           <button
             key={q.id}
             onClick={() => {

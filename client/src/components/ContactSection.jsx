@@ -1,6 +1,11 @@
 import React, { useState } from "react";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "");
+const getApiBase = () => {
+  const raw = import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api";
+  return raw.replace(/\/+$/, "").replace(/\/auth$/, "");
+};
+
+const API_BASE = getApiBase();
 
 const ContactSection = () => {
   const [formData, setFormData] = useState({
@@ -25,7 +30,11 @@ const ContactSection = () => {
       const res = await fetch(`${API_BASE}/contact`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify({
+          name: formData.name.trim(),
+          email: formData.email.trim(),
+          message: formData.message.trim(),
+        }),
       });
       const data = await res.json();
       if (!res.ok || !data.success) {

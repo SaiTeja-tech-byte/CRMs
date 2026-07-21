@@ -11,6 +11,9 @@ dns.setDefaultResultOrder("ipv4first");
 let transporter = null;
 const getTransporter = () => {
   if (!transporter) {
+    const emailUser = (process.env.EMAIL_USER || "").trim();
+    const emailPass = (process.env.EMAIL_PASS || "").trim().replace(/\s+/g, "");
+
     transporter = nodemailer.createTransport({
       // Explicit host/port instead of the "gmail" shorthand — same servers,
       // but this path respects the IPv4 preference above; the shorthand
@@ -19,11 +22,8 @@ const getTransporter = () => {
       port: 465,
       secure: true,
       auth: {
-        user: process.env.EMAIL_USER,
-        // Google shows App Passwords with spaces for readability
-        // ("ekfn symr gsnr poqk"), but SMTP auth needs the raw 16
-        // characters — spaces left in here cause a silent auth failure.
-        pass: (process.env.EMAIL_PASS || "").replace(/\s+/g, ""),
+        user: emailUser,
+        pass: emailPass,
       },
       connectionTimeout: 15000, // fail fast instead of hanging for minutes
       greetingTimeout: 15000,
@@ -33,30 +33,72 @@ const getTransporter = () => {
   return transporter;
 };
 
-// Generic sender — used by contactController.js for admin replies to
-// customer queries, and by anything else that just needs to send an email.
-const isEmailConfigured = process.env.EMAIL_USER && process.env.EMAIL_PASS;
-
+// Check which email configuration is available.
+// Note: Render's Free tier blocks SMTP ports (25, 465, 587). If you run on
+// the Free tier, configure RESEND_API_KEY to send emails via HTTP API (Port 443).
 const sendMail = async ({ to, subject, html }) => {
+  const apiKey = process.env.RESEND_API_KEY;
+  const emailUser = (process.env.EMAIL_USER || "").trim();
+  const emailPass = (process.env.EMAIL_PASS || "").trim().replace(/\s+/g, "");
+  
+  const isResendConfigured = !!apiKey;
+  const isSmtpConfigured = !!(emailUser && emailPass);
+  const isEmailConfigured = isResendConfigured || isSmtpConfigured;
+
+  const targetTo = (to || "").trim();
+
   if (!isEmailConfigured) {
     console.log("=".repeat(50));
-    console.log(`[DEV MODE - no email configured] Email to ${to}: ${subject}`);
+    console.log(`[DEV MODE - no email configured] Email to ${targetTo}: ${subject}`);
     console.log("=".repeat(50));
     return;
   }
 
-  try {
-    const info = await getTransporter().sendMail({
-      from: `"CRM App" <${process.env.EMAIL_USER}>`,
-      to,
-      subject,
-      html,
-    });
-    console.log("Email sent:", info.messageId);
-    return info;
-  } catch (error) {
-    console.error("Failed to send email:", error.code || "", error.message);
-    throw error;
+  if (isResendConfigured) {
+    // Send via Resend HTTP API (Port 443 - not blocked by Render Free Tier)
+    const fromEmail = process.env.EMAIL_FROM || "CRM App <onboarding@resend.dev>";
+    try {
+      const response = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${apiKey}`,
+        },
+        body: JSON.stringify({
+          from: fromEmail,
+          to: [targetTo],
+          subject,
+          html,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorBody = await response.text();
+        throw new Error(`Resend API error (${response.status}): ${errorBody}`);
+      }
+
+      const result = await response.json();
+      console.log("Email sent via Resend HTTP API:", result.id);
+      return result;
+    } catch (error) {
+      console.error("Failed to send email via Resend HTTP API:", error.message);
+      throw error;
+    }
+  } else {
+    // Send via Gmail SMTP (Nodemailer)
+    try {
+      const info = await getTransporter().sendMail({
+        from: `"CRM App" <${emailUser}>`,
+        to: targetTo,
+        subject,
+        html,
+      });
+      console.log("Email sent via Gmail SMTP:", info.messageId);
+      return info;
+    } catch (error) {
+      console.error("Failed to send email via Gmail SMTP:", error.code || "", error.message);
+      throw error;
+    }
   }
 };
 

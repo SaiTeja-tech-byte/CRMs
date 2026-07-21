@@ -1,6 +1,11 @@
 import axios from "axios";
 
-const API_BASE = (import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "");
+const getApiBase = () => {
+  const raw = import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api";
+  return raw.replace(/\/+$/, "").replace(/\/auth$/, "");
+};
+
+const API_BASE = getApiBase();
 
 const authHeaders = () => ({
   headers: {
@@ -12,7 +17,7 @@ const authHeaders = () => ({
 
 export const getContactQueries = async () => {
   const res = await axios.get(`${API_BASE}/contact?_=${Date.now()}`, authHeaders());
-  return res.data.queries;
+  return res.data.queries || [];
 };
 
 export const assignContactQuery = async (id, assignedToId) => {
