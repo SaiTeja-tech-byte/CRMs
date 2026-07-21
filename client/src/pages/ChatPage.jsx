@@ -20,12 +20,17 @@ import { connectSocket, onSocketEvent } from "../services/socketService";
 
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
+// Small fixed set covering the common reactions people actually reach for in
+// a work chat — avoids pulling in a whole emoji-picker dependency for this.
 const EMOJI_OPTIONS = [
   "😀", "😂", "😊", "🙂", "😉", "😍", "😎", "🤔", "😅", "😢",
   "😮", "🙌", "👍", "👎", "🙏", "👏", "🔥", "🎉", "✅", "❌",
   "❤️", "💯", "🚀", "😴", "🤝", "📌", "⚠️", "👀", "💪", "🤷",
 ];
 
+// 5MB cap keeps a base64-encoded attachment comfortably under the server's
+// 15mb JSON body limit (base64 adds ~33% overhead) with room for other files
+// in the same conversation history.
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
 const ChatPage = () => {
@@ -37,9 +42,9 @@ const ChatPage = () => {
   const [draft, setDraft] = useState("");
   const [showStartChat, setShowStartChat] = useState(false);
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
-  const [pendingAttachment, setPendingAttachment] = useState(null);
+  const [pendingAttachment, setPendingAttachment] = useState(null); // { url, name, type }
   const [attachError, setAttachError] = useState("");
-  const [openMenuId, setOpenMenuId] = useState(null);
+  const [openMenuId, setOpenMenuId] = useState(null); // message id whose action menu is open
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
   const messagesEndRef = useRef(null);
@@ -100,6 +105,8 @@ const ChatPage = () => {
         setActiveConversation((current) => {
           if (current?.id === conversationId) {
             setMessages((prev) => [...prev, message]);
+            // Already viewing this conversation — mark it read immediately
+            // instead of waiting for the next time it's opened.
             markConversationRead(conversationId).catch(() => {});
           }
           return current;
@@ -149,6 +156,9 @@ const ChatPage = () => {
     try {
       const data = await getMessages(conversation.id);
       setMessages(data || []);
+      // The server already zeroed this conversation's unread counter (opening
+      // it = reading it) — reflect that locally so the sidebar badge and the
+      // conversation-list badge update immediately without a refetch.
       setConversations((prev) => prev.map((c) => (c.id === conversation.id ? { ...c, unreadCount: 0 } : c)));
       window.dispatchEvent(new Event("crm_chat_unread_updated"));
     } catch (err) {
@@ -388,201 +398,6 @@ const ChatPage = () => {
                               style={{ textDecoration: "underline" }}
                             >
                               <FileText size={16} /> {m.attachmentName || "Download file"}
-                            </a>
-                          )
-                        )}
-
-                        {isEditing ? (
-                          <div className="d-flex align-items-center gap-1">
-                            <input
-                              type="text"
-                              autoFocus
-                              className="form-control form-control-sm"
-                              style={{ minWidth: "160px", color: "#111" }}
-                              value={editDraft}
-                              onChange={(e) => setEditDraft(e.target.value)}
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") handleEditSave(m.id);
-                                if (e.key === "Escape") handleEditCancel();
-                              }}
-                            />
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light py-0 px-1"
-                              onClick={() => handleEditSave(m.id)}
-                              title="Save"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light py-0 px-1"
-                              onClick={handleEditCancel}
-                              title="Cancel"
-                            >
-                              <X size={14} />
-                            </button>
-                          </div>
-                        ) : (
-                          <>
-                            {m.message}
-                            {m.edited && (
-                              <span
-                                className={`ms-1 ${isMine ? "text-white-50" : "text-muted"}`}
-                                style={{ fontSize: "11px" }}
-                              >
-                                (edited)
-                              </span>
-                            )}
-                          </>
-                        )}
-
-                        {isMine && !isEditing && (
-                          <div className="d-flex justify-content-end align-items-center gap-1 mt-1" style={{ fontSize: "10px" }}>
-                            {m.readAt ? (
-                              <CheckCheck size={13} className="text-info" title="Read" />
-                            ) : (
-                              <Check size={13} className="text-white-50" title="Sent" />
-                            )}
-                          </div>
-                        )}
-                      </div>
-
-                      {isMine && !isEditing && (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border-0 position-absolute p-0 d-flex align-items-center justify-content-center"
-                            style={{ top: "-6px", left: "-28px", width: "22px", height: "22px", borderRadius: "50%" }}
-                            title="Message options"
-                            onClick={() => setOpenMenuId(openMenuId === m.id ? null : m.id)}
-                          >
-                            <MoreVertical size={14} />
-                          </button>
-                          {openMenuId === m.id && (
-                            <div
-                              className="position-absolute bg-white border rounded-3 shadow-sm"
-                              style={{ top: "16px", left: "-120px", width: "120px", zIndex: 30 }}
-                            >
-                              {!m.attachmentUrl && (
-                                <button
-                                  type="button"
-                                  className="btn btn-sm w-100 text-start d-flex align-items-center gap-2"
-                                  onClick={() => handleEditStart(m)}
-                                >
-                                  <Pencil size={13} /> Edit
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                className="btn btn-sm w-100 text-start d-flex align-items-center gap-2 text-danger"
-                                onClick={() => handleDelete(m.id)}
-                              >
-                                <Trash2 size={13} /> Delete
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </div>
-                );
-              })}
-              <div ref={messagesEndRef} />
-            </div>
-            {pendingAttachment && (
-              <div className="px-3 pt-2 d-flex align-items-center gap-2 small text-muted border-top">
-                {pendingAttachment.type?.startsWith("image/") ? (
-                  <img src={pendingAttachment.url} alt="" style={{ width: "36px", height: "36px", objectFit: "cover", borderRadius: "6px" }} />
-                ) : (
-                  <FileText size={16} />
-                )}
-                <span className="flex-fill text-truncate">{pendingAttachment.name}</span>
-                <button type="button" className="btn btn-sm btn-link text-danger p-0" onClick={() => setPendingAttachment(null)}>
-                  <X size={14} />
-                </button>
-              </div>
-            )}
-            {attachError && <div className="px-3 pt-1 small text-danger">{attachError}</div>}
-            <form onSubmit={handleSend} className="p-3 border-top d-flex gap-2 align-items-center position-relative">
-              {showEmojiPicker && (
-                <div
-                  className="position-absolute bg-white border rounded-3 shadow p-2"
-                  style={{ bottom: "56px", left: "12px", width: "260px", display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: "4px", zIndex: 20 }}
-                >
-                  {EMOJI_OPTIONS.map((emoji) => (
-                    <button
-                      type="button"
-                      key={emoji}
-                      className="btn btn-light p-1"
-                      style={{ fontSize: "18px", lineHeight: 1 }}
-                      onClick={() => handleEmojiClick(emoji)}
-                    >
-                      {emoji}
-                    </button>
-                  ))}
-                </div>
-              )}
-              <input
-                type="file"
-                ref={fileInputRef}
-                onChange={handleFileChosen}
-                style={{ display: "none" }}
-                accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt"
-              />
-              <button
-                type="button"
-                className="btn btn-outline-secondary d-flex align-items-center"
-                title="Attach a photo or document"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <Paperclip size={16} />
-              </button>
-              <button
-                type="button"
-                className="btn btn-outline-secondary d-flex align-items-center"
-                title="Emoji"
-                onClick={() => setShowEmojiPicker((v) => !v)}
-              >
-                <Smile size={16} />
-              </button>
-              <input
-                type="text"
-                className="form-control"
-                placeholder="Type a message..."
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                onFocus={() => setShowEmojiPicker(false)}
-              />
-              <button type="submit" className="btn btn-brand d-flex align-items-center">
-                <Send size={16} />
-              </button>
-            </form>
-          </>
-        ) : (
-          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-muted">
-            <MessageCircle size={40} className="mb-2" />
-            Select a conversation or start a new one
-          </div>
-        )}
-      </div>
-
-      {/* Start chat modal */}
-      {showStartChat && (
-        <div
-          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
-          onClick={() => setShowStartChat(false)}
-        >
-          <div className="bg-white rounded-3 p-4" style={{ width: "360px" }} onClick={(e) => e.stopPropagation()}>
-            <h6 className="fw-bold mb-3">Start a chat</h6>
-            <div style={{ maxHeight: "300px", overflowY: "auto" }}>
-              {team.map((u) => (
-                <button
-                  key={u.id}
-                  className="w-100 text-start btn btn-light mb-1"
-                  onClick={() => handleStartChat(u.id)}
-                >
                             </a>
                           )
                         )}
