@@ -1,10 +1,11 @@
-/* Classic pure-CSS "connected boxes" org chart tree. Scoped under .org-tree
-   so it can't leak into/collide with the rest of the dashboard's styles. */
+/* Pure-CSS "connected boxes" org chart tree — horizontal cards (photo left,
+   details right) with dotted connectors, matching the reference chart style.
+   Scoped under .org-tree so it can't leak into the rest of the dashboard. */
 
 .org-tree-scroll {
   width: 100%;
   overflow: auto;
-  padding: 24px 16px 40px;
+  padding: 24px 16px 48px;
 }
 
 .org-tree,
@@ -27,7 +28,8 @@
 .org-tree ul {
   display: flex;
   justify-content: center;
-  padding-top: 32px;
+  gap: 4px;
+  padding-top: 36px;
   position: relative;
 }
 
@@ -37,12 +39,10 @@
   align-items: center;
   text-align: center;
   position: relative;
-  padding: 32px 14px 0 14px;
+  padding: 36px 12px 0 12px;
 }
 
-/* Connector lines: every li (except the root's own li) gets a horizontal
-   half-line to its left/right meeting siblings, plus a vertical drop to its
-   own box. */
+/* Connector lines — dotted, per the reference chart, instead of solid. */
 .org-tree li::before,
 .org-tree li::after {
   content: "";
@@ -50,13 +50,13 @@
   top: 0;
   right: 50%;
   width: 50%;
-  height: 32px;
-  border-top: 2px solid #cbd5e1;
+  height: 36px;
+  border-top: 2px dotted #94a3b8;
 }
 .org-tree li::after {
   right: auto;
   left: 50%;
-  border-left: 2px solid #cbd5e1;
+  border-left: 2px dotted #94a3b8;
 }
 .org-tree li:only-child::before,
 .org-tree li:only-child::after {
@@ -70,11 +70,10 @@
   border: 0 none;
 }
 .org-tree li:last-child::before {
-  border-right: 2px solid #cbd5e1;
-  border-radius: 0 6px 0 0;
+  border-right: 2px dotted #94a3b8;
 }
 .org-tree li:first-child::after {
-  border-radius: 6px 0 0 0;
+  /* no radius on a dotted line — keeps corners clean */
 }
 .org-tree > li {
   padding-top: 0;
@@ -83,42 +82,58 @@
 .org-tree > li::after {
   display: none;
 }
-/* Vertical stem dropping from a parent box down to its children's row */
+/* Vertical stem dropping from a parent box down to its children's row,
+   with a small dot where it meets the child row — echoes the arrowed
+   connector dots in the reference chart. */
 .org-tree ul::before {
   content: "";
   position: absolute;
   top: 0;
   left: 50%;
-  border-left: 2px solid #cbd5e1;
+  border-left: 2px dotted #94a3b8;
   width: 0;
-  height: 32px;
+  height: 36px;
 }
 
-/* ---- Node card ---- */
+.org-node-collapsed-hint {
+  margin-top: 8px;
+  font-size: 10.5px;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* ---- Node card: horizontal layout, photo left / details right ---- */
 .org-node {
   position: relative;
-  width: 200px;
+  width: 236px;
   border-radius: 10px;
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-top: 4px solid var(--org-accent, #2563eb);
+  border-bottom: 4px solid var(--org-accent, #2563eb);
   box-shadow: 0 1px 3px rgba(15, 23, 42, 0.08);
-  padding: 12px 10px 10px;
+  padding: 12px 12px 14px;
   transition: opacity 0.15s ease, filter 0.15s ease, box-shadow 0.15s ease;
+  text-align: left;
 }
 .org-node:hover {
-  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.14);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.14);
 }
 .org-node-dim {
   opacity: 0.35;
   filter: grayscale(60%);
 }
 
+.org-node-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
 .org-node-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  margin: 0 auto 6px;
+  width: 46px;
+  height: 46px;
+  min-width: 46px;
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -133,25 +148,45 @@
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 50%;
+  border-radius: 8px;
+}
+
+.org-node-info {
+  min-width: 0;
+  flex: 1;
 }
 
 .org-node-name {
   font-weight: 700;
-  font-size: 13.5px;
+  font-size: 13px;
   color: #0f172a;
-  line-height: 1.25;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .org-node-title {
   font-size: 11.5px;
-  font-weight: 600;
-  color: var(--org-accent, #2563eb);
-  margin-top: 2px;
+  font-weight: 500;
+  color: #64748b;
+  margin-top: 1px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.org-node-tenure {
+  font-size: 10.5px;
+  font-weight: 500;
+  color: #94a3b8;
+  margin-top: 4px;
 }
 
 .org-node-meta {
-  margin-top: 6px;
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px dashed #e2e8f0;
   font-size: 11px;
   color: #64748b;
   line-height: 1.5;
@@ -198,4 +233,35 @@
 }
 .org-node-btn.brand:hover {
   filter: brightness(1.1);
+}
+
+/* Chevron — sits centered on the card's bottom edge; click to
+   collapse/expand that branch, matching the caret in the reference chart. */
+.org-node-chevron {
+  position: absolute;
+  bottom: -11px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #e2e8f0;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.15);
+  padding: 0;
+  cursor: pointer;
+  transition: transform 0.15s ease, background 0.15s ease;
+}
+.org-node-chevron:hover {
+  background: #f1f5f9;
+}
+.org-node-chevron.collapsed {
+  transform: translateX(-50%) rotate(-90deg);
+  background: var(--org-accent, #2563eb);
+  border-color: var(--org-accent, #2563eb);
+  color: #fff;
 }
