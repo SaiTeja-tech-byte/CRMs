@@ -34,15 +34,19 @@ const AdminContactQueries = () => {
     return unsub;
   }, [loadQueries]);
 
+  const [emailWarning, setEmailWarning] = useState("");
+
   const handleReply = async (e) => {
     e.preventDefault();
     if (!replyText.trim() || !selected) return;
     setSending(true);
+    setEmailWarning("");
     try {
       const updated = await replyToContactQuery(selected.id, replyText.trim());
       setQueries((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
       setSelected(updated);
       setReplyText("");
+      if (updated.emailWarning) setEmailWarning(updated.emailWarning);
     } catch (err) {
       alert(err.response?.data?.message || "Could not send reply.");
     } finally {
@@ -150,6 +154,9 @@ const AdminContactQueries = () => {
 
             {selected.status !== "closed" && (
               <form onSubmit={handleReply} className="p-3 border-top">
+                {emailWarning && (
+                  <div className="alert alert-warning py-2 small mb-2">{emailWarning}</div>
+                )}
                 <textarea
                   className="form-control mb-2"
                   rows={3}
