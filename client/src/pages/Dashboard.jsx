@@ -182,9 +182,8 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "team", label: "Team", icon: "bi-people" },
-    // Chat is its own route (/chat), not a tab inside this file's activeMenu
-    // switch, so it needs `to` instead of setActiveMenu.
-    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
+    // Chat is integrated directly into the dashboard
+    { key: "chat", label: "Chat", icon: "bi-chat-dots" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Settings", icon: "bi-gear" },

@@ -73,15 +73,7 @@ function App() {
           }
         />
 
-        {/* Chat - requires login, available to both employees and admins */}
-        <Route
-          path="/chat"
-          element={
-            <RequireAuth>
-              <ChatPage />
-            </RequireAuth>
-          }
-        />
+
 
         {/* Admin dashboard - requires login AND admin role */}
         <Route
