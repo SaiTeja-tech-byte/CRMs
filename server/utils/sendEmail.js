@@ -1,18 +1,23 @@
 const nodemailer = require("nodemailer");
+const dns = require("dns");
 
-// Gmail SMTP via an App Password (EMAIL_USER / EMAIL_PASS) — this is what's
-// actually configured in .env. Resend was tried earlier but needs a
-// RESEND_API_KEY that was never set here, and its sandbox sender
-// (onboarding@resend.dev) can only deliver to the Resend account owner's
-// own inbox anyway, which is exactly why admin replies to real customers
-// were going nowhere.
-const isEmailConfigured = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+// Render's outbound networking resolves Gmail's SMTP host to an IPv6
+// address by default, and that route hangs until it times out (the
+// ETIMEDOUT errors in the logs) — Gmail's SMTP servers work fine, this is
+// purely a routing problem on Render's side. Forcing Node to resolve
+// hostnames as IPv4-first avoids it.
+dns.setDefaultResultOrder("ipv4first");
 
 let transporter = null;
 const getTransporter = () => {
   if (!transporter) {
     transporter = nodemailer.createTransport({
-      service: "gmail",
+      // Explicit host/port instead of the "gmail" shorthand — same servers,
+      // but this path respects the IPv4 preference above; the shorthand
+      // sometimes doesn't.
+      host: "smtp.gmail.com",
+      port: 465,
+      secure: true,
       auth: {
         user: process.env.EMAIL_USER,
         // Google shows App Passwords with spaces for readability
@@ -20,6 +25,9 @@ const getTransporter = () => {
         // characters — spaces left in here cause a silent auth failure.
         pass: (process.env.EMAIL_PASS || "").replace(/\s+/g, ""),
       },
+      connectionTimeout: 15000, // fail fast instead of hanging for minutes
+      greetingTimeout: 15000,
+      socketTimeout: 15000,
     });
   }
   return transporter;
@@ -27,6 +35,8 @@ const getTransporter = () => {
 
 // Generic sender — used by contactController.js for admin replies to
 // customer queries, and by anything else that just needs to send an email.
+const isEmailConfigured = process.env.EMAIL_USER && process.env.EMAIL_PASS;
+
 const sendMail = async ({ to, subject, html }) => {
   if (!isEmailConfigured) {
     console.log("=".repeat(50));
