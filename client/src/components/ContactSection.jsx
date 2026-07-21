@@ -1,5 +1,7 @@
 import React, { useState } from "react";
 
+const API_BASE = (import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "");
+
 const ContactSection = () => {
   const [formData, setFormData] = useState({
     name: "",
@@ -7,15 +9,34 @@ const ContactSection = () => {
     message: "",
   });
   const [isSubmitted, setIsSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState("");
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    setIsSubmitted(true);
+    setError("");
+    setIsSubmitting(true);
+    try {
+      const res = await fetch(`${API_BASE}/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        throw new Error(data.message || "Something went wrong. Please try again.");
+      }
+      setIsSubmitted(true);
+    } catch (err) {
+      setError(err.message || "Something went wrong. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -185,6 +206,7 @@ const ContactSection = () => {
         </div>
 
         <div className="contact-grid">
+          {/* Left Column: Simple Contact Info */}
           <div className="contact-info">
             <div className="info-item">
               <span>Email</span>
@@ -200,6 +222,7 @@ const ContactSection = () => {
             </div>
           </div>
 
+          {/* Right Column: Short Contact Form */}
           <div className="contact-form-wrap">
             {!isSubmitted ? (
               <form onSubmit={handleSubmit} className="contact-form">
@@ -233,8 +256,11 @@ const ContactSection = () => {
                     required
                   ></textarea>
                 </div>
-                <button type="submit" className="primary-btn contact-submit-btn">
-                  Send Message
+                {error && (
+                  <p style={{ color: "#dc2626", fontSize: "14px", marginBottom: "12px" }}>{error}</p>
+                )}
+                <button type="submit" className="primary-btn contact-submit-btn" disabled={isSubmitting}>
+                  {isSubmitting ? "Sending..." : "Send Message"}
                 </button>
               </form>
             ) : (
