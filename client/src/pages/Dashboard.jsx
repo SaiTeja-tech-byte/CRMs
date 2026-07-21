@@ -178,6 +178,14 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
 
   const handleItemClick = (item) => {
     setMobileActive(false);
+    
+    // Explicitly ensure Chat always renders inside the dashboard layout
+    // bypassing any potential legacy 'to' properties
+    if (item.key === "chat") {
+      setActiveMenu(item.key);
+      return;
+    }
+    
     if (item.to) {
       navigate(item.to);
     } else {
