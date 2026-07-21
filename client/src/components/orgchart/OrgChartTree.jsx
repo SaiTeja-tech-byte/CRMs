@@ -266,7 +266,7 @@ const OrgChartTree = ({ isAdmin }) => {
                 {["Top", "Left", "Right", "Bottom"].map(dir => (
                   <button 
                     key={dir}
-                    className={`btn btn-sm ${orientation === dir ? 'btn-primary' : 'btn-outline-secondary'}`}
+                    className={`btn btn-sm ${orientation === dir ? 'btn-brand' : 'btn-outline-secondary'}`}
                     style={{ fontSize: "12px", padding: "6px 0" }}
                     onClick={() => setOrientation(dir)}
                   >
@@ -287,7 +287,7 @@ const OrgChartTree = ({ isAdmin }) => {
               <button type="button" className="btn btn-sm btn-outline-secondary w-100 d-flex align-items-center justify-content-center gap-2">
                 <Eye size={14} /> Preview PDF
               </button>
-              <button type="button" className="btn btn-sm btn-primary w-100 d-flex align-items-center justify-content-center gap-2">
+              <button type="button" className="btn btn-sm btn-brand w-100 d-flex align-items-center justify-content-center gap-2">
                 <Download size={14} /> Download PDF
               </button>
             </div>
