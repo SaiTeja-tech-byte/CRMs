@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown } from "lucide-react";
+import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown, Users, MoreVertical } from "lucide-react";
 
 import {
   sendChatRequest,
@@ -43,6 +43,14 @@ const ChatPage = () => {
   const [attachError, setAttachError] = useState("");
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
+
+  // Group Chat states
+  const [activeTab, setActiveTab] = useState("individual"); // 'individual' or 'groups'
+  const [groups, setGroups] = useState([]);
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
+  const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const [listSearch, setListSearch] = useState("");
 
   // "Search in this chat" — WhatsApp-style find + next/previous
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -168,6 +176,33 @@ const ChatPage = () => {
     } catch (err) {
       console.error("Failed to load messages:", err);
     }
+  };
+
+  const openGroupConversation = (group) => {
+    setActiveConversation(group);
+    setShowEmojiPicker(false);
+    setPendingAttachment(null);
+    setAttachError("");
+    closeSearch();
+    setMessages([]); // Mock empty messages for frontend-only
+    setGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, unreadCount: 0 } : g)));
+  };
+
+  const handleCreateGroup = (e) => {
+    e.preventDefault();
+    if (!newGroupData.name.trim()) return;
+    const newGroup = {
+      id: "group-" + Date.now(),
+      isGroup: true,
+      name: newGroupData.name,
+      description: newGroupData.description,
+      members: newGroupData.members,
+      unreadCount: 0,
+      adminId: currentUser?.id
+    };
+    setGroups(prev => [newGroup, ...prev]);
+    setShowCreateGroup(false);
+    setNewGroupData({ name: "", description: "", members: [] });
   };
 
   const handleStartChat = async (userId) => {
@@ -368,6 +403,22 @@ const ChatPage = () => {
     const attachment = pendingAttachment;
     setPendingAttachment(null);
 
+    if (activeConversation.isGroup) {
+      // Frontend-only group message mockup
+      const mockMessage = {
+        id: "mock-" + Date.now(),
+        conversationId: activeConversation.id,
+        senderId: currentUser?.id,
+        message: text,
+        attachmentUrl: attachment?.url || null,
+        attachmentName: attachment?.name || null,
+        attachmentType: attachment?.type || null,
+        createdAt: new Date().toISOString()
+      };
+      setMessages((prev) => [...prev, mockMessage]);
+      return;
+    }
+
     try {
       const message = await sendMessageApi(activeConversation.id, text, attachment);
       setMessages((prev) => [...prev, message]);
@@ -380,57 +431,144 @@ const ChatPage = () => {
   return (
     <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
       {/* Sidebar */}
-      <div className="border-end" style={{ width: "320px", overflowY: "auto" }}>
+      <div className="border-end d-flex flex-column" style={{ width: "320px" }}>
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
           <h6 className="fw-bold m-0">Chats</h6>
-          <button
-            className="btn btn-sm btn-brand d-flex align-items-center gap-1"
-            onClick={() => setShowStartChat(true)}
-          >
-            <UserPlus size={14} /> New
-          </button>
+          {activeTab === "individual" ? (
+            <button
+              className="btn btn-sm btn-brand d-flex align-items-center gap-1"
+              onClick={() => setShowStartChat(true)}
+            >
+              <UserPlus size={14} /> New
+            </button>
+          ) : (
+            currentUser?.role === "admin" && (
+              <button
+                className="btn btn-sm btn-brand d-flex align-items-center gap-1"
+                onClick={() => setShowCreateGroup(true)}
+              >
+                <Users size={14} /> + Create Group
+              </button>
+            )
+          )}
         </div>
 
-        {requests.length > 0 && (
-          <div className="p-3 border-bottom bg-light">
-            <div className="small fw-bold text-muted mb-2">CHAT REQUESTS</div>
-            {requests.map((r) => (
-              <div key={r.id} className="d-flex align-items-center justify-content-between mb-2">
-                <span className="small">{r.sender?.fullName || "Someone"} wants to chat</span>
-                <div className="d-flex gap-1">
-                  <button className="btn btn-sm btn-success" onClick={() => handleAccept(r.id)}>
-                    <Check size={12} />
-                  </button>
-                  <button className="btn btn-sm btn-outline-danger" onClick={() => handleDecline(r.id)}>
-                    <X size={12} />
-                  </button>
-                </div>
-              </div>
-            ))}
+        <div className="d-flex border-bottom">
+          <button
+            className={`flex-fill py-2 border-0 bg-transparent fw-medium ${activeTab === "individual" ? "text-primary border-bottom border-primary border-2" : "text-muted"}`}
+            onClick={() => { setActiveTab("individual"); setListSearch(""); }}
+          >
+            Individual
+          </button>
+          <button
+            className={`flex-fill py-2 border-0 bg-transparent fw-medium ${activeTab === "groups" ? "text-primary border-bottom border-primary border-2" : "text-muted"}`}
+            onClick={() => { setActiveTab("groups"); setListSearch(""); }}
+          >
+            Groups
+          </button>
+        </div>
+        
+        <div className="p-2 border-bottom bg-light">
+          <div className="input-group input-group-sm">
+            <span className="input-group-text bg-white border-end-0 text-muted">
+              <Search size={14} />
+            </span>
+            <input
+              type="text"
+              className="form-control border-start-0 ps-0"
+              placeholder={`Search ${activeTab === "individual" ? "conversations" : "groups"}...`}
+              value={listSearch}
+              onChange={(e) => setListSearch(e.target.value)}
+            />
           </div>
-        )}
+        </div>
 
-        <div>
-          {conversations.length === 0 && (
-            <div className="p-4 text-center text-muted small">No conversations yet.</div>
-          )}
-          {conversations.map((c) => (
-            <button
-              key={c.id}
-              onClick={() => openConversation(c)}
-              className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-center ${
-                activeConversation?.id === c.id ? "bg-light" : "bg-white"
-              }`}
-            >
-              <div>
-                <div className="fw-medium">{c.otherUser?.fullName || "Unknown"}</div>
-                <div className="small text-muted">{c.otherUser?.email}</div>
-              </div>
-              {c.unreadCount > 0 && (
-                <span className="badge rounded-pill bg-danger">{c.unreadCount}</span>
+        <div className="flex-fill" style={{ overflowY: "auto" }}>
+          {activeTab === "individual" ? (
+            <>
+              {requests.length > 0 && !listSearch && (
+                <div className="p-3 border-bottom bg-light">
+                  <div className="small fw-bold text-muted mb-2">CHAT REQUESTS</div>
+                  {requests.map((r) => (
+                    <div key={r.id} className="d-flex align-items-center justify-content-between mb-2">
+                      <span className="small">{r.sender?.fullName || "Someone"} wants to chat</span>
+                      <div className="d-flex gap-1">
+                        <button className="btn btn-sm btn-success" onClick={() => handleAccept(r.id)}>
+                          <Check size={12} />
+                        </button>
+                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDecline(r.id)}>
+                          <X size={12} />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               )}
-            </button>
-          ))}
+              <div>
+                {conversations.filter(c => !listSearch || (c.otherUser?.fullName || "").toLowerCase().includes(listSearch.toLowerCase())).length === 0 && (
+                  <div className="p-4 text-center text-muted small">No personal chats exist.</div>
+                )}
+                {conversations
+                  .filter(c => !listSearch || (c.otherUser?.fullName || "").toLowerCase().includes(listSearch.toLowerCase()))
+                  .map((c) => (
+                  <button
+                    key={c.id}
+                    onClick={() => openConversation(c)}
+                    className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-center ${
+                      activeConversation?.id === c.id ? "bg-light" : "bg-white"
+                    }`}
+                  >
+                    <div>
+                      <div className="fw-medium">{c.otherUser?.fullName || "Unknown"}</div>
+                      <div className="small text-muted">{c.otherUser?.email}</div>
+                    </div>
+                    {c.unreadCount > 0 && (
+                      <span className="badge rounded-pill bg-danger">{c.unreadCount}</span>
+                    )}
+                  </button>
+                ))}
+              </div>
+            </>
+          ) : (
+            <div>
+              {groups.filter(g => !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase())).length === 0 && (
+                <div className="p-5 text-center text-muted">
+                  <div className="fw-medium mb-1">No Groups Yet</div>
+                  <div className="small">
+                    {currentUser?.role === "admin"
+                      ? "Create your first group to start collaborating."
+                      : "Groups created by your Administrator will appear here."}
+                  </div>
+                </div>
+              )}
+              {groups
+                .filter(g => !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase()))
+                .map((g) => (
+                <button
+                  key={g.id}
+                  onClick={() => openGroupConversation(g)}
+                  className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-center ${
+                    activeConversation?.id === g.id ? "bg-light" : "bg-white"
+                  }`}
+                >
+                  <div className="d-flex align-items-center gap-3">
+                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "40px", height: "40px" }}>
+                      <Users size={20} />
+                    </div>
+                    <div>
+                      <div className="fw-medium">{g.name}</div>
+                      <div className="small text-muted text-truncate" style={{ maxWidth: "200px" }}>
+                        {g.description || `${g.members?.length || 0} members`}
+                      </div>
+                    </div>
+                  </div>
+                  {g.unreadCount > 0 && (
+                    <span className="badge rounded-pill bg-danger">{g.unreadCount}</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 
@@ -438,16 +576,53 @@ const ChatPage = () => {
       <div className="flex-fill d-flex flex-column">
         {activeConversation ? (
           <>
-            <div className="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center">
-              <span>{activeConversation.otherUser?.fullName || "Chat"}</span>
-              <button
-                type="button"
-                className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                title="Search in this chat"
-                onClick={() => (showSearchBar ? closeSearch() : setShowSearchBar(true))}
-              >
-                <Search size={14} />
-              </button>
+            <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
+              <div className="d-flex align-items-center gap-2">
+                <span className="fw-bold">
+                  {activeConversation.isGroup ? activeConversation.name : (activeConversation.otherUser?.fullName || "Chat")}
+                </span>
+                {activeConversation.isGroup && (
+                  <span className="badge bg-light text-secondary border">{activeConversation.members?.length || 0} Members</span>
+                )}
+              </div>
+              <div className="d-flex gap-2 position-relative">
+                <button
+                  type="button"
+                  className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                  title="Search in this chat"
+                  onClick={() => (showSearchBar ? closeSearch() : setShowSearchBar(true))}
+                >
+                  <Search size={14} />
+                </button>
+                {activeConversation.isGroup && currentUser?.role === "admin" && (
+                  <div className="position-relative">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                      title="Manage Group"
+                      onClick={() => setShowGroupMenu(!showGroupMenu)}
+                    >
+                      <MoreVertical size={14} />
+                    </button>
+                    {showGroupMenu && (
+                      <div className="position-absolute bg-white border rounded shadow-sm py-1 mt-1 z-3" style={{ right: 0, width: "160px" }}>
+                        <button className="btn btn-sm btn-link text-dark w-100 text-start text-decoration-none px-3" onClick={() => { alert('Rename Group mock'); setShowGroupMenu(false); }}>Rename Group</button>
+                        <button className="btn btn-sm btn-link text-dark w-100 text-start text-decoration-none px-3" onClick={() => { alert('Edit Description mock'); setShowGroupMenu(false); }}>Edit Description</button>
+                        <button className="btn btn-sm btn-link text-dark w-100 text-start text-decoration-none px-3" onClick={() => { alert('Add Members mock'); setShowGroupMenu(false); }}>Add Members</button>
+                        <button className="btn btn-sm btn-link text-dark w-100 text-start text-decoration-none px-3" onClick={() => { alert('Remove Members mock'); setShowGroupMenu(false); }}>Remove Members</button>
+                        <hr className="my-1" />
+                        <button className="btn btn-sm btn-link text-danger w-100 text-start text-decoration-none px-3" onClick={() => { 
+                          if(window.confirm('Delete this group?')) {
+                            setGroups(prev => prev.filter(g => g.id !== activeConversation.id));
+                            setActiveConversation(null);
+                          }
+                          setShowGroupMenu(false); 
+                        }}>Delete Group</button>
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
 
             {showSearchBar && (
@@ -669,6 +844,75 @@ const ChatPage = () => {
                 </button>
               ))}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Create Group modal (Admin only) */}
+      {showCreateGroup && currentUser?.role === "admin" && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowCreateGroup(false)}
+        >
+          <div className="bg-white rounded-3 p-4 d-flex flex-column" style={{ width: "420px", maxHeight: "90vh" }} onClick={(e) => e.stopPropagation()}>
+            <h6 className="fw-bold mb-3">Create Group</h6>
+            <form onSubmit={handleCreateGroup} className="d-flex flex-column flex-fill" style={{ overflow: "hidden" }}>
+              <div className="mb-3">
+                <label className="form-label small fw-medium mb-1">Group Name *</label>
+                <input 
+                  type="text" 
+                  className="form-control form-control-sm" 
+                  required 
+                  value={newGroupData.name}
+                  onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
+                />
+              </div>
+              <div className="mb-3">
+                <label className="form-label small fw-medium mb-1">Description</label>
+                <textarea 
+                  className="form-control form-control-sm" 
+                  rows="2"
+                  value={newGroupData.description}
+                  onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
+                ></textarea>
+              </div>
+              <div className="mb-3">
+                <label className="form-label small fw-medium mb-1">Optional Group Icon</label>
+                <input type="file" className="form-control form-control-sm" accept="image/*" />
+              </div>
+              <div className="mb-2 fw-medium small">Search Employees</div>
+              <input type="text" className="form-control form-control-sm mb-2" placeholder="Search..." />
+              <div className="fw-medium small mb-2">Available Employees (Multi-select)</div>
+              <div className="border rounded p-2 mb-3 flex-fill" style={{ overflowY: "auto", minHeight: "150px" }}>
+                {team.map(u => (
+                  <div key={u.id} className="form-check mb-1">
+                    <input 
+                      className="form-check-input" 
+                      type="checkbox" 
+                      id={`group-user-${u.id}`}
+                      checked={newGroupData.members.includes(u.id)}
+                      onChange={(e) => {
+                        const checked = e.target.checked;
+                        setNewGroupData(prev => ({
+                          ...prev,
+                          members: checked 
+                            ? [...prev.members, u.id] 
+                            : prev.members.filter(id => id !== u.id)
+                        }));
+                      }}
+                    />
+                    <label className="form-check-label small" htmlFor={`group-user-${u.id}`}>
+                      {u.fullName} <span className="text-muted">({u.role})</span>
+                    </label>
+                  </div>
+                ))}
+              </div>
+              <div className="d-flex justify-content-end gap-2 mt-auto">
+                <button type="button" className="btn btn-sm btn-light" onClick={() => setShowCreateGroup(false)}>Cancel</button>
+                <button type="submit" className="btn btn-sm btn-brand">Create Group</button>
+              </div>
+            </form>
           </div>
         </div>
       )}
