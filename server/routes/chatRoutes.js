@@ -9,25 +9,25 @@ const {
   getConversations,
   getMessages,
   sendMessage,
-  markConversationRead,
+  getUnreadCount,
   editMessage,
   deleteMessage,
-  getUnreadCount,
+  searchMessages,
 } = require("../controllers/chatController");
 
 router.use(requireAuth);
 
 router.get("/unread-count", getUnreadCount);
+router.get("/search", searchMessages);
 router.post("/request", sendChatRequest);
 router.get("/requests", getIncomingRequests);
 router.post("/request/:id/accept", acceptChatRequest);
 router.post("/request/:id/decline", declineChatRequest);
 
 router.get("/conversations", getConversations);
-router.patch("/conversations/:id/read", markConversationRead);
 router.get("/messages/:conversationId", getMessages);
 router.post("/messages", sendMessage);
-router.patch("/messages/:id", editMessage);
+router.put("/messages/:id", editMessage);
 router.delete("/messages/:id", deleteMessage);
 
 module.exports = router;
