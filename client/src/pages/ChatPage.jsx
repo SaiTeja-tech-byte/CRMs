@@ -975,7 +975,7 @@ const ChatPage = () => {
               
               <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
                 <button type="button" className="btn btn-light border" onClick={() => setShowCreateGroup(false)}>Cancel</button>
-                <button type="submit" className="btn btn-brand" disabled={!newGroupData.name.trim() || newGroupData.members.length === 0}>Create Group</button>
+                <button type="submit" className="btn btn-brand" disabled={!newGroupData.name.trim()}>Create Group</button>
               </div>
             </form>
           </div>
