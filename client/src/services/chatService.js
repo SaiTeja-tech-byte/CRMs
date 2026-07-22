@@ -72,6 +72,61 @@ export const deleteMessage = async (messageId) => {
   return res.data;
 };
 
+// ---- Group chat ----
+
+export const createGroup = async (groupName, groupDescription, memberIds) => {
+  const res = await axios.post(
+    `${API_BASE}/chat/groups`,
+    { groupName, groupDescription, memberIds },
+    authHeaders()
+  );
+  return res.data.group;
+};
+
+export const getMyGroups = async () => {
+  const res = await axios.get(`${API_BASE}/chat/groups?_=${Date.now()}`, authHeaders());
+  return res.data.groups;
+};
+
+export const getGroupMessages = async (groupId) => {
+  const res = await axios.get(`${API_BASE}/chat/groups/${groupId}/messages?_=${Date.now()}`, authHeaders());
+  return res.data.messages;
+};
+
+export const sendGroupMessage = async (groupId, message, attachment) => {
+  const res = await axios.post(
+    `${API_BASE}/chat/groups/${groupId}/messages`,
+    {
+      message,
+      attachmentUrl: attachment?.url,
+      attachmentName: attachment?.name,
+      attachmentType: attachment?.type,
+    },
+    authHeaders()
+  );
+  return res.data.chatMessage;
+};
+
+export const editGroup = async (groupId, groupName, groupDescription) => {
+  const res = await axios.put(`${API_BASE}/chat/groups/${groupId}`, { groupName, groupDescription }, authHeaders());
+  return res.data.group;
+};
+
+export const addGroupMembers = async (groupId, memberIds) => {
+  const res = await axios.post(`${API_BASE}/chat/groups/${groupId}/members`, { memberIds }, authHeaders());
+  return res.data.group;
+};
+
+export const removeGroupMember = async (groupId, userId) => {
+  const res = await axios.delete(`${API_BASE}/chat/groups/${groupId}/members/${userId}`, authHeaders());
+  return res.data;
+};
+
+export const deleteGroup = async (groupId) => {
+  const res = await axios.delete(`${API_BASE}/chat/groups/${groupId}`, authHeaders());
+  return res.data;
+};
+
 // WhatsApp-style "search in this chat" — returns every matching message
 // (chronological) so the UI can highlight + step through them.
 export const searchMessages = async (conversationId, keyword) => {
