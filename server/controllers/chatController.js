@@ -1,4 +1,4 @@
-const { Op } = require("sequelize");
+const { Op, fn, col, where: sequelizeWhere } = require("sequelize");
 const ChatRequest = require("../models/ChatRequest");
 const Conversation = require("../models/Conversation");
 const ChatMessage = require("../models/ChatMessage");
@@ -187,22 +187,22 @@ const getMessages = async (req, res) => {
       limit: 200,
     });
 
-    // Opening the conversation = read. Zero out this user's unread counter.
+    // Opening the conversation = read. Zero out this user's unread counter...
     const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
     if (conversation[unreadField] !== 0) {
       conversation[unreadField] = 0;
       await conversation.save();
     }
 
-    // Mark every message the OTHER person sent (and I haven't seen yet) as
-    // read, then tell them live so their ticks flip from sent -> read.
-    const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+    // ...and mark the other person's messages to me as read, so their ticks
+    // flip from single (sent) to double-blue (read) on their screen.
     const [updatedCount] = await ChatMessage.update(
       { readAt: new Date() },
-      { where: { conversationId: req.params.conversationId, senderId: otherUserId, readAt: null } }
+      { where: { conversationId: req.params.conversationId, senderId: { [Op.ne]: req.user.id }, readAt: null } }
     );
     if (updatedCount > 0) {
-      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.conversationId, readerId: req.user.id });
+      const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.conversationId, readBy: req.user.id });
     }
 
     return res.status(200).json({ success: true, messages });
@@ -256,107 +256,6 @@ const sendMessage = async (req, res) => {
   }
 };
 
-// PATCH /api/chat/conversations/:id/read — used when a conversation is
-// already open and a new message arrives via socket, so it gets marked read
-// immediately instead of waiting for the next GET /messages fetch.
-const markConversationRead = async (req, res) => {
-  try {
-    const conversation = await Conversation.findByPk(req.params.id);
-    if (!conversation || (conversation.userAId !== req.user.id && conversation.userBId !== req.user.id)) {
-      return res.status(404).json({ success: false, message: "Conversation not found" });
-    }
-
-    const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
-    if (conversation[unreadField] !== 0) {
-      conversation[unreadField] = 0;
-      await conversation.save();
-    }
-
-    const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
-    const [updatedCount] = await ChatMessage.update(
-      { readAt: new Date() },
-      { where: { conversationId: req.params.id, senderId: otherUserId, readAt: null } }
-    );
-    if (updatedCount > 0) {
-      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.id, readerId: req.user.id });
-    }
-
-    return res.status(200).json({ success: true });
-  } catch (error) {
-    console.error("Mark conversation read error:", error);
-    return res.status(500).json({ success: false, message: "Server error marking conversation read" });
-  }
-};
-
-// PATCH /api/chat/messages/:id  body: { message }
-// Only the original sender can edit their own message, and only while it
-// hasn't been deleted.
-const editMessage = async (req, res) => {
-  try {
-    const text = (req.body.message || "").trim();
-    if (!text) {
-      return res.status(400).json({ success: false, message: "message text is required" });
-    }
-
-    const chatMessage = await ChatMessage.findByPk(req.params.id);
-    if (!chatMessage || chatMessage.deleted) {
-      return res.status(404).json({ success: false, message: "Message not found" });
-    }
-    if (chatMessage.senderId !== req.user.id) {
-      return res.status(403).json({ success: false, message: "You can only edit your own messages" });
-    }
-
-    chatMessage.message = text;
-    chatMessage.edited = true;
-    await chatMessage.save();
-
-    const conversation = await Conversation.findByPk(chatMessage.conversationId);
-    if (conversation) {
-      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
-      emitToUser(recipientId, "chat:message-edited", { message: chatMessage, conversationId: chatMessage.conversationId });
-    }
-
-    return res.status(200).json({ success: true, chatMessage });
-  } catch (error) {
-    console.error("Edit message error:", error);
-    return res.status(500).json({ success: false, message: "Server error editing message" });
-  }
-};
-
-// DELETE /api/chat/messages/:id
-// Soft delete ("This message was deleted") — only the original sender can
-// delete their own message. Clears the text/attachment but keeps the row so
-// the timeline placeholder stays put for both sides.
-const deleteMessage = async (req, res) => {
-  try {
-    const chatMessage = await ChatMessage.findByPk(req.params.id);
-    if (!chatMessage) {
-      return res.status(404).json({ success: false, message: "Message not found" });
-    }
-    if (chatMessage.senderId !== req.user.id) {
-      return res.status(403).json({ success: false, message: "You can only delete your own messages" });
-    }
-
-    chatMessage.deleted = true;
-    chatMessage.message = "";
-    chatMessage.attachmentUrl = null;
-    chatMessage.attachmentName = null;
-    chatMessage.attachmentType = null;
-    await chatMessage.save();
-
-    const conversation = await Conversation.findByPk(chatMessage.conversationId);
-    if (conversation) {
-      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
-      emitToUser(recipientId, "chat:message-deleted", { messageId: chatMessage.id, conversationId: chatMessage.conversationId });
-    }
-
-    return res.status(200).json({ success: true, chatMessage });
-  } catch (error) {
-    console.error("Delete message error:", error);
-    return res.status(500).json({ success: false, message: "Server error deleting message" });
-  }
-};
-
 // GET /api/chat/unread-count — powers the badge next to "Chat" in the sidebar
 const getUnreadCount = async (req, res) => {
   try {
@@ -384,6 +283,108 @@ const getUnreadCount = async (req, res) => {
   }
 };
 
+// PUT /api/chat/messages/:id  body: { message }
+const editMessage = async (req, res) => {
+  try {
+    const chatMessage = await ChatMessage.findByPk(req.params.id);
+    if (!chatMessage || chatMessage.deleted) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+    if (chatMessage.senderId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You can only edit your own messages." });
+    }
+    const text = (req.body.message || "").trim();
+    if (!text) {
+      return res.status(400).json({ success: false, message: "Message can't be empty." });
+    }
+
+    chatMessage.message = text;
+    chatMessage.edited = true;
+    await chatMessage.save();
+
+    const conversation = await Conversation.findByPk(chatMessage.conversationId);
+    if (conversation) {
+      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+      emitToUser(recipientId, "chat:message-edited", { message: chatMessage });
+    }
+
+    return res.status(200).json({ success: true, chatMessage });
+  } catch (error) {
+    console.error("Edit message error:", error);
+    return res.status(500).json({ success: false, message: "Server error editing message" });
+  }
+};
+
+// DELETE /api/chat/messages/:id
+// Soft delete (keeps the message's place in the thread, shows "This message
+// was deleted" — same pattern as WhatsApp/Slack) rather than removing the row.
+const deleteMessage = async (req, res) => {
+  try {
+    const chatMessage = await ChatMessage.findByPk(req.params.id);
+    if (!chatMessage || chatMessage.deleted) {
+      return res.status(404).json({ success: false, message: "Message not found" });
+    }
+    if (chatMessage.senderId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "You can only delete your own messages." });
+    }
+
+    chatMessage.deleted = true;
+    chatMessage.message = "";
+    chatMessage.attachmentUrl = null;
+    chatMessage.attachmentName = null;
+    chatMessage.attachmentType = null;
+    await chatMessage.save();
+
+    const conversation = await Conversation.findByPk(chatMessage.conversationId);
+    if (conversation) {
+      const recipientId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+      emitToUser(recipientId, "chat:message-deleted", { messageId: chatMessage.id, conversationId: chatMessage.conversationId });
+    }
+
+    return res.status(200).json({ success: true, messageId: chatMessage.id });
+  } catch (error) {
+    console.error("Delete message error:", error);
+    return res.status(500).json({ success: false, message: "Server error deleting message" });
+  }
+};
+
+// GET /api/chat/search?conversationId=&keyword=
+// Same idea as WhatsApp/Slack's "search in chat": returns every matching
+// message (chronological order) so the frontend can highlight them all and
+// step through with Next/Previous. Works identically for employees and
+// admins — the only difference is the authorization check below, which
+// makes sure you can only search conversations you're actually part of.
+const searchMessages = async (req, res) => {
+  try {
+    const { conversationId, keyword } = req.query;
+    const term = (keyword || "").trim();
+
+    if (!conversationId || !term) {
+      return res.status(400).json({ success: false, message: "conversationId and keyword are required" });
+    }
+
+    const conversation = await Conversation.findByPk(conversationId);
+    if (!conversation || (conversation.userAId !== req.user.id && conversation.userBId !== req.user.id)) {
+      return res.status(404).json({ success: false, message: "Conversation not found" });
+    }
+
+    const matches = await ChatMessage.findAll({
+      where: {
+        conversationId,
+        deleted: false,
+        [Op.and]: [sequelizeWhere(fn("LOWER", col("message")), { [Op.like]: `%${term.toLowerCase()}%` })],
+      },
+      order: [["createdAt", "ASC"]],
+      limit: 500,
+    });
+
+    return res.status(200).json({ success: true, matches, count: matches.length });
+  } catch (error) {
+    console.error("Search messages error:", error);
+    return res.status(500).json({ success: false, message: "Server error searching messages" });
+  }
+};
+
 module.exports = {
   sendChatRequest,
   getIncomingRequests,
@@ -392,8 +393,8 @@ module.exports = {
   getConversations,
   getMessages,
   sendMessage,
-  markConversationRead,
+  getUnreadCount,
   editMessage,
   deleteMessage,
-  getUnreadCount,
+  searchMessages,
 };
