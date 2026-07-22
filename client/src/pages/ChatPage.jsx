@@ -890,10 +890,10 @@ const ChatPage = () => {
                 <div className="mb-4">
                   <label className="form-label small fw-bold mb-2">Search Employees</label>
                   <div className="input-group">
-                    <span className="input-group-text bg-white border-end-0 text-muted">
+                    <span className="input-group-text bg-light border-end-0 text-muted">
                       <Search size={16} />
                     </span>
-                    <input type="text" className="form-control border-start-0 ps-0" placeholder="Search by name or department..." />
+                    <input type="text" className="form-control border-start-0 ps-0 bg-light" placeholder="Employee search will be available after backend integration." disabled />
                   </div>
                 </div>
 
@@ -901,8 +901,9 @@ const ChatPage = () => {
                   <div className="col-md-6">
                     <div className="small fw-bold mb-2 text-muted">Available Employees</div>
                     <div className="border rounded bg-light p-4 d-flex flex-column align-items-center justify-content-center text-center text-muted" style={{ minHeight: "200px" }}>
-                      <div className="fw-medium mb-1">No employees available.</div>
-                      <div className="small">Employee data will appear here after backend integration.</div>
+                      <Users size={24} className="mb-2 text-secondary" />
+                      <div className="fw-medium mb-1">No employee data available</div>
+                      <div className="small">Employee records will appear here once the backend is connected.</div>
                     </div>
                   </div>
                   
@@ -910,15 +911,18 @@ const ChatPage = () => {
                     <div className="small fw-bold mb-2 text-muted">Selected Members</div>
                     <div className="border rounded bg-light p-4 d-flex flex-column align-items-center justify-content-center text-center text-muted" style={{ minHeight: "200px" }}>
                       <div className="fw-medium mb-1">No members selected.</div>
-                      <div className="small">Selected employees will appear here.</div>
+                      <div className="small">Selected employees will appear here after they are added.</div>
                     </div>
                   </div>
                 </div>
               </div>
               
-              <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
-                <button type="button" className="btn btn-light border" onClick={() => setShowCreateGroup(false)}>Cancel</button>
-                <button type="submit" className="btn btn-brand">Create Group</button>
+              <div className="p-4 border-top bg-light d-flex justify-content-between align-items-center mt-auto">
+                <div className="small text-muted fst-italic">Connect employee data to create groups.</div>
+                <div className="d-flex gap-2">
+                  <button type="button" className="btn btn-light border" onClick={() => setShowCreateGroup(false)}>Cancel</button>
+                  <button type="submit" className="btn btn-brand" disabled>Create Group</button>
+                </div>
               </div>
             </form>
           </div>
