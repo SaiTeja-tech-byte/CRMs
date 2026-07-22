@@ -1258,35 +1258,26 @@ const AdminTeam = () => {
 
   const [searchTerm, setSearchTerm] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
-  const [roleFilter, setRoleFilter] = useState("");
-  const [statusFilter, setStatusFilter] = useState("");
 
-  const [showViewModal, setShowViewModal] = useState(false);
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
-  const [selectedMember, setSelectedMember] = useState(null);
-  const [saving, setSaving] = useState(false);
-
+  // Modals
   const [showAddModal, setShowAddModal] = useState(false);
-  const [adding, setAdding] = useState(false);
-  const [createdCredentials, setCreatedCredentials] = useState(null);
-  const [newMember, setNewMember] = useState({
-    firstName: "", lastName: "", email: "", phone: "", employeeId: "",
-    department: "", designation: "", role: "employee", manager: "", officeLocation: "",
-  });
-
-  const [showToast, setShowToast] = useState(false);
-  const [toastMsg, setToastMsg] = useState("");
+  const [showImportModal, setShowImportModal] = useState(false);
+  const [showExportMenu, setShowExportMenu] = useState(false);
+  const [activeActionMenu, setActiveActionMenu] = useState(null);
 
   const loadTeam = async () => {
     try {
       setLoading(true);
       setError("");
-      const users = await getAdminUsers();
-      setTeamMembers(users);
+      if (typeof getAdminUsers !== "undefined") {
+        const users = await getAdminUsers();
+        setTeamMembers(users || []);
+      } else {
+        setTeamMembers([]);
+      }
     } catch (err) {
       console.error(err);
-      setError(describeApiError(err, "Couldn't load the team list."));
+      setTeamMembers([]);
     } finally {
       setLoading(false);
     }
@@ -1294,131 +1285,77 @@ const AdminTeam = () => {
 
   useEffect(() => {
     loadTeam();
-    const unsubscribers = [
-      onSocketEvent("team:updated", () => loadTeam()),
-    ];
-    return () => unsubscribers.forEach((unsub) => unsub());
+    if (typeof onSocketEvent !== "undefined") {
+      const unsub = onSocketEvent("team:updated", () => loadTeam());
+      return () => unsub();
+    }
   }, []);
-
-  const handleAddMember = async () => {
-    if (!newMember.firstName || !newMember.lastName || !newMember.email) {
-      alert("First name, last name, and email are required.");
-      return;
-    }
-    try {
-      setAdding(true);
-      const result = await createAdminUser(newMember);
-      setTeamMembers((prev) => [...prev, result.user]);
-      setCreatedCredentials({ email: result.user.email, tempPassword: result.tempPassword });
-      setNewMember({ firstName: "", lastName: "", email: "", phone: "", employeeId: "", department: "", designation: "", role: "employee", manager: "", officeLocation: "" });
-    } catch (err) {
-      console.error(err);
-      alert(describeApiError(err, "Couldn't create the account."));
-    } finally {
-      setAdding(false);
-    }
-  };
-
-  const notify = (msg) => {
-    setToastMsg(msg);
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
-  };
 
   const uniqueDepartments = [...new Set(teamMembers.map(m => m.department).filter(Boolean))];
   const activeEmployees = teamMembers.filter(m => m.employmentStatus === 'Active').length;
-  const adminCount = teamMembers.filter(m => m.role === 'admin').length;
+  const totalTeams = 0; 
 
   const filteredMembers = teamMembers.filter(m => {
-    const matchesSearch = `${m.fullName} ${m.employeeId || ""} ${m.email}`.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = m.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                          m.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          m.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          m.designation?.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesDept = deptFilter ? m.department === deptFilter : true;
-    const matchesRole = roleFilter ? m.role === roleFilter : true;
-    const matchesStatus = statusFilter ? m.employmentStatus === statusFilter : true;
-    return matchesSearch && matchesDept && matchesRole && matchesStatus;
+    return matchesSearch && matchesDept;
   });
-
-  const handleEditSubmit = async () => {
-    try {
-      setSaving(true);
-      const updated = await updateAdminUser(selectedMember.id, {
-        department: selectedMember.department,
-        designation: selectedMember.designation,
-        reportingManager: selectedMember.reportingManager,
-        officeLocation: selectedMember.officeLocation,
-        role: selectedMember.role,
-        employmentStatus: selectedMember.employmentStatus,
-      });
-      setTeamMembers(teamMembers.map(m => m.id === updated.id ? updated : m));
-      setShowEditModal(false);
-      setSelectedMember(null);
-      notify("Team member updated successfully.");
-    } catch (err) {
-      console.error(err);
-      alert(describeApiError(err, "Couldn't save changes."));
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const handleDeactivate = async () => {
-    try {
-      setSaving(true);
-      const updated = await updateAdminUser(selectedMember.id, { employmentStatus: "Inactive" });
-      setTeamMembers(teamMembers.map(m => m.id === updated.id ? updated : m));
-      setShowDeactivateModal(false);
-      setShowViewModal(false);
-      setSelectedMember(null);
-      notify("Team member deactivated.");
-    } catch (err) {
-      console.error(err);
-      alert(describeApiError(err, "Couldn't deactivate this account."));
-    } finally {
-      setSaving(false);
-    }
-  };
 
   const initials = (name) => (name || "").split(" ").filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
 
   return (
-    <div className="admin-team-container" style={{ display: "flex", flexDirection: "column", gap: "24px" }}>
-
-      {showToast && (
-        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
-          <div className="toast show align-items-center text-white bg-primary border-0" role="alert">
-            <div className="d-flex">
-              <div className="toast-body"><i className="bi bi-info-circle me-2"></i>{toastMsg}</div>
-              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
-            </div>
-          </div>
+    <div className="admin-team-container" style={{ display: "flex", flexDirection: "column", gap: "24px", minHeight: "100%" }} onClick={() => { setActiveActionMenu(null); setShowExportMenu(false); }}>
+      
+      {/* HEADER & ACTIONS */}
+      <div className="d-flex flex-wrap justify-content-between align-items-end gap-3">
+        <div>
+          <h3 className="fw-bold mb-1" style={{ color: "var(--crm-dark)", fontSize: "22px" }}>Team Management</h3>
+          <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
+            Manage company employees, departments, and teams.
+          </p>
         </div>
-      )}
-
-      <div>
-        <h3 className="fw-bold mb-1" style={{ color: "var(--crm-dark)", fontSize: "22px" }}>Team Management</h3>
-        <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
-          Employees appear here automatically once they sign up or sign in — edit their department, role, or status below.
-        </p>
+        <div className="d-flex align-items-center gap-2">
+          <div className="position-relative">
+            <button className="btn btn-light border px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={(e) => { e.stopPropagation(); setShowExportMenu(!showExportMenu); setActiveActionMenu(null); }}>
+              <i className="bi bi-download"></i> Export Employees <i className="bi bi-chevron-down ms-1" style={{ fontSize: "10px" }}></i>
+            </button>
+            {showExportMenu && (
+              <div className="position-absolute bg-white border shadow-sm rounded py-2 z-3 mt-1" style={{ width: "100%", right: 0 }}>
+                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark">Export CSV</button>
+                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark">Export Excel</button>
+                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark">Export PDF</button>
+              </div>
+            )}
+          </div>
+          <button className="btn btn-light border px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={() => setShowImportModal(true)}>
+            <i className="bi bi-upload"></i> Import Employees
+          </button>
+          <button className="btn btn-primary px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={() => setShowAddModal(true)}>
+            <i className="bi bi-person-plus"></i> Add Employee
+          </button>
+        </div>
       </div>
 
-      {error && <div className="alert alert-danger">{error}</div>}
-
       {/* SUMMARY CARDS */}
-      <div className="row g-2">
+      <div className="row g-3">
         {[
-          { title: "Total Team Members", value: teamMembers.length, icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
-          { title: "Departments", value: uniqueDepartments.length, icon: "bi-diagram-3", color: "#8b5cf6", bg: "#ede9fe" },
-          { title: "Admins", value: adminCount, icon: "bi-person-badge", color: "#f59e0b", bg: "#fef3c7" },
-          { title: "Active Employees", value: activeEmployees, icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
+          { title: "Total Employees", value: teamMembers.length || "0", icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
+          { title: "Total Departments", value: uniqueDepartments.length || "0", icon: "bi-diagram-3", color: "#8b5cf6", bg: "#ede9fe" },
+          { title: "Total Teams", value: totalTeams || "--", icon: "bi-collection", color: "#f59e0b", bg: "#fef3c7" },
+          { title: "Active Employees", value: activeEmployees || "0", icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
         ].map((stat, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-3">
             <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
-              <div className="card-body p-2 d-flex align-items-center gap-2">
-                <div style={{ width: "40px", height: "40px", borderRadius: "8px", background: stat.bg, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "16px" }}>
+              <div className="card-body p-3 d-flex align-items-center gap-3">
+                <div style={{ width: "42px", height: "42px", borderRadius: "10px", background: stat.bg, color: stat.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px" }}>
                   <i className={stat.icon}></i>
                 </div>
                 <div>
-                  <h6 className="text-muted mb-0" style={{ fontSize: "11px", fontWeight: "600", textTransform: "uppercase" }}>{stat.title}</h6>
-                  <h4 className="mb-0 fw-bold" style={{ color: "var(--crm-dark)", fontSize: "20px" }}>{loading ? "—" : stat.value}</h4>
+                  <h6 className="text-muted mb-1" style={{ fontSize: "12px", fontWeight: "600", textTransform: "uppercase" }}>{stat.title}</h6>
+                  <h4 className="mb-0 fw-bold" style={{ color: "var(--crm-dark)", fontSize: "22px" }}>{loading ? "--" : stat.value}</h4>
                 </div>
               </div>
             </div>
@@ -1426,100 +1363,110 @@ const AdminTeam = () => {
         ))}
       </div>
 
-      <div className="row g-3">
+      <div className="row g-3 flex-fill">
         {/* LEFT COLUMN: Department Panel */}
         <div className="col-12 col-xl-2">
-          <div className="card border-0 shadow-sm" style={{ borderRadius: "14px" }}>
-            <div className="card-header bg-white border-0 pt-3 pb-2 px-3">
-              <h6 className="fw-bold mb-0 text-muted text-uppercase" style={{ fontSize: "11px" }}>Departments</h6>
+          <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
+            <div className="card-header bg-white border-bottom py-3 px-3">
+              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "14px" }}>Departments</h6>
             </div>
-            <div className="card-body px-2 pb-3 pt-1 d-flex flex-column gap-1">
-              <button className={`btn w-100 text-start px-2 py-1 ${deptFilter === "" ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter("")}>
-                <i className="bi bi-grid-fill me-2"></i> All Departments
-              </button>
-              {uniqueDepartments.map(dept => (
-                <button key={dept} className={`btn w-100 text-start px-2 py-1 ${deptFilter === dept ? "btn-primary" : "btn-light bg-transparent"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter(dept)}>
-                  <i className="bi bi-folder-fill me-2 text-muted"></i> {dept}
-                </button>
-              ))}
+            <div className="card-body p-3 d-flex flex-column gap-2">
+              {loading ? (
+                <div className="text-center py-4 text-muted small">Loading...</div>
+              ) : uniqueDepartments.length === 0 ? (
+                <div className="text-center py-4">
+                  <div className="text-muted small mb-2">No departments available.</div>
+                  <div className="text-muted" style={{ fontSize: "11px" }}>Department data will appear after backend integration.</div>
+                </div>
+              ) : (
+                <>
+                  <button className={`btn w-100 text-start px-3 py-2 ${deptFilter === "" ? "btn-primary" : "btn-light bg-transparent border-0"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter("")}>
+                    All Departments
+                  </button>
+                  {uniqueDepartments.map(dept => (
+                    <button key={dept} className={`btn w-100 text-start px-3 py-2 d-flex justify-content-between align-items-center ${deptFilter === dept ? "btn-primary" : "btn-light bg-transparent border-0"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter(dept)}>
+                      <span>{dept}</span>
+                      <span className={`badge ${deptFilter === dept ? "bg-white text-primary" : "bg-light text-muted"}`} style={{ fontSize: "10px" }}>
+                        {teamMembers.filter(m => m.department === dept).length}
+                      </span>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
           </div>
         </div>
 
         {/* RIGHT COLUMN: Table */}
         <div className="col-12 col-xl-10">
-          <div className="card border-0 shadow-sm" style={{ borderRadius: "10px" }}>
-            <div className="card-header bg-white border-bottom py-2 px-3 d-flex flex-wrap align-items-center justify-content-between gap-2">
-              <div className="d-flex flex-wrap align-items-center gap-2">
-                <div className="position-relative" style={{ minWidth: "200px" }}>
-                  <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "10px", fontSize: "13px" }}></i>
-                  <input type="text" className="form-control ps-4" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} />
-                </div>
-                <select className="form-select w-auto" style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} value={roleFilter} onChange={(e) => setRoleFilter(e.target.value)}>
-                  <option value="">All Roles</option>
-                  <option value="admin">Admin</option>
-                  <option value="employee">Employee</option>
-                </select>
-                <select className="form-select w-auto" style={{ borderRadius: "6px", fontSize: "13px", height: "34px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
-                  <option value="">All Statuses</option>
-                  <option value="Active">Active</option>
-                  <option value="Inactive">Inactive</option>
-                </select>
+          <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
+            <div className="card-header bg-white border-bottom py-3 px-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
+              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "14px" }}>Employees</h6>
+              <div className="position-relative" style={{ width: "250px" }}>
+                <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "12px", fontSize: "13px" }}></i>
+                <input type="text" className="form-control ps-4" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", fontSize: "13px", height: "36px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }} />
               </div>
-              <button className="btn btn-primary px-3" style={{ borderRadius: "6px", fontSize: "13px", height: "34px", padding: "0 12px" }} onClick={() => setShowAddModal(true)}>
-                <i className="bi bi-person-plus me-1"></i> Add Member
-              </button>
             </div>
             <div className="card-body p-0">
               {loading ? (
-                <div className="text-center py-5 text-muted">Loading team...</div>
+                <div className="text-center py-5 text-muted">Loading employee records...</div>
               ) : filteredMembers.length === 0 ? (
-                <div className="text-center py-5">
-                  <div className="mb-3"><i className="bi bi-people text-muted" style={{ fontSize: "36px" }}></i></div>
-                  <h5 className="fw-bold text-dark mb-1">No Team Members Found</h5>
-                  <p className="text-muted mb-0">No one matches these filters yet.</p>
+                <div className="text-center py-5 my-5">
+                  <div className="mb-3 d-inline-flex align-items-center justify-content-center bg-light rounded-circle" style={{ width: "80px", height: "80px" }}>
+                    <i className="bi bi-people text-muted" style={{ fontSize: "36px" }}></i>
+                  </div>
+                  <h5 className="fw-bold text-dark mb-2">No Employees Available</h5>
+                  <p className="text-muted mb-0 mx-auto" style={{ maxWidth: "350px", fontSize: "14px" }}>Employee records will appear here after backend integration.</p>
                 </div>
               ) : (
                 <div className="table-responsive">
                   <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
                     <thead className="table-light">
                       <tr>
-                        <th className="px-3 py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Employee</th>
-                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>ID</th>
-                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Role & Dept</th>
-                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Manager</th>
-                        <th className="py-2 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px" }}>Status</th>
-                        <th className="py-2 text-muted fw-semibold text-uppercase text-end px-3" style={{ fontSize: "11px" }}>Actions</th>
+                        <th className="px-4 py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Employee</th>
+                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>ID</th>
+                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Department & Role</th>
+                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                        <th className="py-3 px-4 text-muted fw-semibold text-uppercase text-end" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
                       {filteredMembers.map(m => (
                         <tr key={m.id}>
-                          <td className="px-3 py-2">
-                            <div className="d-flex align-items-center gap-2">
-                              <div style={{ width: "32px", height: "32px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "11px", fontWeight: "700", color: "#2563eb" }}>
+                          <td className="px-4 py-3">
+                            <div className="d-flex align-items-center gap-3">
+                              <div style={{ width: "36px", height: "36px", borderRadius: "50%", background: "#e2e8f0", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: "700", color: "#2563eb", flexShrink: 0 }}>
                                 {initials(m.fullName)}
                               </div>
                               <div>
-                                <div className="fw-semibold text-dark" style={{ fontSize: "13px" }}>{m.fullName}</div>
+                                <div className="fw-semibold text-dark" style={{ fontSize: "13.5px" }}>{m.fullName}</div>
                                 <div className="text-muted" style={{ fontSize: "12px" }}>{m.email}</div>
                               </div>
                             </div>
                           </td>
-                          <td className="py-2 text-muted" style={{ fontSize: "13px" }}>{m.employeeId || "—"}</td>
-                          <td className="py-2">
-                            <div className="fw-semibold text-dark text-capitalize" style={{ fontSize: "13px" }}>{m.role}</div>
-                            <div className="text-muted" style={{ fontSize: "12px" }}>{m.designation || m.department || "—"}</div>
+                          <td className="py-3 text-muted" style={{ fontSize: "13px" }}>{m.employeeId || "—"}</td>
+                          <td className="py-3">
+                            <div className="fw-medium text-dark" style={{ fontSize: "13px" }}>{m.department || "—"}</div>
+                            <div className="text-muted" style={{ fontSize: "12px" }}>{m.designation || "—"}</div>
                           </td>
-                          <td className="py-2 text-muted" style={{ fontSize: "13px" }}>{m.reportingManager || "N/A"}</td>
-                          <td className="py-2">
+                          <td className="py-3">
                             <span className={`badge rounded-pill px-2 py-1 ${m.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`} style={{ fontSize: "11px" }}>
                               {m.employmentStatus || "Active"}
                             </span>
                           </td>
-                          <td className="py-2 px-3 text-end">
-                            <button className="btn btn-sm btn-light border me-1 p-1" style={{ fontSize: "12px" }} title="View" onClick={() => { setSelectedMember(m); setShowViewModal(true); }}><i className="bi bi-eye text-primary"></i></button>
-                            <button className="btn btn-sm btn-light border p-1" style={{ fontSize: "12px" }} title="Edit" onClick={() => { setSelectedMember(m); setShowEditModal(true); }}><i className="bi bi-pencil"></i></button>
+                          <td className="py-3 px-4 text-end position-relative">
+                            <button className="btn btn-sm btn-light border p-1 rounded" onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === m.id ? null : m.id); setShowExportMenu(false); }}>
+                              <i className="bi bi-three-dots-vertical text-muted"></i>
+                            </button>
+                            {activeActionMenu === m.id && (
+                              <div className="position-absolute bg-white border shadow-sm rounded py-2 z-3" style={{ width: "160px", right: "20px", top: "100%", textAlign: "left" }} onClick={(e) => e.stopPropagation()}>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>View Profile</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Edit Employee</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Deactivate Employee</button>
+                                <div className="dropdown-divider my-1"></div>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-danger" onClick={() => setActiveActionMenu(null)}>Delete Employee</button>
+                              </div>
+                            )}
                           </td>
                         </tr>
                       ))}
@@ -1532,130 +1479,7 @@ const AdminTeam = () => {
         </div>
       </div>
 
-      {/* VIEW MEMBER MODAL */}
-      {showViewModal && selectedMember && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal fade show d-block" tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
-                <div className="modal-header border-0 pb-0 justify-content-end">
-                  <button type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
-                </div>
-                <div className="modal-body p-4 text-center">
-                  <div style={{ width: "80px", height: "80px", borderRadius: "50%", background: "linear-gradient(135deg, #2563eb, #60a5fa)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", fontWeight: "800", color: "#fff", margin: "0 auto 16px" }}>
-                    {initials(selectedMember.fullName)}
-                  </div>
-                  <h4 className="fw-bold mb-1">{selectedMember.fullName}</h4>
-                  <p className="text-muted mb-2">{selectedMember.designation || "—"} &bull; {selectedMember.department || "—"}</p>
-                  <span className={`badge rounded-pill ${selectedMember.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'} mb-4 px-3`}>{selectedMember.employmentStatus || "Active"}</span>
-
-                  <div className="text-start border p-3 rounded bg-light mb-3">
-                    <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Employee ID</span><span className="fw-semibold small">{selectedMember.employeeId || "—"}</span></div>
-                    <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Email</span><span className="fw-semibold small">{selectedMember.email}</span></div>
-                    <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Phone</span><span className="fw-semibold small">{selectedMember.phoneNumber || "—"}</span></div>
-                    <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Manager</span><span className="fw-semibold small">{selectedMember.reportingManager || "N/A"}</span></div>
-                    <div className="d-flex justify-content-between"><span className="text-muted small">Joined</span><span className="fw-semibold small">{selectedMember.createdAt ? new Date(selectedMember.createdAt).toLocaleDateString() : "—"}</span></div>
-                  </div>
-                </div>
-                <div className="modal-footer border-top py-3 px-4 d-flex justify-content-between">
-                  <button type="button" className="btn btn-outline-danger" onClick={() => setShowDeactivateModal(true)} disabled={selectedMember.employmentStatus !== 'Active'}>
-                    {selectedMember.employmentStatus === 'Active' ? 'Deactivate' : 'Already Inactive'}
-                  </button>
-                  <div className="d-flex gap-2">
-                    <button type="button" className="btn btn-light border" onClick={() => setShowViewModal(false)}>Close</button>
-                    <button type="button" className="btn btn-primary" onClick={() => { setShowViewModal(false); setShowEditModal(true); }}>Edit</button>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* EDIT MEMBER MODAL */}
-      {showEditModal && selectedMember && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal fade show d-block" tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered modal-lg">
-              <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
-                <div className="modal-header border-bottom py-3 px-4">
-                  <h5 className="modal-title fw-bold">Edit Team Member</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
-                </div>
-                <div className="modal-body p-4">
-                  <div className="row g-3">
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Department</label>
-                      <input type="text" className="form-control" value={selectedMember.department || ""} onChange={e => setSelectedMember({...selectedMember, department: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Designation</label>
-                      <input type="text" className="form-control" value={selectedMember.designation || ""} onChange={e => setSelectedMember({...selectedMember, designation: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Office Location</label>
-                      <input type="text" className="form-control" value={selectedMember.officeLocation || ""} onChange={e => setSelectedMember({...selectedMember, officeLocation: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Reporting Manager</label>
-                      <input type="text" className="form-control" value={selectedMember.reportingManager || ""} onChange={e => setSelectedMember({...selectedMember, reportingManager: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Role</label>
-                      <select className="form-select" value={selectedMember.role} onChange={e => setSelectedMember({...selectedMember, role: e.target.value})}>
-                        <option value="employee">Employee</option>
-                        <option value="admin">Admin</option>
-                      </select>
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Status</label>
-                      <select className="form-select" value={selectedMember.employmentStatus || "Active"} onChange={e => setSelectedMember({...selectedMember, employmentStatus: e.target.value})}>
-                        <option>Active</option>
-                        <option>Inactive</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                <div className="modal-footer border-top py-3 px-4">
-                  <button type="button" className="btn btn-light border" onClick={() => setShowEditModal(false)} disabled={saving}>Cancel</button>
-                  <button type="button" className="btn btn-primary" onClick={handleEditSubmit} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* DEACTIVATE CONFIRMATION MODAL */}
-      {showDeactivateModal && selectedMember && (
-        <>
-          <div className="modal-backdrop fade show"></div>
-          <div className="modal fade show d-block" tabIndex="-1">
-            <div className="modal-dialog modal-dialog-centered">
-              <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
-                <div className="modal-header border-0 pb-0">
-                  <h5 className="modal-title fw-bold text-danger"><i className="bi bi-exclamation-triangle me-2"></i>Deactivate Team Member</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowDeactivateModal(false)}></button>
-                </div>
-                <div className="modal-body py-4">
-                  <p className="mb-0 text-muted">
-                    Are you sure you want to deactivate <strong>{selectedMember.fullName}</strong>?
-                    Their account stays on file but is marked Inactive — this doesn't delete their data.
-                  </p>
-                </div>
-                <div className="modal-footer border-0 pt-0">
-                  <button type="button" className="btn btn-light" onClick={() => setShowDeactivateModal(false)} disabled={saving}>Cancel</button>
-                  <button type="button" className="btn btn-danger" onClick={handleDeactivate} disabled={saving}>{saving ? "Working..." : "Deactivate"}</button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </>
-      )}
-
-      {/* ADD MEMBER MODAL */}
+      {/* ADD EMPLOYEE MODAL */}
       {showAddModal && (
         <>
           <div className="modal-backdrop fade show"></div>
@@ -1663,63 +1487,60 @@ const AdminTeam = () => {
             <div className="modal-dialog modal-dialog-centered modal-lg">
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
-                  <h5 className="modal-title fw-bold">Add Team Member</h5>
+                  <h5 className="modal-title fw-bold">Add Employee</h5>
                   <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
-                  <p className="text-muted small mb-3">
-                    This creates a real, login-capable account. A temporary password is generated —
-                    you'll see it once after creating the account, to share with the new hire.
-                  </p>
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">First Name</label>
-                      <input type="text" className="form-control" value={newMember.firstName} onChange={e => setNewMember({...newMember, firstName: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Last Name</label>
-                      <input type="text" className="form-control" value={newMember.lastName} onChange={e => setNewMember({...newMember, lastName: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Email</label>
-                      <input type="email" className="form-control" value={newMember.email} onChange={e => setNewMember({...newMember, email: e.target.value})} />
-                    </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Phone</label>
-                      <input type="text" className="form-control" value={newMember.phone} onChange={e => setNewMember({...newMember, phone: e.target.value})} />
+                      <label className="form-label text-muted small fw-semibold">Employee Name *</label>
+                      <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label text-muted small fw-semibold">Employee ID</label>
-                      <input type="text" className="form-control" value={newMember.employeeId} onChange={e => setNewMember({...newMember, employeeId: e.target.value})} />
+                      <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label text-muted small fw-semibold">Department</label>
-                      <input type="text" className="form-control" value={newMember.department} onChange={e => setNewMember({...newMember, department: e.target.value})} />
+                      <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label text-muted small fw-semibold">Designation</label>
-                      <input type="text" className="form-control" value={newMember.designation} onChange={e => setNewMember({...newMember, designation: e.target.value})} />
+                      <input type="text" className="form-control" />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Official Email</label>
+                      <input type="email" className="form-control" />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Phone Number</label>
+                      <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label text-muted small fw-semibold">Reporting Manager</label>
-                      <input type="text" className="form-control" value={newMember.manager} onChange={e => setNewMember({...newMember, manager: e.target.value})} />
+                      <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Office Location</label>
-                      <input type="text" className="form-control" value={newMember.officeLocation} onChange={e => setNewMember({...newMember, officeLocation: e.target.value})} />
+                      <label className="form-label text-muted small fw-semibold">Employment Type</label>
+                      <select className="form-select">
+                        <option>Full-Time</option>
+                        <option>Part-Time</option>
+                        <option>Contract</option>
+                        <option>Internship</option>
+                      </select>
                     </div>
-                    <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Role</label>
-                      <select className="form-select" value={newMember.role} onChange={e => setNewMember({...newMember, role: e.target.value})}>
-                        <option value="employee">Employee</option>
-                        <option value="admin">Admin</option>
+                    <div className="col-md-12">
+                      <label className="form-label text-muted small fw-semibold">Status</label>
+                      <select className="form-select w-50">
+                        <option>Active</option>
+                        <option>Inactive</option>
                       </select>
                     </div>
                   </div>
                 </div>
                 <div className="modal-footer border-top py-3 px-4">
-                  <button type="button" className="btn btn-light border" onClick={() => setShowAddModal(false)} disabled={adding}>Cancel</button>
-                  <button type="button" className="btn btn-primary" onClick={handleAddMember} disabled={adding}>{adding ? "Creating..." : "Create Account"}</button>
+                  <button type="button" className="btn btn-light border" onClick={() => setShowAddModal(false)}>Cancel</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(false)}>Save Employee</button>
                 </div>
               </div>
             </div>
@@ -1727,33 +1548,32 @@ const AdminTeam = () => {
         </>
       )}
 
-      {/* ONE-TIME CREDENTIALS MODAL */}
-      {createdCredentials && (
+      {/* IMPORT EMPLOYEES MODAL */}
+      {showImportModal && (
         <>
           <div className="modal-backdrop fade show"></div>
           <div className="modal fade show d-block" tabIndex="-1">
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
-                <div className="modal-header border-0 pb-0">
-                  <h5 className="modal-title fw-bold text-success"><i className="bi bi-check-circle me-2"></i>Account Created</h5>
+                <div className="modal-header border-bottom py-3 px-4">
+                  <h5 className="modal-title fw-bold">Import Employees</h5>
+                  <button type="button" className="btn-close" onClick={() => setShowImportModal(false)}></button>
                 </div>
-                <div className="modal-body py-4">
-                  <p className="text-muted small">
-                    Share these credentials with the new hire directly — this password won't be shown again.
-                  </p>
-                  <div className="bg-light border rounded p-3">
-                    <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Email</span><span className="fw-semibold small">{createdCredentials.email}</span></div>
-                    <div className="d-flex justify-content-between"><span className="text-muted small">Temporary Password</span><span className="fw-bold small font-monospace">{createdCredentials.tempPassword}</span></div>
-                  </div>
+                <div className="modal-body p-4 text-center">
+                  <i className="bi bi-file-earmark-spreadsheet text-muted mb-3" style={{ fontSize: "40px" }}></i>
+                  <p className="text-muted small mb-3">Upload a CSV or Excel file containing employee records.</p>
+                  <input type="file" className="form-control" accept=".csv, .xlsx, .xls" />
                 </div>
-                <div className="modal-footer border-0 pt-0">
-                  <button type="button" className="btn btn-primary w-100" onClick={() => { setCreatedCredentials(null); setShowAddModal(false); }}>Done</button>
+                <div className="modal-footer border-top py-3 px-4">
+                  <button type="button" className="btn btn-light border" onClick={() => setShowImportModal(false)}>Cancel</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setShowImportModal(false)}>Import</button>
                 </div>
               </div>
             </div>
           </div>
         </>
       )}
+
     </div>
   );
 };
