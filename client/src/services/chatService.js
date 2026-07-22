@@ -40,6 +40,7 @@ export const getMessages = async (conversationId) => {
   return res.data.messages;
 };
 
+// attachment: optional { url, name, type } — url is a base64 data: URL
 export const sendMessage = async (conversationId, message, attachment) => {
   const res = await axios.post(
     `${API_BASE}/chat/messages`,
@@ -55,22 +56,28 @@ export const sendMessage = async (conversationId, message, attachment) => {
   return res.data.chatMessage;
 };
 
-export const markConversationRead = async (conversationId) => {
-  const res = await axios.patch(`${API_BASE}/chat/conversations/${conversationId}/read`, {}, authHeaders());
-  return res.data;
+// Powers the unread badge next to "Chat" in the sidebar.
+export const getUnreadCount = async () => {
+  const res = await axios.get(`${API_BASE}/chat/unread-count?_=${Date.now()}`, authHeaders());
+  return res.data; // { unreadMessages, pendingRequests, total }
 };
 
 export const editMessage = async (messageId, message) => {
-  const res = await axios.patch(`${API_BASE}/chat/messages/${messageId}`, { message }, authHeaders());
+  const res = await axios.put(`${API_BASE}/chat/messages/${messageId}`, { message }, authHeaders());
   return res.data.chatMessage;
 };
 
 export const deleteMessage = async (messageId) => {
   const res = await axios.delete(`${API_BASE}/chat/messages/${messageId}`, authHeaders());
-  return res.data.chatMessage;
+  return res.data;
 };
 
-export const getUnreadCount = async () => {
-  const res = await axios.get(`${API_BASE}/chat/unread-count?_=${Date.now()}`, authHeaders());
-  return res.data;
+// WhatsApp-style "search in this chat" — returns every matching message
+// (chronological) so the UI can highlight + step through them.
+export const searchMessages = async (conversationId, keyword) => {
+  const res = await axios.get(
+    `${API_BASE}/chat/search?conversationId=${encodeURIComponent(conversationId)}&keyword=${encodeURIComponent(keyword)}`,
+    authHeaders()
+  );
+  return res.data.matches;
 };
