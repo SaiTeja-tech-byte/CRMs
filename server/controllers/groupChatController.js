@@ -1,4 +1,3 @@
-const { Op } = require("sequelize");
 const ChatGroup = require("../models/ChatGroup");
 const GroupMember = require("../models/GroupMember");
 const ChatMessage = require("../models/ChatMessage");
@@ -158,13 +157,18 @@ const sendGroupMessage = async (req, res) => {
 
     await ChatGroup.update({ lastMessageAt: new Date() }, { where: { id: groupId } });
 
-    // Bump every other member's unread counter for this group.
-    await GroupMember.increment("unreadCount", { by: 1, where: { groupId, userId: { [Op.ne]: req.user.id } } });
-
+    // One query for the member list, reused both to bump everyone else's
+    // unread counter and to know who to notify — was two separate DB round
+    // trips (increment + findAll) before.
     const members = await GroupMember.findAll({ where: { groupId } });
-    members
-      .filter((m) => m.userId !== req.user.id)
-      .forEach((m) => emitToUser(m.userId, "chat:group-message-received", { message: chatMessage, groupId }));
+    const otherMemberIds = members.filter((m) => m.userId !== req.user.id).map((m) => m.userId);
+    if (otherMemberIds.length > 0) {
+      await GroupMember.increment("unreadCount", { by: 1, where: { groupId, userId: otherMemberIds } });
+    }
+
+    otherMemberIds.forEach((userId) =>
+      emitToUser(userId, "chat:group-message-received", { message: chatMessage, groupId })
+    );
 
     return res.status(201).json({ success: true, chatMessage });
   } catch (error) {
