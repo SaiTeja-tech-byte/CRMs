@@ -30,6 +30,16 @@ const EMOJI_OPTIONS = [
 // in the same conversation history.
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
+// Temporary dummy employee data for frontend demonstration.
+// Replace with backend API response after integration.
+const DUMMY_EMPLOYEES = [
+  { id: "EMP001", name: "Sai Teja", dept: "IT", role: "Software Engineer" },
+  { id: "EMP002", name: "Keshav Rao", dept: "IT", role: "Software Engineer" },
+  { id: "EMP003", name: "Rahul Kumar", dept: "HR", role: "HR Executive" },
+  { id: "EMP004", name: "Priya Sharma", dept: "Finance", role: "Accountant" },
+  { id: "EMP005", name: "Arjun Reddy", dept: "Marketing", role: "Marketing Executive" },
+  { id: "EMP006", name: "Sneha Patel", dept: "Sales", role: "Sales Executive" },
+];
 
 const ChatPage = () => {
   const [team, setTeam] = useState([]);
@@ -50,6 +60,7 @@ const ChatPage = () => {
   const [groups, setGroups] = useState([]);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
+  const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showGroupMenu, setShowGroupMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [listSearch, setListSearch] = useState("");
@@ -884,16 +895,87 @@ const ChatPage = () => {
                     onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
                   ></textarea>
                 </div>
-                
-                <div className="border rounded bg-light p-4 text-center text-muted mb-2">
-                  <div className="fw-medium mb-1">No members yet.</div>
-                  <div className="small">Members can be added after backend integration.</div>
+                <div className="mb-4">
+                  <label className="form-label small fw-bold mb-2">Search Employees</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-white border-end-0 text-muted">
+                      <Search size={16} />
+                    </span>
+                    <input 
+                      type="text" 
+                      className="form-control border-start-0 ps-0" 
+                      placeholder="Search by name, ID, department..." 
+                      value={groupEmployeeSearch}
+                      onChange={(e) => setGroupEmployeeSearch(e.target.value)}
+                    />
+                  </div>
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="small fw-bold mb-2 text-muted">Available Employees</div>
+                    <div className="border rounded bg-light p-2 d-flex flex-column gap-2" style={{ height: "250px", overflowY: "auto" }}>
+                      {(() => {
+                        const filtered = DUMMY_EMPLOYEES.filter(e => 
+                          !groupEmployeeSearch || 
+                          e.name.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.id.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.dept.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.role.toLowerCase().includes(groupEmployeeSearch.toLowerCase())
+                        );
+                        if(filtered.length === 0) return <div className="text-muted small text-center mt-3">No employees found.</div>;
+                        return filtered.map(emp => (
+                          <div 
+                            key={emp.id} 
+                            className="bg-white border rounded p-2 d-flex align-items-center gap-2"
+                            style={{ cursor: "pointer" }}
+                            onClick={() => {
+                              if(!newGroupData.members.includes(emp.id)) {
+                                setNewGroupData(prev => ({ ...prev, members: [...prev.members, emp.id] }));
+                              }
+                            }}
+                          >
+                            <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "32px", height: "32px", fontSize: "12px", fontWeight: "bold" }}>
+                              {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                            </div>
+                            <div style={{ lineHeight: "1.2" }}>
+                              <div className="fw-medium small">{emp.name}</div>
+                              <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                              <div className="text-muted" style={{ fontSize: "11px" }}>{emp.role}</div>
+                            </div>
+                          </div>
+                        ));
+                      })()}
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <div className="small fw-bold mb-2 text-muted">Selected Members</div>
+                    <div className="border rounded bg-light p-3 d-flex flex-wrap gap-2 align-content-start" style={{ height: "250px", overflowY: "auto" }}>
+                      {newGroupData.members.length === 0 ? (
+                        <div className="text-muted small text-center w-100 mt-2">No members selected.</div>
+                      ) : (
+                        newGroupData.members.map(memberId => {
+                          const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
+                          if(!emp) return null;
+                          return (
+                            <div key={memberId} className="badge bg-white text-dark border d-flex align-items-center gap-1 py-1 px-2" style={{ fontSize: "12px" }}>
+                              {emp.name}
+                              <X size={14} className="text-muted ms-1" style={{ cursor: "pointer" }} onClick={() => {
+                                setNewGroupData(prev => ({ ...prev, members: prev.members.filter(id => id !== memberId) }));
+                              }} />
+                            </div>
+                          );
+                        })
+                      )}
+                    </div>
+                  </div>
                 </div>
               </div>
               
               <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
                 <button type="button" className="btn btn-light border" onClick={() => setShowCreateGroup(false)}>Cancel</button>
-                <button type="submit" className="btn btn-brand" disabled={!newGroupData.name.trim()}>Create Group</button>
+                <button type="submit" className="btn btn-brand" disabled={!newGroupData.name.trim() || newGroupData.members.length === 0}>Create Group</button>
               </div>
             </form>
           </div>
