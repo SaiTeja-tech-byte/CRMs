@@ -12,6 +12,14 @@ import {
   editMessage as editMessageApi,
   deleteMessage as deleteMessageApi,
   searchMessages,
+  createGroup as createGroupApi,
+  getMyGroups,
+  getGroupMessages,
+  sendGroupMessage as sendGroupMessageApi,
+  editGroup as editGroupApi,
+  addGroupMembers as addGroupMembersApi,
+  removeGroupMember as removeGroupMemberApi,
+  deleteGroup as deleteGroupApi,
 } from "../services/chatService";
 import { connectSocket, onSocketEvent } from "../services/socketService";
 
@@ -30,16 +38,16 @@ const EMOJI_OPTIONS = [
 // in the same conversation history.
 const MAX_ATTACHMENT_BYTES = 5 * 1024 * 1024;
 
-// Temporary dummy employee data for frontend demonstration.
-// Replace with backend API response after integration.
-const DUMMY_EMPLOYEES = [
-  { id: "EMP001", name: "Sai Teja", dept: "IT", role: "Software Engineer" },
-  { id: "EMP002", name: "Keshav Rao", dept: "IT", role: "Software Engineer" },
-  { id: "EMP003", name: "Rahul Kumar", dept: "HR", role: "HR Executive" },
-  { id: "EMP004", name: "Priya Sharma", dept: "Finance", role: "Accountant" },
-  { id: "EMP005", name: "Arjun Reddy", dept: "Marketing", role: "Marketing Executive" },
-  { id: "EMP006", name: "Sneha Patel", dept: "Sales", role: "Sales Executive" },
-];
+// Backend groups come back as { groupName, groupDescription, ... } — the
+// existing UI below was built against a mock shaped like
+// { name, description, isGroup: true }. Normalize once at the boundary
+// instead of touching every render site.
+const normalizeGroup = (g) => ({
+  ...g,
+  isGroup: true,
+  name: g.groupName,
+  description: g.groupDescription,
+});
 
 const ChatPage = () => {
   const [team, setTeam] = useState([]);
@@ -105,6 +113,15 @@ const ChatPage = () => {
     }
   }, []);
 
+  const loadGroups = useCallback(async () => {
+    try {
+      const data = await getMyGroups();
+      setGroups((data || []).map(normalizeGroup));
+    } catch (err) {
+      console.error("Failed to load groups:", err);
+    }
+  }, []);
+
   const loadTeam = useCallback(async () => {
     try {
       const res = await fetch(`${API_BASE}/team`, {
@@ -123,8 +140,9 @@ const ChatPage = () => {
     loadConversations();
     loadRequests();
     loadTeam();
+    loadGroups();
     connectSocket();
-  }, [loadConversations, loadRequests, loadTeam]);
+  }, [loadConversations, loadRequests, loadTeam, loadGroups]);
 
   // Live updates via socket
   useEffect(() => {
@@ -171,6 +189,34 @@ const ChatPage = () => {
           return current;
         });
       }),
+      // A group I'm in was just created (or I was just added to one) —
+      // this is what makes it show up on the employee's side without a
+      // refresh. Guard against dupes in case of a reconnect replay.
+      onSocketEvent("chat:group-created", (rawGroup) => {
+        const group = normalizeGroup(rawGroup);
+        setGroups((prev) => (prev.some((g) => g.id === group.id) ? prev : [group, ...prev]));
+        bump();
+      }),
+      onSocketEvent("chat:group-updated", ({ group: rawGroup }) => {
+        const group = normalizeGroup(rawGroup);
+        setGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, ...group } : g)));
+      }),
+      onSocketEvent("chat:group-removed", ({ groupId }) => {
+        setGroups((prev) => prev.filter((g) => g.id !== groupId));
+        setActiveConversation((current) => (current?.id === groupId ? null : current));
+      }),
+      onSocketEvent("chat:group-message-received", ({ message, groupId }) => {
+        bump();
+        setActiveConversation((current) => {
+          if (current?.id === groupId && current?.isGroup) {
+            setMessages((prev) => [...prev, message]);
+          } else {
+            // Not currently viewing this group — bump its unread badge.
+            setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, unreadCount: (g.unreadCount || 0) + 1 } : g)));
+          }
+          return current;
+        });
+      }),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
   }, [loadConversations, loadRequests]);
@@ -198,31 +244,34 @@ const ChatPage = () => {
     }
   };
 
-  const openGroupConversation = (group) => {
+  const openGroupConversation = async (group) => {
     setActiveConversation(group);
     setShowEmojiPicker(false);
     setPendingAttachment(null);
     setAttachError("");
     closeSearch();
-    setMessages([]); // Mock empty messages for frontend-only
     setGroups((prev) => prev.map((g) => (g.id === group.id ? { ...g, unreadCount: 0 } : g)));
+    try {
+      const data = await getGroupMessages(group.id);
+      setMessages(data || []);
+    } catch (err) {
+      console.error("Failed to load group messages:", err);
+      setMessages([]);
+    }
   };
 
-  const handleCreateGroup = (e) => {
+  const handleCreateGroup = async (e) => {
     e.preventDefault();
     if (!newGroupData.name.trim()) return;
-    const newGroup = {
-      id: "group-" + Date.now(),
-      isGroup: true,
-      name: newGroupData.name,
-      description: newGroupData.description,
-      members: newGroupData.members,
-      unreadCount: 0,
-      adminId: currentUser?.id
-    };
-    setGroups(prev => [newGroup, ...prev]);
-    setShowCreateGroup(false);
-    setNewGroupData({ name: "", description: "", members: [] });
+    try {
+      const group = await createGroupApi(newGroupData.name.trim(), newGroupData.description, newGroupData.members);
+      setGroups((prev) => [normalizeGroup(group), ...prev]);
+      setShowCreateGroup(false);
+      setNewGroupData({ name: "", description: "", members: [] });
+    } catch (err) {
+      console.error("Failed to create group:", err);
+      alert("Failed to create group.");
+    }
   };
 
   const handleStartChat = async (userId) => {
@@ -424,18 +473,13 @@ const ChatPage = () => {
     setPendingAttachment(null);
 
     if (activeConversation.isGroup) {
-      // Frontend-only group message mockup
-      const mockMessage = {
-        id: "mock-" + Date.now(),
-        conversationId: activeConversation.id,
-        senderId: currentUser?.id,
-        message: text,
-        attachmentUrl: attachment?.url || null,
-        attachmentName: attachment?.name || null,
-        attachmentType: attachment?.type || null,
-        createdAt: new Date().toISOString()
-      };
-      setMessages((prev) => [...prev, mockMessage]);
+      try {
+        const message = await sendGroupMessageApi(activeConversation.id, text, attachment);
+        setMessages((prev) => [...prev, message]);
+        loadGroups();
+      } catch (err) {
+        alert("Message failed to send.");
+      }
       return;
     }
 
@@ -636,7 +680,7 @@ const ChatPage = () => {
                           setShowEditGroupModal(true); 
                         }}>Edit Group</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setManageMembersData(activeConversation.members || []);
+                          setManageMembersData((activeConversation.members || []).map(m => m.userId));
                           setManageMembersSearch("");
                           setShowGroupMenu(false); 
                           setShowManageMembersModal(true); 
@@ -750,6 +794,11 @@ const ChatPage = () => {
                           </div>
                         ) : (
                           <>
+                            {activeConversation.isGroup && !isMine && (
+                              <div className="fw-bold small mb-1" style={{ color: "#6c5ce7" }}>
+                                {activeConversation.members?.find(mem => mem.userId === m.senderId)?.user?.fullName || "Member"}
+                              </div>
+                            )}
                             {m.attachmentUrl && (
                               m.attachmentType?.startsWith("image/") ? (
                                 <a href={m.attachmentUrl} target="_blank" rel="noreferrer">
@@ -945,12 +994,12 @@ const ChatPage = () => {
                     <div className="small fw-bold mb-2 text-muted">Available Employees</div>
                     <div className="border rounded bg-light p-2 d-flex flex-column gap-2" style={{ height: "250px", overflowY: "auto" }}>
                       {(() => {
-                        const filtered = DUMMY_EMPLOYEES.filter(e => 
-                          !groupEmployeeSearch || 
-                          e.name.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
-                          e.id.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
-                          e.dept.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
-                          e.role.toLowerCase().includes(groupEmployeeSearch.toLowerCase())
+                        const filtered = team.filter(e =>
+                          !groupEmployeeSearch ||
+                          e.fullName?.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.email?.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.department?.toLowerCase().includes(groupEmployeeSearch.toLowerCase()) ||
+                          e.role?.toLowerCase().includes(groupEmployeeSearch.toLowerCase())
                         );
                         if(filtered.length === 0) return <div className="text-muted small text-center mt-3">No employees found.</div>;
                         return filtered.map(emp => (
@@ -965,11 +1014,11 @@ const ChatPage = () => {
                             }}
                           >
                             <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "32px", height: "32px", fontSize: "12px", fontWeight: "bold" }}>
-                              {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                              {emp.fullName?.split(" ").map(n => n[0]).join("").substring(0,2)}
                             </div>
                             <div style={{ lineHeight: "1.2" }}>
-                              <div className="fw-medium small">{emp.name}</div>
-                              <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                              <div className="fw-medium small">{emp.fullName}</div>
+                              <div className="text-muted" style={{ fontSize: "11px" }}>{emp.email} • {emp.department}</div>
                               <div className="text-muted" style={{ fontSize: "11px" }}>{emp.role}</div>
                             </div>
                           </div>
@@ -985,11 +1034,11 @@ const ChatPage = () => {
                         <div className="text-muted small text-center w-100 mt-2">No members selected.</div>
                       ) : (
                         newGroupData.members.map(memberId => {
-                          const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
+                          const emp = team.find(e => e.id === memberId);
                           if(!emp) return null;
                           return (
                             <div key={memberId} className="badge bg-white text-dark border d-flex align-items-center gap-1 py-1 px-2" style={{ fontSize: "12px" }}>
-                              {emp.name}
+                              {emp.fullName}
                               <X size={14} className="text-muted ms-1" style={{ cursor: "pointer" }} onClick={() => {
                                 setNewGroupData(prev => ({ ...prev, members: prev.members.filter(id => id !== memberId) }));
                               }} />
@@ -1024,10 +1073,18 @@ const ChatPage = () => {
             <p className="text-muted small mb-4">This action cannot be undone.</p>
             <div className="d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
-              <button type="button" className="btn btn-danger" onClick={() => {
-                setGroups(prev => prev.filter(g => g.id !== activeConversation?.id));
-                setActiveConversation(null);
-                setShowDeleteConfirm(false);
+              <button type="button" className="btn btn-danger" onClick={async () => {
+                const groupId = activeConversation?.id;
+                try {
+                  await deleteGroupApi(groupId);
+                  setGroups(prev => prev.filter(g => g.id !== groupId));
+                  setActiveConversation(null);
+                  setShowDeleteConfirm(false);
+                } catch (err) {
+                  console.error("Failed to delete group:", err);
+                  alert("Failed to delete group.");
+                  setShowDeleteConfirm(false);
+                }
               }}>Delete Group</button>
             </div>
           </div>
@@ -1083,11 +1140,11 @@ const ChatPage = () => {
               <div className="mb-3 d-flex gap-4">
                 <div>
                   <div className="small text-muted fw-bold">Created By</div>
-                  <div>Admin</div>
+                  <div>{activeConversation.members?.find(m => m.userId === activeConversation.createdBy)?.user?.fullName || "Admin"}</div>
                 </div>
                 <div>
                   <div className="small text-muted fw-bold">Created Date</div>
-                  <div>Today</div>
+                  <div>{activeConversation.createdAt ? new Date(activeConversation.createdAt).toLocaleDateString() : "-"}</div>
                 </div>
               </div>
               
@@ -1097,19 +1154,20 @@ const ChatPage = () => {
               
               {activeConversation.members?.length > 0 && (
                 <div className="border rounded bg-light p-2 d-flex flex-column gap-2">
-                  {activeConversation.members.map(memberId => {
-                    const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
-                    return emp ? (
-                      <div key={memberId} className="bg-white border rounded p-2 d-flex align-items-center gap-2">
+                  {activeConversation.members.map(member => {
+                    const emp = member.user;
+                    if (!emp) return null;
+                    return (
+                      <div key={member.userId} className="bg-white border rounded p-2 d-flex align-items-center gap-2">
                         <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "28px", height: "28px", fontSize: "11px", fontWeight: "bold" }}>
-                          {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                          {emp.fullName?.split(" ").map(n => n[0]).join("").substring(0,2)}
                         </div>
                         <div style={{ lineHeight: "1.2" }}>
-                          <div className="fw-medium small">{emp.name}</div>
-                          <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                          <div className="fw-medium small">{emp.fullName} {member.role === "admin" && <span className="badge bg-secondary" style={{ fontSize: "9px" }}>admin</span>}</div>
+                          <div className="text-muted" style={{ fontSize: "11px" }}>{emp.email}</div>
                         </div>
                       </div>
-                    ) : null;
+                    );
                   })}
                 </div>
               )}
@@ -1157,11 +1215,16 @@ const ChatPage = () => {
             
             <div className="d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowEditGroupModal(false)}>Cancel</button>
-              <button type="button" className="btn btn-brand" disabled={!editGroupData.name.trim()} onClick={() => {
-                const updatedGroup = { ...activeConversation, name: editGroupData.name, description: editGroupData.description };
-                setActiveConversation(updatedGroup);
-                setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
-                setShowEditGroupModal(false);
+              <button type="button" className="btn btn-brand" disabled={!editGroupData.name.trim()} onClick={async () => {
+                try {
+                  const group = await editGroupApi(activeConversation.id, editGroupData.name, editGroupData.description);
+                  const updatedGroup = { ...activeConversation, ...normalizeGroup(group) };
+                  setActiveConversation(updatedGroup);
+                  setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+                  setShowEditGroupModal(false);
+                } catch (err) {
+                  alert("Failed to update group.");
+                }
               }}>Save Changes</button>
             </div>
           </div>
@@ -1203,12 +1266,12 @@ const ChatPage = () => {
                   <div className="small fw-bold mb-2 text-muted">Available Employees</div>
                   <div className="border rounded bg-light p-2 d-flex flex-column gap-2" style={{ height: "250px", overflowY: "auto" }}>
                     {(() => {
-                      const filtered = DUMMY_EMPLOYEES.filter(e => 
-                        !manageMembersSearch || 
-                        e.name.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
-                        e.id.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
-                        e.dept.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
-                        e.role.toLowerCase().includes(manageMembersSearch.toLowerCase())
+                      const filtered = team.filter(e =>
+                        !manageMembersSearch ||
+                        e.fullName?.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.email?.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.department?.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.role?.toLowerCase().includes(manageMembersSearch.toLowerCase())
                       );
                       if(filtered.length === 0) return <div className="text-muted small text-center mt-3">No employees found.</div>;
                       return filtered.map(emp => (
@@ -1223,11 +1286,11 @@ const ChatPage = () => {
                           }}
                         >
                           <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "32px", height: "32px", fontSize: "12px", fontWeight: "bold" }}>
-                            {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                            {emp.fullName?.split(" ").map(n => n[0]).join("").substring(0,2)}
                           </div>
                           <div style={{ lineHeight: "1.2" }}>
-                            <div className="fw-medium small">{emp.name}</div>
-                            <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                            <div className="fw-medium small">{emp.fullName}</div>
+                            <div className="text-muted" style={{ fontSize: "11px" }}>{emp.email} • {emp.department}</div>
                             <div className="text-muted" style={{ fontSize: "11px" }}>{emp.role}</div>
                           </div>
                         </div>
@@ -1243,11 +1306,11 @@ const ChatPage = () => {
                       <div className="text-muted small text-center w-100 mt-2">No members selected.</div>
                     ) : (
                       manageMembersData.map(memberId => {
-                        const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
+                        const emp = team.find(e => e.id === memberId) || (memberId === currentUser?.id ? currentUser : null);
                         if(!emp) return null;
                         return (
                           <div key={memberId} className="badge bg-white text-dark border d-flex align-items-center gap-1 py-1 px-2" style={{ fontSize: "12px" }}>
-                            {emp.name}
+                            {emp.fullName}
                             <X size={14} className="text-muted ms-1" style={{ cursor: "pointer" }} onClick={() => {
                               setManageMembersData(prev => prev.filter(id => id !== memberId));
                             }} />
@@ -1262,11 +1325,32 @@ const ChatPage = () => {
             
             <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowManageMembersModal(false)}>Cancel</button>
-              <button type="button" className="btn btn-brand" onClick={() => {
-                const updatedGroup = { ...activeConversation, members: manageMembersData };
-                setActiveConversation(updatedGroup);
-                setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
-                setShowManageMembersModal(false);
+              <button type="button" className="btn btn-brand" onClick={async () => {
+                try {
+                  const currentIds = (activeConversation.members || []).map(m => m.userId);
+                  const toAdd = manageMembersData.filter(id => !currentIds.includes(id));
+                  const toRemove = currentIds.filter(id => !manageMembersData.includes(id));
+
+                  let group = activeConversation;
+                  if (toAdd.length > 0) {
+                    group = normalizeGroup(await addGroupMembersApi(activeConversation.id, toAdd));
+                  }
+                  for (const userId of toRemove) {
+                    await removeGroupMemberApi(activeConversation.id, userId);
+                  }
+                  if (toRemove.length > 0 && toAdd.length === 0) {
+                    group = { ...activeConversation, members: (activeConversation.members || []).filter(m => !toRemove.includes(m.userId)) };
+                  } else if (toRemove.length > 0) {
+                    group = { ...group, members: (group.members || []).filter(m => !toRemove.includes(m.userId)) };
+                  }
+
+                  setActiveConversation(group);
+                  setGroups(prev => prev.map(g => g.id === group.id ? group : g));
+                  setShowManageMembersModal(false);
+                } catch (err) {
+                  console.error("Failed to update members:", err);
+                  alert("Failed to update members.");
+                }
               }}>Save Changes</button>
             </div>
           </div>
