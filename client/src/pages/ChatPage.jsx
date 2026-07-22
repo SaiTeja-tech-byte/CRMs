@@ -533,11 +533,11 @@ const ChatPage = () => {
             <div>
               {groups.filter(g => !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase())).length === 0 && (
                 <div className="p-5 text-center text-muted">
-                  <div className="fw-medium mb-1">No Groups Yet</div>
+                  <div className="fw-medium mb-1">No Groups Available</div>
                   <div className="small">
                     {currentUser?.role === "admin"
                       ? "Create your first group to start collaborating."
-                      : "Groups created by your Administrator will appear here."}
+                      : "Groups assigned by your Administrator will appear here."}
                   </div>
                 </div>
               )}
@@ -855,62 +855,70 @@ const ChatPage = () => {
           style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
           onClick={() => setShowCreateGroup(false)}
         >
-          <div className="bg-white rounded-3 p-4 d-flex flex-column" style={{ width: "420px", maxHeight: "90vh" }} onClick={(e) => e.stopPropagation()}>
-            <h6 className="fw-bold mb-3">Create Group</h6>
-            <form onSubmit={handleCreateGroup} className="d-flex flex-column flex-fill" style={{ overflow: "hidden" }}>
-              <div className="mb-3">
-                <label className="form-label small fw-medium mb-1">Group Name *</label>
-                <input 
-                  type="text" 
-                  className="form-control form-control-sm" 
-                  required 
-                  value={newGroupData.name}
-                  onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
-                />
+          <div className="bg-white rounded-3 shadow d-flex flex-column" style={{ width: "650px", maxHeight: "90vh", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div className="p-4 border-bottom d-flex justify-content-between align-items-start">
+              <div>
+                <h5 className="fw-bold mb-1">Create Group</h5>
+                <div className="text-muted small">Create a communication group for employees.</div>
               </div>
-              <div className="mb-3">
-                <label className="form-label small fw-medium mb-1">Description</label>
-                <textarea 
-                  className="form-control form-control-sm" 
-                  rows="2"
-                  value={newGroupData.description}
-                  onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
-                ></textarea>
-              </div>
-              <div className="mb-3">
-                <label className="form-label small fw-medium mb-1">Optional Group Icon</label>
-                <input type="file" className="form-control form-control-sm" accept="image/*" />
-              </div>
-              <div className="mb-2 fw-medium small">Search Employees</div>
-              <input type="text" className="form-control form-control-sm mb-2" placeholder="Search..." />
-              <div className="fw-medium small mb-2">Available Employees (Multi-select)</div>
-              <div className="border rounded p-2 mb-3 flex-fill" style={{ overflowY: "auto", minHeight: "150px" }}>
-                {team.map(u => (
-                  <div key={u.id} className="form-check mb-1">
-                    <input 
-                      className="form-check-input" 
-                      type="checkbox" 
-                      id={`group-user-${u.id}`}
-                      checked={newGroupData.members.includes(u.id)}
-                      onChange={(e) => {
-                        const checked = e.target.checked;
-                        setNewGroupData(prev => ({
-                          ...prev,
-                          members: checked 
-                            ? [...prev.members, u.id] 
-                            : prev.members.filter(id => id !== u.id)
-                        }));
-                      }}
-                    />
-                    <label className="form-check-label small" htmlFor={`group-user-${u.id}`}>
-                      {u.fullName} <span className="text-muted">({u.role})</span>
-                    </label>
+              <button type="button" className="btn-close" onClick={() => setShowCreateGroup(false)} aria-label="Close"></button>
+            </div>
+            
+            <form onSubmit={handleCreateGroup} className="d-flex flex-column flex-fill" style={{ overflowY: "auto" }}>
+              <div className="p-4">
+                <div className="mb-4">
+                  <label className="form-label small fw-bold mb-2">Group Name *</label>
+                  <input 
+                    type="text" 
+                    className="form-control" 
+                    required 
+                    value={newGroupData.name}
+                    onChange={(e) => setNewGroupData({...newGroupData, name: e.target.value})}
+                  />
+                </div>
+                <div className="mb-4">
+                  <label className="form-label small fw-bold mb-2">Description</label>
+                  <textarea 
+                    className="form-control" 
+                    rows="2"
+                    value={newGroupData.description}
+                    onChange={(e) => setNewGroupData({...newGroupData, description: e.target.value})}
+                  ></textarea>
+                </div>
+                
+                <div className="mb-4">
+                  <label className="form-label small fw-bold mb-2">Search Employees</label>
+                  <div className="input-group">
+                    <span className="input-group-text bg-white border-end-0 text-muted">
+                      <Search size={16} />
+                    </span>
+                    <input type="text" className="form-control border-start-0 ps-0" placeholder="Search by name or department..." />
                   </div>
-                ))}
+                </div>
+
+                <div className="row">
+                  <div className="col-md-6">
+                    <div className="small fw-bold mb-2 text-muted">Available Employees</div>
+                    <div className="border rounded bg-light p-4 d-flex flex-column align-items-center justify-content-center text-center text-muted" style={{ minHeight: "200px" }}>
+                      <div className="fw-medium mb-1">No employees available.</div>
+                      <div className="small">Employee data will appear here after backend integration.</div>
+                    </div>
+                  </div>
+                  
+                  <div className="col-md-6">
+                    <div className="small fw-bold mb-2 text-muted">Selected Members</div>
+                    <div className="border rounded bg-light p-4 d-flex flex-column align-items-center justify-content-center text-center text-muted" style={{ minHeight: "200px" }}>
+                      <div className="fw-medium mb-1">No members selected.</div>
+                      <div className="small">Selected employees will appear here.</div>
+                    </div>
+                  </div>
+                </div>
               </div>
-              <div className="d-flex justify-content-end gap-2 mt-auto">
-                <button type="button" className="btn btn-sm btn-light" onClick={() => setShowCreateGroup(false)}>Cancel</button>
-                <button type="submit" className="btn btn-sm btn-brand">Create Group</button>
+              
+              <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
+                <button type="button" className="btn btn-light border" onClick={() => setShowCreateGroup(false)}>Cancel</button>
+                <button type="submit" className="btn btn-brand">Create Group</button>
               </div>
             </form>
           </div>
