@@ -1314,13 +1314,13 @@ const AdminTeam = () => {
         <div>
           <h3 className="fw-bold mb-1" style={{ color: "var(--crm-dark)", fontSize: "22px" }}>Team Management</h3>
           <p className="text-muted mb-0" style={{ fontSize: "14px" }}>
-            Manage company employees, departments, and teams.
+            Manage company team members, departments, and teams.
           </p>
         </div>
         <div className="d-flex align-items-center gap-2">
           <div className="position-relative">
             <button className="btn btn-light border px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={(e) => { e.stopPropagation(); setShowExportMenu(!showExportMenu); setActiveActionMenu(null); }}>
-              <i className="bi bi-download"></i> Export Employees <i className="bi bi-chevron-down ms-1" style={{ fontSize: "10px" }}></i>
+              <i className="bi bi-download"></i> Export Team Members <i className="bi bi-chevron-down ms-1" style={{ fontSize: "10px" }}></i>
             </button>
             {showExportMenu && (
               <div className="position-absolute bg-white border shadow-sm rounded py-2 z-3 mt-1" style={{ width: "100%", right: 0 }}>
@@ -1331,10 +1331,10 @@ const AdminTeam = () => {
             )}
           </div>
           <button className="btn btn-light border px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={() => setShowImportModal(true)}>
-            <i className="bi bi-upload"></i> Import Employees
+            <i className="bi bi-upload"></i> Import Team Members
           </button>
           <button className="btn btn-primary px-3 d-flex align-items-center gap-2" style={{ borderRadius: "6px", fontSize: "13px", height: "36px" }} onClick={() => setShowAddModal(true)}>
-            <i className="bi bi-person-plus"></i> Add Employee
+            <i className="bi bi-person-plus"></i> Add Team Member
           </button>
         </div>
       </div>
@@ -1342,10 +1342,10 @@ const AdminTeam = () => {
       {/* SUMMARY CARDS */}
       <div className="row g-3">
         {[
-          { title: "Total Employees", value: teamMembers.length || "0", icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
+          { title: "Total Team Members", value: teamMembers.length || "0", icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
           { title: "Total Departments", value: uniqueDepartments.length || "0", icon: "bi-diagram-3", color: "#8b5cf6", bg: "#ede9fe" },
           { title: "Total Teams", value: totalTeams || "--", icon: "bi-collection", color: "#f59e0b", bg: "#fef3c7" },
-          { title: "Active Employees", value: activeEmployees || "0", icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
+          { title: "Active Team Members", value: activeEmployees || "0", icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
         ].map((stat, idx) => (
           <div key={idx} className="col-12 col-sm-6 col-md-3">
             <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
@@ -1401,30 +1401,30 @@ const AdminTeam = () => {
         <div className="col-12 col-xl-10">
           <div className="card border-0 shadow-sm h-100" style={{ borderRadius: "10px" }}>
             <div className="card-header bg-white border-bottom py-3 px-3 d-flex flex-wrap align-items-center justify-content-between gap-3">
-              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "14px" }}>Employees</h6>
+              <h6 className="fw-bold mb-0 text-dark" style={{ fontSize: "14px" }}>Team Members</h6>
               <div className="position-relative" style={{ width: "250px" }}>
                 <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "12px", fontSize: "13px" }}></i>
-                <input type="text" className="form-control ps-4" placeholder="Search employees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", fontSize: "13px", height: "36px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }} />
+                <input type="text" className="form-control ps-4" placeholder="Search team members..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "6px", fontSize: "13px", height: "36px", backgroundColor: "#f8fafc", border: "1px solid #e2e8f0" }} />
               </div>
             </div>
             <div className="card-body p-0">
               {loading ? (
-                <div className="text-center py-5 text-muted">Loading employee records...</div>
+                <div className="text-center py-5 text-muted">Loading team records...</div>
               ) : filteredMembers.length === 0 ? (
                 <div className="text-center py-5 my-5">
                   <div className="mb-3 d-inline-flex align-items-center justify-content-center bg-light rounded-circle" style={{ width: "80px", height: "80px" }}>
                     <i className="bi bi-people text-muted" style={{ fontSize: "36px" }}></i>
                   </div>
-                  <h5 className="fw-bold text-dark mb-2">No Employees Available</h5>
-                  <p className="text-muted mb-0 mx-auto" style={{ maxWidth: "350px", fontSize: "14px" }}>Employee records will appear here after backend integration.</p>
+                  <h5 className="fw-bold text-dark mb-2">No Team Members Available</h5>
+                  <p className="text-muted mb-0 mx-auto" style={{ maxWidth: "350px", fontSize: "14px" }}>Team records will appear here after backend integration.</p>
                 </div>
               ) : (
                 <div className="table-responsive">
                   <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
                     <thead className="table-light">
                       <tr>
-                        <th className="px-4 py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Employee</th>
-                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>ID</th>
+                        <th className="px-4 py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Team Member</th>
+                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Team ID</th>
                         <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Department & Role</th>
                         <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
                         <th className="py-3 px-4 text-muted fw-semibold text-uppercase text-end" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Actions</th>
@@ -1461,10 +1461,10 @@ const AdminTeam = () => {
                             {activeActionMenu === m.id && (
                               <div className="position-absolute bg-white border shadow-sm rounded py-2 z-3" style={{ width: "160px", right: "20px", top: "100%", textAlign: "left" }} onClick={(e) => e.stopPropagation()}>
                                 <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>View Profile</button>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Edit Employee</button>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Deactivate Employee</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Edit Team Member</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Deactivate Team Member</button>
                                 <div className="dropdown-divider my-1"></div>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-danger" onClick={() => setActiveActionMenu(null)}>Delete Employee</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-danger" onClick={() => setActiveActionMenu(null)}>Delete Team Member</button>
                               </div>
                             )}
                           </td>
@@ -1479,7 +1479,7 @@ const AdminTeam = () => {
         </div>
       </div>
 
-      {/* ADD EMPLOYEE MODAL */}
+      {/* ADD TEAM MEMBER MODAL */}
       {showAddModal && (
         <>
           <div className="modal-backdrop fade show"></div>
@@ -1487,17 +1487,17 @@ const AdminTeam = () => {
             <div className="modal-dialog modal-dialog-centered modal-lg">
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
-                  <h5 className="modal-title fw-bold">Add Employee</h5>
+                  <h5 className="modal-title fw-bold">Add Team Member</h5>
                   <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
                     <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Employee Name *</label>
+                      <label className="form-label text-muted small fw-semibold">Team Member Name *</label>
                       <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
-                      <label className="form-label text-muted small fw-semibold">Employee ID</label>
+                      <label className="form-label text-muted small fw-semibold">Team ID</label>
                       <input type="text" className="form-control" />
                     </div>
                     <div className="col-md-6">
@@ -1540,7 +1540,7 @@ const AdminTeam = () => {
                 </div>
                 <div className="modal-footer border-top py-3 px-4">
                   <button type="button" className="btn btn-light border" onClick={() => setShowAddModal(false)}>Cancel</button>
-                  <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(false)}>Save Employee</button>
+                  <button type="button" className="btn btn-primary" onClick={() => setShowAddModal(false)}>Save Team Member</button>
                 </div>
               </div>
             </div>
@@ -1548,7 +1548,7 @@ const AdminTeam = () => {
         </>
       )}
 
-      {/* IMPORT EMPLOYEES MODAL */}
+      {/* IMPORT TEAM MEMBERS MODAL */}
       {showImportModal && (
         <>
           <div className="modal-backdrop fade show"></div>
@@ -1556,12 +1556,12 @@ const AdminTeam = () => {
             <div className="modal-dialog modal-dialog-centered">
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
-                  <h5 className="modal-title fw-bold">Import Employees</h5>
+                  <h5 className="modal-title fw-bold">Import Team Members</h5>
                   <button type="button" className="btn-close" onClick={() => setShowImportModal(false)}></button>
                 </div>
                 <div className="modal-body p-4 text-center">
                   <i className="bi bi-file-earmark-spreadsheet text-muted mb-3" style={{ fontSize: "40px" }}></i>
-                  <p className="text-muted small mb-3">Upload a CSV or Excel file containing employee records.</p>
+                  <p className="text-muted small mb-3">Upload a CSV or Excel file containing team records.</p>
                   <input type="file" className="form-control" accept=".csv, .xlsx, .xls" />
                 </div>
                 <div className="modal-footer border-top py-3 px-4">
