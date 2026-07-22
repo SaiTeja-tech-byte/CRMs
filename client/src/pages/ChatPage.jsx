@@ -1,8 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import {
-  Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText,
-  MoreVertical, Pencil, Trash2, Ban,
-} from "lucide-react";
+import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown } from "lucide-react";
 
 import {
   sendChatRequest,
@@ -12,9 +9,9 @@ import {
   getConversations,
   getMessages,
   sendMessage as sendMessageApi,
-  markConversationRead,
   editMessage as editMessageApi,
   deleteMessage as deleteMessageApi,
+  searchMessages,
 } from "../services/chatService";
 import { connectSocket, onSocketEvent } from "../services/socketService";
 
@@ -44,9 +41,18 @@ const ChatPage = () => {
   const [showEmojiPicker, setShowEmojiPicker] = useState(false);
   const [pendingAttachment, setPendingAttachment] = useState(null); // { url, name, type }
   const [attachError, setAttachError] = useState("");
-  const [openMenuId, setOpenMenuId] = useState(null); // message id whose action menu is open
   const [editingMessageId, setEditingMessageId] = useState(null);
   const [editDraft, setEditDraft] = useState("");
+
+  // "Search in this chat" — WhatsApp-style find + next/previous
+  const [showSearchBar, setShowSearchBar] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [searchMatches, setSearchMatches] = useState([]);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [searching, setSearching] = useState(false);
+  const searchDebounceRef = useRef(null);
+  const messageRefs = useRef({});
+
   const messagesEndRef = useRef(null);
   const fileInputRef = useRef(null);
 
@@ -105,26 +111,25 @@ const ChatPage = () => {
         setActiveConversation((current) => {
           if (current?.id === conversationId) {
             setMessages((prev) => [...prev, message]);
-            // Already viewing this conversation — mark it read immediately
-            // instead of waiting for the next time it's opened.
-            markConversationRead(conversationId).catch(() => {});
           }
           return current;
         });
       }),
-      onSocketEvent("chat:messages-read", ({ conversationId, readerId }) => {
+      // The other person just opened the chat — flip my sent messages'
+      // ticks from single (sent) to double-blue (read).
+      onSocketEvent("chat:messages-read", ({ conversationId, readBy }) => {
         setActiveConversation((current) => {
           if (current?.id === conversationId) {
             setMessages((prev) =>
-              prev.map((m) => (m.senderId !== readerId ? { ...m, readAt: m.readAt || new Date().toISOString() } : m))
+              prev.map((m) => (m.senderId !== readBy ? { ...m, readAt: m.readAt || new Date().toISOString() } : m))
             );
           }
           return current;
         });
       }),
-      onSocketEvent("chat:message-edited", ({ message, conversationId }) => {
+      onSocketEvent("chat:message-edited", ({ message }) => {
         setActiveConversation((current) => {
-          if (current?.id === conversationId) {
+          if (current?.id === message.conversationId) {
             setMessages((prev) => prev.map((m) => (m.id === message.id ? message : m)));
           }
           return current;
@@ -133,9 +138,7 @@ const ChatPage = () => {
       onSocketEvent("chat:message-deleted", ({ messageId, conversationId }) => {
         setActiveConversation((current) => {
           if (current?.id === conversationId) {
-            setMessages((prev) =>
-              prev.map((m) => (m.id === messageId ? { ...m, deleted: true, message: "", attachmentUrl: null } : m))
-            );
+            setMessages((prev) => prev.map((m) => (m.id === messageId ? { ...m, deleted: true, message: "", attachmentUrl: null } : m)));
           }
           return current;
         });
@@ -153,6 +156,7 @@ const ChatPage = () => {
     setShowEmojiPicker(false);
     setPendingAttachment(null);
     setAttachError("");
+    closeSearch();
     try {
       const data = await getMessages(conversation.id);
       setMessages(data || []);
@@ -228,6 +232,131 @@ const ChatPage = () => {
     setDraft((prev) => prev + emoji);
   };
 
+  const startEdit = (m) => {
+    setEditingMessageId(m.id);
+    setEditDraft(m.message);
+    setShowEmojiPicker(false);
+  };
+
+  const cancelEdit = () => {
+    setEditingMessageId(null);
+    setEditDraft("");
+  };
+
+  const saveEdit = async (messageId) => {
+    const text = editDraft.trim();
+    if (!text) return;
+    try {
+      const updated = await editMessageApi(messageId, text);
+      setMessages((prev) => prev.map((m) => (m.id === messageId ? updated : m)));
+      setEditingMessageId(null);
+      setEditDraft("");
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not edit that message.");
+    }
+  };
+
+  const handleDeleteMessage = async (m) => {
+    if (!window.confirm("Delete this message? This can't be undone.")) return;
+    try {
+      await deleteMessageApi(m.id);
+      setMessages((prev) => prev.map((msg) => (msg.id === m.id ? { ...msg, deleted: true, message: "", attachmentUrl: null } : msg)));
+    } catch (err) {
+      alert(err.response?.data?.message || "Could not delete that message.");
+    }
+  };
+
+  const scrollToMatch = (matchId) => {
+    messageRefs.current[matchId]?.scrollIntoView({ behavior: "smooth", block: "center" });
+  };
+
+  // Debounced (300ms) search-in-chat, same shape as the WhatsApp-style flow:
+  // type -> pause -> query -> highlight all matches -> jump to the first one.
+  useEffect(() => {
+    if (!showSearchBar || !activeConversation) return;
+    if (searchDebounceRef.current) clearTimeout(searchDebounceRef.current);
+
+    if (!searchTerm.trim()) {
+      setSearchMatches([]);
+      setCurrentMatchIndex(0);
+      return;
+    }
+
+    setSearching(true);
+    searchDebounceRef.current = setTimeout(async () => {
+      try {
+        const matches = await searchMessages(activeConversation.id, searchTerm.trim());
+        setSearchMatches(matches || []);
+        setCurrentMatchIndex(0);
+        if (matches?.length) setTimeout(() => scrollToMatch(matches[0].id), 50);
+      } catch (err) {
+        console.error("Chat search failed:", err);
+        setSearchMatches([]);
+      } finally {
+        setSearching(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(searchDebounceRef.current);
+  }, [searchTerm, showSearchBar, activeConversation]);
+
+  const goToNextMatch = () => {
+    if (!searchMatches.length) return;
+    const next = (currentMatchIndex + 1) % searchMatches.length; // loop to first after the last
+    setCurrentMatchIndex(next);
+    scrollToMatch(searchMatches[next].id);
+  };
+
+  const goToPrevMatch = () => {
+    if (!searchMatches.length) return;
+    const prev = (currentMatchIndex - 1 + searchMatches.length) % searchMatches.length; // loop to last before the first
+    setCurrentMatchIndex(prev);
+    scrollToMatch(searchMatches[prev].id);
+  };
+
+  const closeSearch = () => {
+    setShowSearchBar(false);
+    setSearchTerm("");
+    setSearchMatches([]);
+    setCurrentMatchIndex(0);
+  };
+
+  const searchInputKeyDown = (e) => {
+    if (e.key === "Enter") {
+      e.preventDefault();
+      e.shiftKey ? goToPrevMatch() : goToNextMatch();
+    } else if (e.key === "Escape") {
+      closeSearch();
+    }
+  };
+
+  // Splits message text around the search term (case-insensitive) and wraps
+  // matches in <mark> — brighter highlight for whichever match is "current".
+  const renderHighlightedText = (text, messageId) => {
+    const term = searchTerm.trim();
+    if (!showSearchBar || !term) return text;
+
+    const isCurrentMatchMessage = searchMatches[currentMatchIndex]?.id === messageId;
+    const parts = text.split(new RegExp(`(${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi"));
+
+    return parts.map((part, i) =>
+      part.toLowerCase() === term.toLowerCase() ? (
+        <mark
+          key={i}
+          style={{
+            backgroundColor: isCurrentMatchMessage ? "#fb923c" : "#fde68a",
+            padding: "0 1px",
+            borderRadius: "2px",
+          }}
+        >
+          {part}
+        </mark>
+      ) : (
+        part
+      )
+    );
+  };
+
   const handleSend = async (e) => {
     e.preventDefault();
     const text = draft.trim();
@@ -248,46 +377,8 @@ const ChatPage = () => {
     }
   };
 
-  const handleEditStart = (m) => {
-    setOpenMenuId(null);
-    setEditingMessageId(m.id);
-    setEditDraft(m.message);
-  };
-
-  const handleEditCancel = () => {
-    setEditingMessageId(null);
-    setEditDraft("");
-  };
-
-  const handleEditSave = async (messageId) => {
-    const text = editDraft.trim();
-    if (!text) return;
-    try {
-      const updated = await editMessageApi(messageId, text);
-      setMessages((prev) => prev.map((m) => (m.id === messageId ? updated : m)));
-      setEditingMessageId(null);
-      setEditDraft("");
-    } catch (err) {
-      alert(err.response?.data?.message || "Couldn't edit that message.");
-    }
-  };
-
-  const handleDelete = async (messageId) => {
-    setOpenMenuId(null);
-    if (!window.confirm("Delete this message? This can't be undone.")) return;
-    try {
-      await deleteMessageApi(messageId);
-      setMessages((prev) =>
-        prev.map((m) => (m.id === messageId ? { ...m, deleted: true, message: "", attachmentUrl: null } : m))
-      );
-    } catch (err) {
-      alert(err.response?.data?.message || "Couldn't delete that message.");
-    }
-  };
-
   return (
-    <div className="dashboard-card-flat" style={{ padding: 0, height: "calc(100vh - 130px)", overflow: "hidden", display: "flex", flexDirection: "column" }}>
-      <div className="d-flex" style={{ flex: 1, overflow: "hidden" }}>
+    <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
       {/* Sidebar */}
       <div className="border-end" style={{ width: "320px", overflowY: "auto" }}>
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
@@ -347,10 +438,51 @@ const ChatPage = () => {
       <div className="flex-fill d-flex flex-column">
         {activeConversation ? (
           <>
-            <div className="p-3 border-bottom fw-bold">
-              {activeConversation.otherUser?.fullName || "Chat"}
+            <div className="p-3 border-bottom fw-bold d-flex justify-content-between align-items-center">
+              <span>{activeConversation.otherUser?.fullName || "Chat"}</span>
+              <button
+                type="button"
+                className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                title="Search in this chat"
+                onClick={() => (showSearchBar ? closeSearch() : setShowSearchBar(true))}
+              >
+                <Search size={14} />
+              </button>
             </div>
-            <div className="flex-fill p-3" style={{ overflowY: "auto" }} onClick={() => setOpenMenuId(null)}>
+
+            {showSearchBar && (
+              <div className="p-2 border-bottom bg-light d-flex align-items-center gap-2">
+                <Search size={14} className="text-muted ms-1" />
+                <input
+                  type="text"
+                  autoFocus
+                  className="form-control form-control-sm border-0 bg-transparent"
+                  placeholder="Search in this chat..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  onKeyDown={searchInputKeyDown}
+                />
+                <span className="small text-muted text-nowrap" style={{ minWidth: "50px" }}>
+                  {searching
+                    ? "..."
+                    : searchTerm.trim()
+                    ? searchMatches.length
+                      ? `${currentMatchIndex + 1} / ${searchMatches.length}`
+                      : "0 / 0"
+                    : ""}
+                </span>
+                <button type="button" className="btn btn-sm btn-light" title="Previous (Shift+Enter)" disabled={!searchMatches.length} onClick={goToPrevMatch}>
+                  <ChevronUp size={14} />
+                </button>
+                <button type="button" className="btn btn-sm btn-light" title="Next (Enter)" disabled={!searchMatches.length} onClick={goToNextMatch}>
+                  <ChevronDown size={14} />
+                </button>
+                <button type="button" className="btn btn-sm btn-light" title="Close" onClick={closeSearch}>
+                  <X size={14} />
+                </button>
+              </div>
+            )}
+            <div className="flex-fill p-3" style={{ overflowY: "auto" }}>
               {messages.map((m) => {
                 const isMine = m.senderId === currentUser?.id;
                 const isEditing = editingMessageId === m.id;
@@ -358,11 +490,8 @@ const ChatPage = () => {
                 if (m.deleted) {
                   return (
                     <div key={m.id} className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}>
-                      <div
-                        className="px-3 py-2 rounded-3 border d-flex align-items-center gap-2 text-muted fst-italic"
-                        style={{ maxWidth: "60%", fontSize: "13px" }}
-                      >
-                        <Ban size={13} /> This message was deleted
+                      <div className="px-3 py-2 rounded-3 bg-light text-muted fst-italic" style={{ maxWidth: "60%", fontSize: "13px" }}>
+                        This message was deleted
                       </div>
                     </div>
                   );
@@ -371,129 +500,72 @@ const ChatPage = () => {
                 return (
                   <div
                     key={m.id}
+                    ref={(el) => (messageRefs.current[m.id] = el)}
                     className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}
                   >
-                    <div
-                      className="position-relative"
-                      style={{ maxWidth: "60%" }}
-                      onClick={(e) => e.stopPropagation()}
-                    >
+                    <div className="d-flex align-items-start gap-1" style={{ maxWidth: "60%" }}>
+                      {isMine && !isEditing && (
+                        <div className="d-flex gap-1 pt-1">
+                          <button type="button" className="btn btn-sm btn-link text-muted p-0" title="Edit" onClick={() => startEdit(m)}>
+                            <Pencil size={12} />
+                          </button>
+                          <button type="button" className="btn btn-sm btn-link text-muted p-0" title="Delete" onClick={() => handleDeleteMessage(m)}>
+                            <Trash2 size={12} />
+                          </button>
+                        </div>
+                      )}
                       <div
                         className={`px-3 py-2 rounded-3 ${isMine ? "bg-primary text-white" : "bg-light"}`}
+                        style={{ minWidth: isEditing ? "220px" : "auto" }}
                       >
-                        {m.attachmentUrl && (
-                          m.attachmentType?.startsWith("image/") ? (
-                            <a href={m.attachmentUrl} target="_blank" rel="noreferrer">
-                              <img
-                                src={m.attachmentUrl}
-                                alt={m.attachmentName || "attachment"}
-                                style={{ maxWidth: "220px", maxHeight: "220px", borderRadius: "8px", display: "block", marginBottom: m.message ? "6px" : 0 }}
-                              />
-                            </a>
-                          ) : (
-                            <a
-                              href={m.attachmentUrl}
-                              download={m.attachmentName}
-                              className={`d-flex align-items-center gap-2 mb-1 ${isMine ? "text-white" : "text-dark"}`}
-                              style={{ textDecoration: "underline" }}
-                            >
-                              <FileText size={16} /> {m.attachmentName || "Download file"}
-                            </a>
-                          )
-                        )}
-
                         {isEditing ? (
-                          <div className="d-flex align-items-center gap-1">
+                          <div className="d-flex flex-column gap-2">
                             <input
                               type="text"
-                              autoFocus
                               className="form-control form-control-sm"
-                              style={{ minWidth: "160px", color: "#111" }}
                               value={editDraft}
                               onChange={(e) => setEditDraft(e.target.value)}
+                              autoFocus
                               onKeyDown={(e) => {
-                                if (e.key === "Enter") handleEditSave(m.id);
-                                if (e.key === "Escape") handleEditCancel();
+                                if (e.key === "Enter") saveEdit(m.id);
+                                if (e.key === "Escape") cancelEdit();
                               }}
                             />
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light py-0 px-1"
-                              onClick={() => handleEditSave(m.id)}
-                              title="Save"
-                            >
-                              <Check size={14} />
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-sm btn-light py-0 px-1"
-                              onClick={handleEditCancel}
-                              title="Cancel"
-                            >
-                              <X size={14} />
-                            </button>
+                            <div className="d-flex gap-2 justify-content-end">
+                              <button type="button" className="btn btn-sm btn-light" onClick={cancelEdit}>Cancel</button>
+                              <button type="button" className="btn btn-sm btn-light" onClick={() => saveEdit(m.id)}>Save</button>
+                            </div>
                           </div>
                         ) : (
                           <>
-                            {m.message}
-                            {m.edited && (
-                              <span
-                                className={`ms-1 ${isMine ? "text-white-50" : "text-muted"}`}
-                                style={{ fontSize: "11px" }}
-                              >
-                                (edited)
-                              </span>
+                            {m.attachmentUrl && (
+                              m.attachmentType?.startsWith("image/") ? (
+                                <a href={m.attachmentUrl} target="_blank" rel="noreferrer">
+                                  <img
+                                    src={m.attachmentUrl}
+                                    alt={m.attachmentName || "attachment"}
+                                    style={{ maxWidth: "220px", maxHeight: "220px", borderRadius: "8px", display: "block", marginBottom: m.message ? "6px" : 0 }}
+                                  />
+                                </a>
+                              ) : (
+                                <a
+                                  href={m.attachmentUrl}
+                                  download={m.attachmentName}
+                                  className={`d-flex align-items-center gap-2 mb-1 ${isMine ? "text-white" : "text-dark"}`}
+                                  style={{ textDecoration: "underline" }}
+                                >
+                                  <FileText size={16} /> {m.attachmentName || "Download file"}
+                                </a>
+                              )
                             )}
+                            {renderHighlightedText(m.message, m.id)}
+                            <div className={`d-flex align-items-center gap-1 justify-content-end mt-1 ${isMine ? "text-white-50" : "text-muted"}`} style={{ fontSize: "10px" }}>
+                              {m.edited && <span>edited</span>}
+                              {isMine && (m.readAt ? <CheckCheck size={13} color="#8ec9ff" /> : <Check size={13} />)}
+                            </div>
                           </>
                         )}
-
-                        {isMine && !isEditing && (
-                          <div className="d-flex justify-content-end align-items-center gap-1 mt-1" style={{ fontSize: "10px" }}>
-                            {m.readAt ? (
-                              <CheckCheck size={13} className="text-info" title="Read" />
-                            ) : (
-                              <Check size={13} className="text-white-50" title="Sent" />
-                            )}
-                          </div>
-                        )}
                       </div>
-
-                      {isMine && !isEditing && (
-                        <>
-                          <button
-                            type="button"
-                            className="btn btn-sm btn-light border-0 position-absolute p-0 d-flex align-items-center justify-content-center"
-                            style={{ top: "-6px", left: "-28px", width: "22px", height: "22px", borderRadius: "50%" }}
-                            title="Message options"
-                            onClick={() => setOpenMenuId(openMenuId === m.id ? null : m.id)}
-                          >
-                            <MoreVertical size={14} />
-                          </button>
-                          {openMenuId === m.id && (
-                            <div
-                              className="position-absolute bg-white border rounded-3 shadow-sm"
-                              style={{ top: "16px", left: "-120px", width: "120px", zIndex: 30 }}
-                            >
-                              {!m.attachmentUrl && (
-                                <button
-                                  type="button"
-                                  className="btn btn-sm w-100 text-start d-flex align-items-center gap-2"
-                                  onClick={() => handleEditStart(m)}
-                                >
-                                  <Pencil size={13} /> Edit
-                                </button>
-                              )}
-                              <button
-                                type="button"
-                                className="btn btn-sm w-100 text-start d-flex align-items-center gap-2 text-danger"
-                                onClick={() => handleDelete(m.id)}
-                              >
-                                <Trash2 size={13} /> Delete
-                              </button>
-                            </div>
-                          )}
-                        </>
-                      )}
                     </div>
                   </div>
                 );
@@ -600,7 +672,6 @@ const ChatPage = () => {
           </div>
         </div>
       )}
-    </div>
     </div>
   );
 };
