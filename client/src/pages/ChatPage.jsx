@@ -62,6 +62,12 @@ const ChatPage = () => {
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
+  const [showEditGroupModal, setShowEditGroupModal] = useState(false);
+  const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
+  const [showManageMembersModal, setShowManageMembersModal] = useState(false);
+  const [manageMembersData, setManageMembersData] = useState([]);
+  const [manageMembersSearch, setManageMembersSearch] = useState("");
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const [listSearch, setListSearch] = useState("");
@@ -620,9 +626,21 @@ const ChatPage = () => {
                     </button>
                     {showGroupMenu && (
                       <div className="position-absolute bg-white border rounded shadow-sm py-2 mt-1 z-3" style={{ right: 0, width: "200px" }}>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Group Information mock'); setShowGroupMenu(false); }}>Group Information</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Edit Group mock'); setShowGroupMenu(false); }}>Edit Group</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Manage Members mock'); setShowGroupMenu(false); }}>Manage Members</button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setShowGroupMenu(false); 
+                          setShowGroupInfoModal(true); 
+                        }}>Group Information</button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setEditGroupData({ name: activeConversation.name, description: activeConversation.description || "" });
+                          setShowGroupMenu(false); 
+                          setShowEditGroupModal(true); 
+                        }}>Edit Group</button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setManageMembersData(activeConversation.members || []);
+                          setManageMembersSearch("");
+                          setShowGroupMenu(false); 
+                          setShowManageMembersModal(true); 
+                        }}>Manage Members</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
                           setShowGroupMenu(false); 
                           setShowClearChatConfirm(true);
@@ -671,6 +689,12 @@ const ChatPage = () => {
               </div>
             )}
             <div className="flex-fill p-3" style={{ overflowY: "auto" }}>
+              {messages.length === 0 && (
+                <div className="h-100 d-flex flex-column align-items-center justify-content-center text-muted">
+                  <div className="fw-medium mb-1">No messages yet.</div>
+                  <div className="small">Start the conversation.</div>
+                </div>
+              )}
               {messages.map((m) => {
                 const isMine = m.senderId === currentUser?.id;
                 const isEditing = editingMessageId === m.id;
@@ -1027,6 +1051,223 @@ const ChatPage = () => {
                 setMessages([]);
                 setShowClearChatConfirm(false);
               }}>Clear Chat</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Group Information Modal */}
+      {showGroupInfoModal && activeConversation && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowGroupInfoModal(false)}
+        >
+          <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "450px", maxHeight: "80vh" }} onClick={(e) => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="fw-bold m-0">Group Information</h5>
+              <button type="button" className="btn-close" onClick={() => setShowGroupInfoModal(false)}></button>
+            </div>
+            
+            <div className="flex-fill" style={{ overflowY: "auto" }}>
+              <div className="mb-3">
+                <div className="small text-muted fw-bold">Group Name</div>
+                <div>{activeConversation.name}</div>
+              </div>
+              {activeConversation.description && (
+                <div className="mb-3">
+                  <div className="small text-muted fw-bold">Description</div>
+                  <div>{activeConversation.description}</div>
+                </div>
+              )}
+              <div className="mb-3 d-flex gap-4">
+                <div>
+                  <div className="small text-muted fw-bold">Created By</div>
+                  <div>Admin</div>
+                </div>
+                <div>
+                  <div className="small text-muted fw-bold">Created Date</div>
+                  <div>Today</div>
+                </div>
+              </div>
+              
+              <div className="mb-2">
+                <div className="small text-muted fw-bold">Total Members: {activeConversation.members?.length || 0}</div>
+              </div>
+              
+              {activeConversation.members?.length > 0 && (
+                <div className="border rounded bg-light p-2 d-flex flex-column gap-2">
+                  {activeConversation.members.map(memberId => {
+                    const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
+                    return emp ? (
+                      <div key={memberId} className="bg-white border rounded p-2 d-flex align-items-center gap-2">
+                        <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "28px", height: "28px", fontSize: "11px", fontWeight: "bold" }}>
+                          {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                        </div>
+                        <div style={{ lineHeight: "1.2" }}>
+                          <div className="fw-medium small">{emp.name}</div>
+                          <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                        </div>
+                      </div>
+                    ) : null;
+                  })}
+                </div>
+              )}
+            </div>
+            
+            <div className="mt-4 d-flex justify-content-end">
+              <button type="button" className="btn btn-light border" onClick={() => setShowGroupInfoModal(false)}>Close</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Group Modal */}
+      {showEditGroupModal && activeConversation && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowEditGroupModal(false)}
+        >
+          <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "450px" }} onClick={(e) => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-center mb-4">
+              <h5 className="fw-bold m-0">Edit Group</h5>
+              <button type="button" className="btn-close" onClick={() => setShowEditGroupModal(false)}></button>
+            </div>
+            
+            <div className="mb-4">
+              <label className="form-label small fw-bold mb-2">Group Name *</label>
+              <input 
+                type="text" 
+                className="form-control" 
+                required 
+                value={editGroupData.name}
+                onChange={(e) => setEditGroupData({...editGroupData, name: e.target.value})}
+              />
+            </div>
+            <div className="mb-4">
+              <label className="form-label small fw-bold mb-2">Description</label>
+              <textarea 
+                className="form-control" 
+                rows="3"
+                value={editGroupData.description}
+                onChange={(e) => setEditGroupData({...editGroupData, description: e.target.value})}
+              ></textarea>
+            </div>
+            
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => setShowEditGroupModal(false)}>Cancel</button>
+              <button type="button" className="btn btn-brand" disabled={!editGroupData.name.trim()} onClick={() => {
+                const updatedGroup = { ...activeConversation, name: editGroupData.name, description: editGroupData.description };
+                setActiveConversation(updatedGroup);
+                setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+                setShowEditGroupModal(false);
+              }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Manage Members Modal */}
+      {showManageMembersModal && activeConversation && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowManageMembersModal(false)}
+        >
+          <div className="bg-white rounded-3 shadow d-flex flex-column" style={{ width: "650px", maxHeight: "90vh", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
+              <h5 className="fw-bold m-0">Manage Members</h5>
+              <button type="button" className="btn-close" onClick={() => setShowManageMembersModal(false)}></button>
+            </div>
+            
+            <div className="d-flex flex-column flex-fill p-4" style={{ overflowY: "auto" }}>
+              <div className="mb-4">
+                <label className="form-label small fw-bold mb-2">Search Employees</label>
+                <div className="input-group">
+                  <span className="input-group-text bg-white border-end-0 text-muted">
+                    <Search size={16} />
+                  </span>
+                  <input 
+                    type="text" 
+                    className="form-control border-start-0 ps-0" 
+                    placeholder="Search by name, ID, department..." 
+                    value={manageMembersSearch}
+                    onChange={(e) => setManageMembersSearch(e.target.value)}
+                  />
+                </div>
+              </div>
+
+              <div className="row">
+                <div className="col-md-6">
+                  <div className="small fw-bold mb-2 text-muted">Available Employees</div>
+                  <div className="border rounded bg-light p-2 d-flex flex-column gap-2" style={{ height: "250px", overflowY: "auto" }}>
+                    {(() => {
+                      const filtered = DUMMY_EMPLOYEES.filter(e => 
+                        !manageMembersSearch || 
+                        e.name.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.id.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.dept.toLowerCase().includes(manageMembersSearch.toLowerCase()) ||
+                        e.role.toLowerCase().includes(manageMembersSearch.toLowerCase())
+                      );
+                      if(filtered.length === 0) return <div className="text-muted small text-center mt-3">No employees found.</div>;
+                      return filtered.map(emp => (
+                        <div 
+                          key={emp.id} 
+                          className="bg-white border rounded p-2 d-flex align-items-center gap-2"
+                          style={{ cursor: "pointer", opacity: manageMembersData.includes(emp.id) ? 0.5 : 1 }}
+                          onClick={() => {
+                            if(!manageMembersData.includes(emp.id)) {
+                              setManageMembersData(prev => [...prev, emp.id]);
+                            }
+                          }}
+                        >
+                          <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "32px", height: "32px", fontSize: "12px", fontWeight: "bold" }}>
+                            {emp.name.split(" ").map(n => n[0]).join("").substring(0,2)}
+                          </div>
+                          <div style={{ lineHeight: "1.2" }}>
+                            <div className="fw-medium small">{emp.name}</div>
+                            <div className="text-muted" style={{ fontSize: "11px" }}>{emp.id} • {emp.dept}</div>
+                            <div className="text-muted" style={{ fontSize: "11px" }}>{emp.role}</div>
+                          </div>
+                        </div>
+                      ));
+                    })()}
+                  </div>
+                </div>
+                
+                <div className="col-md-6">
+                  <div className="small fw-bold mb-2 text-muted">Selected Members ({manageMembersData.length})</div>
+                  <div className="border rounded bg-light p-3 d-flex flex-wrap gap-2 align-content-start" style={{ height: "250px", overflowY: "auto" }}>
+                    {manageMembersData.length === 0 ? (
+                      <div className="text-muted small text-center w-100 mt-2">No members selected.</div>
+                    ) : (
+                      manageMembersData.map(memberId => {
+                        const emp = DUMMY_EMPLOYEES.find(e => e.id === memberId);
+                        if(!emp) return null;
+                        return (
+                          <div key={memberId} className="badge bg-white text-dark border d-flex align-items-center gap-1 py-1 px-2" style={{ fontSize: "12px" }}>
+                            {emp.name}
+                            <X size={14} className="text-muted ms-1" style={{ cursor: "pointer" }} onClick={() => {
+                              setManageMembersData(prev => prev.filter(id => id !== memberId));
+                            }} />
+                          </div>
+                        );
+                      })
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => setShowManageMembersModal(false)}>Cancel</button>
+              <button type="button" className="btn btn-brand" onClick={() => {
+                const updatedGroup = { ...activeConversation, members: manageMembersData };
+                setActiveConversation(updatedGroup);
+                setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+                setShowManageMembersModal(false);
+              }}>Save Changes</button>
             </div>
           </div>
         </div>
