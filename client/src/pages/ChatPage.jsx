@@ -152,12 +152,22 @@ const ChatPage = () => {
       onSocketEvent("chat:request-accepted", () => loadConversations()),
       onSocketEvent("chat:conversation-started", () => loadConversations()),
       onSocketEvent("chat:message-received", ({ message, conversationId }) => {
-        loadConversations();
         bump();
         setActiveConversation((current) => {
-          if (current?.id === conversationId) {
+          const isViewing = current?.id === conversationId;
+          if (isViewing) {
             setMessages((prev) => [...prev, message]);
           }
+          setConversations((prev) => {
+            if (!prev.some((c) => c.id === conversationId)) return prev; // brand-new conversation: chat:conversation-started handles that case
+            return prev
+              .map((c) =>
+                c.id === conversationId
+                  ? { ...c, lastMessageAt: message.createdAt, unreadCount: isViewing ? 0 : (c.unreadCount || 0) + 1 }
+                  : c
+              )
+              .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
+          });
           return current;
         });
       }),
@@ -208,12 +218,19 @@ const ChatPage = () => {
       onSocketEvent("chat:group-message-received", ({ message, groupId }) => {
         bump();
         setActiveConversation((current) => {
-          if (current?.id === groupId && current?.isGroup) {
+          const isViewing = current?.id === groupId && current?.isGroup;
+          if (isViewing) {
             setMessages((prev) => [...prev, message]);
-          } else {
-            // Not currently viewing this group — bump its unread badge.
-            setGroups((prev) => prev.map((g) => (g.id === groupId ? { ...g, unreadCount: (g.unreadCount || 0) + 1 } : g)));
           }
+          setGroups((prev) =>
+            prev
+              .map((g) =>
+                g.id === groupId
+                  ? { ...g, lastMessageAt: message.createdAt, unreadCount: isViewing ? 0 : (g.unreadCount || 0) + 1 }
+                  : g
+              )
+              .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
+          );
           return current;
         });
       }),
@@ -472,12 +489,35 @@ const ChatPage = () => {
     const attachment = pendingAttachment;
     setPendingAttachment(null);
 
+    // Optimistic append: show the bubble the instant you hit send instead of
+    // waiting on the round trip, then swap it for the server's copy (or roll
+    // it back on failure). This is what actually removes the lag — the
+    // loadConversations()/loadGroups() refetches below were the other half
+    // of the delay, so those are now local reorders instead of network calls.
+    const tempId = "temp-" + Date.now();
+    const optimisticMessage = {
+      id: tempId,
+      senderId: currentUser?.id,
+      message: text,
+      attachmentUrl: attachment?.url || null,
+      attachmentName: attachment?.name || null,
+      attachmentType: attachment?.type || null,
+      createdAt: new Date().toISOString(),
+      pending: true,
+    };
+    setMessages((prev) => [...prev, optimisticMessage]);
+
     if (activeConversation.isGroup) {
       try {
         const message = await sendGroupMessageApi(activeConversation.id, text, attachment);
-        setMessages((prev) => [...prev, message]);
-        loadGroups();
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? message : m)));
+        setGroups((prev) =>
+          prev
+            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: message.createdAt } : g))
+            .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
+        );
       } catch (err) {
+        setMessages((prev) => prev.filter((m) => m.id !== tempId));
         alert("Message failed to send.");
       }
       return;
@@ -485,9 +525,14 @@ const ChatPage = () => {
 
     try {
       const message = await sendMessageApi(activeConversation.id, text, attachment);
-      setMessages((prev) => [...prev, message]);
-      loadConversations();
+      setMessages((prev) => prev.map((m) => (m.id === tempId ? message : m)));
+      setConversations((prev) =>
+        prev
+          .map((c) => (c.id === activeConversation.id ? { ...c, lastMessageAt: message.createdAt } : c))
+          .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
+      );
     } catch (err) {
+      setMessages((prev) => prev.filter((m) => m.id !== tempId));
       alert("Message failed to send.");
     }
   };
@@ -760,7 +805,7 @@ const ChatPage = () => {
                     className={`d-flex mb-2 ${isMine ? "justify-content-end" : "justify-content-start"}`}
                   >
                     <div className="d-flex align-items-start gap-1" style={{ maxWidth: "60%" }}>
-                      {isMine && !isEditing && (
+                      {isMine && !isEditing && !m.pending && (
                         <div className="d-flex gap-1 pt-1">
                           <button type="button" className="btn btn-sm btn-link text-muted p-0" title="Edit" onClick={() => startEdit(m)}>
                             <Pencil size={12} />
@@ -822,7 +867,7 @@ const ChatPage = () => {
                             {renderHighlightedText(m.message, m.id)}
                             <div className={`d-flex align-items-center gap-1 justify-content-end mt-1 ${isMine ? "text-white-50" : "text-muted"}`} style={{ fontSize: "10px" }}>
                               {m.edited && <span>edited</span>}
-                              {isMine && (m.readAt ? <CheckCheck size={13} color="#8ec9ff" /> : <Check size={13} />)}
+                              {isMine && (m.pending ? <span title="Sending...">🕓</span> : m.readAt ? <CheckCheck size={13} color="#8ec9ff" /> : <Check size={13} />)}
                             </div>
                           </>
                         )}
