@@ -13,7 +13,10 @@ const ChatMessage = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    conversationId: { type: DataTypes.UUID, allowNull: false },
+    // Exactly one of conversationId (direct chat) / groupId (group chat) is
+    // set per row — both nullable so this one table serves both chat types.
+    conversationId: { type: DataTypes.UUID, allowNull: true },
+    groupId: { type: DataTypes.UUID, allowNull: true },
     senderId: { type: DataTypes.UUID, allowNull: false },
     // message can be blank if the send is attachment-only (a photo/file with no caption)
     message: { type: DataTypes.TEXT, allowNull: true, defaultValue: "" },
