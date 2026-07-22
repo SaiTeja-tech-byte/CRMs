@@ -43,6 +43,8 @@ require("./models/CompanySettings");
 require("./models/ChatRequest");
 require("./models/Conversation");
 require("./models/ChatMessage");
+require("./models/ChatGroup");
+require("./models/GroupMember");
 require("./models/OrgChartNode");
 require("./models/LeaveRequest");
 require("./models/ContactQuery");
