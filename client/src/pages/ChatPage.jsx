@@ -63,6 +63,7 @@ const ChatPage = () => {
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showGroupMenu, setShowGroupMenu] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const [listSearch, setListSearch] = useState("");
 
   // "Search in this chat" — WhatsApp-style find + next/previous
@@ -455,7 +456,7 @@ const ChatPage = () => {
               <UserPlus size={14} /> New
             </button>
           ) : (
-            currentUser?.role === "admin" && (
+            currentUser?.role?.toLowerCase() === "admin" && (
               <button
                 className="btn btn-sm btn-brand d-flex align-items-center gap-1"
                 onClick={() => setShowCreateGroup(true)}
@@ -548,7 +549,7 @@ const ChatPage = () => {
                 <div className="p-5 text-center text-muted">
                   <div className="fw-medium mb-1">No Groups Available</div>
                   <div className="small">
-                    {currentUser?.role === "admin"
+                    {currentUser?.role?.toLowerCase() === "admin"
                       ? "Create your first group to start collaborating."
                       : "Groups assigned by your Administrator will appear here."}
                   </div>
@@ -607,7 +608,7 @@ const ChatPage = () => {
                 >
                   <Search size={14} />
                 </button>
-                {activeConversation.isGroup && currentUser?.role === "admin" && (
+                {activeConversation.isGroup && currentUser?.role?.toLowerCase() === "admin" && (
                   <div className="position-relative">
                     <button
                       type="button"
@@ -622,6 +623,10 @@ const ChatPage = () => {
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Group Information mock'); setShowGroupMenu(false); }}>Group Information</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Edit Group mock'); setShowGroupMenu(false); }}>Edit Group</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { alert('Manage Members mock'); setShowGroupMenu(false); }}>Manage Members</button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setShowGroupMenu(false); 
+                          setShowClearChatConfirm(true);
+                        }}>Clear Chat</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
                           setShowGroupMenu(false); 
                           setShowDeleteConfirm(true);
@@ -858,7 +863,7 @@ const ChatPage = () => {
       )}
 
       {/* Create Group modal (Admin only) */}
-      {showCreateGroup && currentUser?.role === "admin" && (
+      {showCreateGroup && currentUser?.role?.toLowerCase() === "admin" && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
           style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
@@ -991,7 +996,7 @@ const ChatPage = () => {
         >
           <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
             <h5 className="fw-bold mb-3">Delete Group</h5>
-            <p className="mb-2">Are you sure you want to delete this group?</p>
+            <p className="mb-2">Are you sure you want to permanently delete this group?</p>
             <p className="text-muted small mb-4">This action cannot be undone.</p>
             <div className="d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
@@ -1000,6 +1005,28 @@ const ChatPage = () => {
                 setActiveConversation(null);
                 setShowDeleteConfirm(false);
               }}>Delete Group</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Clear Chat Confirmation Modal */}
+      {showClearChatConfirm && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowClearChatConfirm(false)}
+        >
+          <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
+            <h5 className="fw-bold mb-3">Clear Chat</h5>
+            <p className="mb-2">Are you sure you want to clear all messages in this group?</p>
+            <p className="text-muted small mb-4">This action cannot be undone.</p>
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => setShowClearChatConfirm(false)}>Cancel</button>
+              <button type="button" className="btn btn-danger" onClick={() => {
+                setMessages([]);
+                setShowClearChatConfirm(false);
+              }}>Clear Chat</button>
             </div>
           </div>
         </div>
