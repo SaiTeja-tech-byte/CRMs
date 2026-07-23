@@ -12,6 +12,7 @@ import { getMyLeaveRequests, getMyLeaveBalance, createLeaveRequest as submitLeav
 import OrganizationChart from "./OrganizationChart";
 import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
+import { PaginationBar } from "../components/PaginationBar";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -1632,6 +1633,9 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
   const [dateFilter, setDateFilter] = useState("All");
   const [priorityFilter, setPriorityFilter] = useState("All");
   const [categoryFilter, setCategoryFilter] = useState("All");
+  const [taskSort, setTaskSort] = useState({ sortBy: "dueDate", sortDir: "asc" });
+  const [taskPage, setTaskPage] = useState(1);
+  const TASKS_PER_PAGE = 8;
 
   // Selection & Drawer states
   const [selectedTask, setSelectedTask] = useState(null);
@@ -1769,6 +1773,36 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
     return matchesSearch && matchesPriority && matchesCategory && matchesDate;
   });
 
+  // Sort — client-side, since the full task list is already in memory
+  // (needed for the category tab counts on the left).
+  const sortedTasks = [...finalTasks].sort((a, b) => {
+    const dir = taskSort.sortDir === "asc" ? 1 : -1;
+    if (taskSort.sortBy === "priority") {
+      const order = { High: 3, Medium: 2, Low: 1 };
+      return ((order[a.priority] || 0) - (order[b.priority] || 0)) * dir;
+    }
+    if (taskSort.sortBy === "title") {
+      return (a.title || "").localeCompare(b.title || "") * dir;
+    }
+    if (taskSort.sortBy === "status") {
+      return (a.status || "").localeCompare(b.status || "") * dir;
+    }
+    // dueDate (default)
+    const aVal = a.dueDate || "";
+    const bVal = b.dueDate || "";
+    return (aVal < bVal ? -1 : aVal > bVal ? 1 : 0) * dir;
+  });
+
+  // Paginate the sorted/filtered list.
+  const taskTotalPages = Math.max(1, Math.ceil(sortedTasks.length / TASKS_PER_PAGE));
+  const safeTaskPage = Math.min(taskPage, taskTotalPages);
+  const paginatedTasks = sortedTasks.slice((safeTaskPage - 1) * TASKS_PER_PAGE, safeTaskPage * TASKS_PER_PAGE);
+  const taskPagination = { page: safeTaskPage, limit: TASKS_PER_PAGE, total: sortedTasks.length, totalPages: taskTotalPages };
+
+  useEffect(() => {
+    setTaskPage(1);
+  }, [activeCategory, searchQuery, dateFilter, priorityFilter, categoryFilter, taskSort.sortBy, taskSort.sortDir]);
+
   const formatTaskDueDateText = (dateStr) => {
     if (dateStr === TODAY_STR) return "Due Today";
     if (dateStr === "2026-07-15") return "Tomorrow";
@@ -1834,6 +1868,23 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
               <option value="Medium">Medium</option>
               <option value="Low">Low</option>
             </select>
+            <select
+              className="form-select w-auto"
+              style={{ borderRadius: "8px" }}
+              value={`${taskSort.sortBy}-${taskSort.sortDir}`}
+              onChange={(e) => {
+                const [sortBy, sortDir] = e.target.value.split("-");
+                setTaskSort({ sortBy, sortDir });
+              }}
+            >
+              <option value="dueDate-asc">Due Date (Earliest)</option>
+              <option value="dueDate-desc">Due Date (Latest)</option>
+              <option value="priority-desc">Priority (High→Low)</option>
+              <option value="priority-asc">Priority (Low→High)</option>
+              <option value="title-asc">Title (A→Z)</option>
+              <option value="title-desc">Title (Z→A)</option>
+              <option value="status-asc">Status (A→Z)</option>
+            </select>
           </div>
 
           {finalTasks.length === 0 ? (
@@ -1843,8 +1894,9 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
               <p className="text-muted mb-0" style={{ fontSize: "11.5px" }}>There are no tasks in this view.</p>
             </div>
           ) : (
+            <>
             <div className="d-flex flex-column gap-2">
-              {finalTasks.map(task => (
+              {paginatedTasks.map(task => (
                 <div
                   key={task.id}
                   className="task-row-card"
@@ -1883,6 +1935,8 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
                 </div>
               ))}
             </div>
+            <PaginationBar pagination={taskPagination} onPageChange={setTaskPage} />
+            </>
           )}
         </div>
 
@@ -2338,6 +2392,9 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
   const [deptFilter, setDeptFilter] = useState("All");
   const [roleFilter, setRoleFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
+  const [teamSort, setTeamSort] = useState({ sortBy: "name", sortDir: "asc" });
+  const [teamPage, setTeamPage] = useState(1);
+  const TEAM_PER_PAGE = 9;
 
   // Selection states
   const [selectedMember, setSelectedMember] = useState(null);
@@ -2457,6 +2514,34 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
     return matchesSearch && matchesDept && matchesRole && matchesStatus;
   });
 
+  const sortedMembers = [...filteredMembers].sort((a, b) => {
+    const dir = teamSort.sortDir === "asc" ? 1 : -1;
+    if (teamSort.sortBy === "department") {
+      return (a.department || "").localeCompare(b.department || "") * dir;
+    }
+    if (teamSort.sortBy === "designation") {
+      return (a.designation || "").localeCompare(b.designation || "") * dir;
+    }
+    if (teamSort.sortBy === "joiningDate") {
+      const aVal = a.joiningDate || "";
+      const bVal = b.joiningDate || "";
+      return (aVal < bVal ? -1 : aVal > bVal ? 1 : 0) * dir;
+    }
+    // name (default)
+    const nameA = `${a.firstName || ""} ${a.lastName || ""}`.toLowerCase();
+    const nameB = `${b.firstName || ""} ${b.lastName || ""}`.toLowerCase();
+    return nameA.localeCompare(nameB) * dir;
+  });
+
+  const teamTotalPages = Math.max(1, Math.ceil(sortedMembers.length / TEAM_PER_PAGE));
+  const safeTeamPage = Math.min(teamPage, teamTotalPages);
+  const paginatedMembers = sortedMembers.slice((safeTeamPage - 1) * TEAM_PER_PAGE, safeTeamPage * TEAM_PER_PAGE);
+  const teamPagination = { page: safeTeamPage, limit: TEAM_PER_PAGE, total: sortedMembers.length, totalPages: teamTotalPages };
+
+  useEffect(() => {
+    setTeamPage(1);
+  }, [searchQuery, deptFilter, roleFilter, statusFilter, teamSort.sortBy, teamSort.sortDir]);
+
   const getStatusColor = (status) => {
     if (status === "Online") return "#10b981"; // Green
     if (status === "Away") return "#eab308"; // Yellow
@@ -2524,13 +2609,45 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
 
         {/* Right Column: Members Listing */}
         <div className="team-right-content">
-          <h4 style={{ fontSize: "11.5px", fontWeight: "800", textTransform: "uppercase", color: "#475569", letterSpacing: "0.02em", marginBottom: "4px" }}>
-            Team Members
-          </h4>
-          
+          <div className="d-flex flex-wrap align-items-center justify-content-between gap-2 mb-2">
+            <h4 style={{ fontSize: "11.5px", fontWeight: "800", textTransform: "uppercase", color: "#475569", letterSpacing: "0.02em", margin: 0 }}>
+              Team Members
+            </h4>
+            <div className="d-flex flex-wrap align-items-center gap-2">
+              <div className="position-relative" style={{ minWidth: "160px" }}>
+                <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "10px", fontSize: "12px" }}></i>
+                <input
+                  type="text"
+                  className="form-control form-control-sm ps-4"
+                  placeholder="Search team..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  style={{ borderRadius: "8px", fontSize: "12px" }}
+                />
+              </div>
+              <select
+                className="form-select form-select-sm w-auto"
+                style={{ borderRadius: "8px", fontSize: "12px" }}
+                value={`${teamSort.sortBy}-${teamSort.sortDir}`}
+                onChange={(e) => {
+                  const [sortBy, sortDir] = e.target.value.split("-");
+                  setTeamSort({ sortBy, sortDir });
+                }}
+              >
+                <option value="name-asc">Name (A→Z)</option>
+                <option value="name-desc">Name (Z→A)</option>
+                <option value="department-asc">Department (A→Z)</option>
+                <option value="designation-asc">Designation (A→Z)</option>
+                <option value="joiningDate-desc">Joining Date (Newest)</option>
+                <option value="joiningDate-asc">Joining Date (Oldest)</option>
+              </select>
+            </div>
+          </div>
+
           {filteredMembers.length > 0 ? (
+            <>
             <div className="team-grid-container">
-              {filteredMembers.map(member => {
+              {paginatedMembers.map(member => {
                 const initials = `${member.firstName?.[0] || ""}${member.lastName?.[0] || ""}`.toUpperCase();
                 return (
                   <div className="team-member-card" key={member.id}>
@@ -2567,6 +2684,8 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
                 );
               })}
             </div>
+            <PaginationBar pagination={teamPagination} onPageChange={setTeamPage} />
+            </>
           ) : (
             <div className="empty-state-card py-5">
               <i className="bi bi-people empty-state-icon" style={{ fontSize: "48px" }}></i>
@@ -3383,6 +3502,8 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
   const [typeFilter, setTypeFilter] = useState("All");
   const [statusFilter, setStatusFilter] = useState("All");
   const [sortBy, setSortBy] = useState("Newest");
+  const [docPage, setDocPage] = useState(1);
+  const DOCS_PER_PAGE = 10;
 
   // Popup Modal states
   const [showUploadModal, setShowUploadModal] = useState(false);
@@ -3575,6 +3696,15 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
     return b.id.localeCompare(a.id); // Newest
   });
 
+  const docTotalPages = Math.max(1, Math.ceil(sortedDocs.length / DOCS_PER_PAGE));
+  const safeDocPage = Math.min(docPage, docTotalPages);
+  const paginatedDocs = sortedDocs.slice((safeDocPage - 1) * DOCS_PER_PAGE, safeDocPage * DOCS_PER_PAGE);
+  const docPagination = { page: safeDocPage, limit: DOCS_PER_PAGE, total: sortedDocs.length, totalPages: docTotalPages };
+
+  useEffect(() => {
+    setDocPage(1);
+  }, [searchQuery, catFilter, deptFilter, typeFilter, statusFilter, sortBy]);
+
   return (
     <div className="dashboard-card-flat">
       
@@ -3668,7 +3798,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
                     </tr>
                   </thead>
                   <tbody>
-                    {sortedDocs.map(doc => (
+                    {paginatedDocs.map(doc => (
                       <tr key={doc.id}>
                         <td>
                           <div className="d-flex align-items-center gap-2">
@@ -3761,7 +3891,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
 
               {/* MOBILE STACKED CARDS VIEW */}
               <div className="d-md-none d-flex flex-column gap-2">
-                {sortedDocs.map(doc => (
+                {paginatedDocs.map(doc => (
                   <div key={doc.id} className="p-3 bg-white rounded-3 border">
                     <div className="d-flex align-items-center justify-content-between mb-2">
                       <div className="d-flex align-items-center gap-2">
@@ -3834,6 +3964,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
                   </div>
                 ))}
               </div>
+              <PaginationBar pagination={docPagination} onPageChange={setDocPage} />
             </>
           ) : (
             <div className="empty-state-card py-5">
