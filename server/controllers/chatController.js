@@ -181,31 +181,47 @@ const getMessages = async (req, res) => {
       return res.status(404).json({ success: false, message: "Conversation not found" });
     }
 
-    const messages = await ChatMessage.findAll({
-      where: { conversationId: req.params.conversationId },
-      order: [["createdAt", "ASC"]],
-      limit: 200,
-    });
+    // Cursor-based pagination: no ?before= gets you the most recent page;
+    // pass the createdAt of your oldest currently-loaded message as ?before=
+    // to load the next page further into the past ("load older on scroll up").
+    // This also fixes a real bug — ordering ASC with a flat limit here used
+    // to return the OLDEST 200 messages in the conversation, not the most
+    // recent ones, so long conversations opened on ancient history.
+    const where = { conversationId: req.params.conversationId };
+    if (req.query.before) {
+      where.createdAt = { [Op.lt]: new Date(req.query.before) };
+    }
+    let limit = parseInt(req.query.limit, 10);
+    if (!Number.isFinite(limit) || limit < 1) limit = 50;
+    if (limit > 100) limit = 100;
+
+    const page = await ChatMessage.findAll({ where, order: [["createdAt", "DESC"]], limit });
+    const messages = page.reverse(); // back to chronological order for rendering
+    const hasMore = page.length === limit;
 
     // Opening the conversation = read. Zero out this user's unread counter...
-    const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
-    if (conversation[unreadField] !== 0) {
-      conversation[unreadField] = 0;
-      await conversation.save();
+    // (skip this on a "load older" page — only the initial most-recent page
+    // should trigger read receipts).
+    if (!req.query.before) {
+      const unreadField = conversation.userAId === req.user.id ? "userAUnread" : "userBUnread";
+      if (conversation[unreadField] !== 0) {
+        conversation[unreadField] = 0;
+        await conversation.save();
+      }
+
+      // ...and mark the other person's messages to me as read, so their ticks
+      // flip from single (sent) to double-blue (read) on their screen.
+      const [updatedCount] = await ChatMessage.update(
+        { readAt: new Date() },
+        { where: { conversationId: req.params.conversationId, senderId: { [Op.ne]: req.user.id }, readAt: null } }
+      );
+      if (updatedCount > 0) {
+        const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
+        emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.conversationId, readBy: req.user.id });
+      }
     }
 
-    // ...and mark the other person's messages to me as read, so their ticks
-    // flip from single (sent) to double-blue (read) on their screen.
-    const [updatedCount] = await ChatMessage.update(
-      { readAt: new Date() },
-      { where: { conversationId: req.params.conversationId, senderId: { [Op.ne]: req.user.id }, readAt: null } }
-    );
-    if (updatedCount > 0) {
-      const otherUserId = conversation.userAId === req.user.id ? conversation.userBId : conversation.userAId;
-      emitToUser(otherUserId, "chat:messages-read", { conversationId: req.params.conversationId, readBy: req.user.id });
-    }
-
-    return res.status(200).json({ success: true, messages });
+    return res.status(200).json({ success: true, messages, hasMore });
   } catch (error) {
     console.error("Get messages error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching messages" });
