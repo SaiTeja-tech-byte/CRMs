@@ -1,11 +1,25 @@
+const { Op } = require("sequelize");
 const Document = require("../models/Document");
 const { emitToAll } = require("../utils/socket");
+const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
 // GET /api/documents — any logged-in user (employee or admin) can view.
+// Supports ?page=&limit=&sortBy=&sortDir=, plus ?search= (name) and ?department=.
 const getDocuments = async (req, res) => {
   try {
-    const documents = await Document.findAll({ order: [["createdAt", "DESC"]] });
-    return res.status(200).json({ success: true, documents });
+    const { page, limit, offset, order } = parsePagination(req.query, {
+      sortableFields: ["name", "category", "department", "size", "createdAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "DESC",
+    });
+
+    const where = {};
+    if (req.query.department) where.department = req.query.department;
+    if (req.query.category) where.category = req.query.category;
+    if (req.query.search) where.name = { [Op.iLike]: `%${req.query.search}%` };
+
+    const { rows, count } = await Document.findAndCountAll({ where, order, limit, offset });
+    return res.status(200).json({ success: true, documents: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Get documents error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching documents" });
