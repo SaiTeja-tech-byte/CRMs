@@ -6,9 +6,10 @@ const authHeaders = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 });
 
-export const getDocuments = async () => {
-  const res = await axios.get(`${API_BASE}/documents`, authHeaders());
-  return res.data.documents;
+// params: { page, limit, sortBy, sortDir, search, department, category }
+export const getDocuments = async (params = {}) => {
+  const res = await axios.get(`${API_BASE}/documents`, { ...authHeaders(), params });
+  return { documents: res.data.documents, pagination: res.data.pagination };
 };
 
 export const createDocument = async (doc) => {
