@@ -1,14 +1,21 @@
 const Notification = require("../models/Notification");
+const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
 // GET /api/notifications
 const getNotifications = async (req, res) => {
   try {
-    const notifications = await Notification.findAll({
-      where: { userId: req.user.id },
-      order: [["createdAt", "DESC"]],
-      limit: 20,
+    const { page, limit, offset, order } = parsePagination(req.query, {
+      sortableFields: ["createdAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "DESC",
     });
-    return res.status(200).json({ success: true, notifications });
+    const { rows, count } = await Notification.findAndCountAll({
+      where: { userId: req.user.id },
+      order,
+      limit,
+      offset,
+    });
+    return res.status(200).json({ success: true, notifications: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Get notifications error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching notifications" });
