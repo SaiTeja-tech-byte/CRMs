@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const ChatGroup = require("../models/ChatGroup");
 const GroupMember = require("../models/GroupMember");
 const ChatMessage = require("../models/ChatMessage");
@@ -104,7 +105,9 @@ const getMyGroups = async (req, res) => {
 const requireMembership = async (groupId, userId) =>
   GroupMember.findOne({ where: { groupId, userId } });
 
-// GET /api/chat/groups/:groupId/messages
+// GET /api/chat/groups/:groupId/messages — same cursor pagination as direct
+// chat's getMessages: no ?before= gets the most recent page, pass the
+// oldest loaded message's createdAt as ?before= to load further back.
 const getGroupMessages = async (req, res) => {
   try {
     const { groupId } = req.params;
@@ -113,18 +116,24 @@ const getGroupMessages = async (req, res) => {
       return res.status(404).json({ success: false, message: "Group not found" });
     }
 
-    const messages = await ChatMessage.findAll({
-      where: { groupId },
-      order: [["createdAt", "ASC"]],
-      limit: 200,
-    });
+    const where = { groupId };
+    if (req.query.before) {
+      where.createdAt = { [Op.lt]: new Date(req.query.before) };
+    }
+    let limit = parseInt(req.query.limit, 10);
+    if (!Number.isFinite(limit) || limit < 1) limit = 50;
+    if (limit > 100) limit = 100;
 
-    if (membership.unreadCount !== 0) {
+    const page = await ChatMessage.findAll({ where, order: [["createdAt", "DESC"]], limit });
+    const messages = page.reverse();
+    const hasMore = page.length === limit;
+
+    if (!req.query.before && membership.unreadCount !== 0) {
       membership.unreadCount = 0;
       await membership.save();
     }
 
-    return res.status(200).json({ success: true, messages });
+    return res.status(200).json({ success: true, messages, hasMore });
   } catch (error) {
     console.error("Get group messages error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching group messages" });
