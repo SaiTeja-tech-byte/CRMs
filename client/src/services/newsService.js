@@ -6,8 +6,9 @@ const authHeaders = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 });
 
-export const getNews = async () => {
-  const res = await axios.get(`${API_BASE}/news`, authHeaders());
+// params: { page, limit, sortBy, sortDir }
+export const getNews = async (params = {}) => {
+  const res = await axios.get(`${API_BASE}/news`, { ...authHeaders(), params });
   return res.data;
 };
 
