@@ -1,3 +1,4 @@
+const { Op } = require("sequelize");
 const bcrypt = require("bcryptjs");
 const crypto = require("crypto");
 const User = require("../models/User");
@@ -8,6 +9,7 @@ const Announcement = require("../models/Announcement");
 const Document = require("../models/Document");
 const Notification = require("../models/Notification");
 const { emitToUser, emitToDepartment, emitToAll, emitToAdmins } = require("../utils/socket");
+const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
 // Resolves a { targetType, employeeId, department } body into the actual
 // list of User rows the action applies to. Shared by task and event
@@ -34,13 +36,36 @@ const resolveTargets = async (body) => {
 };
 
 // GET /api/admin/users — list every employee/admin account for the Team tab.
+// Supports ?page=&limit=&sortBy=&sortDir= plus the existing Team UI filters:
+// ?search= (name/email), ?department=, ?role=, ?employmentStatus=
 const listUsers = async (req, res) => {
   try {
-    const users = await User.findAll({
-      attributes: { exclude: ["password", "otpCode", "otpExpiresAt", "resetToken", "resetTokenExpiresAt"] },
-      order: [["createdAt", "ASC"]],
+    const { page, limit, offset, order } = parsePagination(req.query, {
+      sortableFields: ["fullName", "email", "department", "role", "employmentStatus", "createdAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "ASC",
     });
-    return res.status(200).json({ success: true, users });
+
+    const where = {};
+    if (req.query.department) where.department = req.query.department;
+    if (req.query.role) where.role = req.query.role;
+    if (req.query.employmentStatus) where.employmentStatus = req.query.employmentStatus;
+    if (req.query.search) {
+      where[Op.or] = [
+        { fullName: { [Op.iLike]: `%${req.query.search}%` } },
+        { email: { [Op.iLike]: `%${req.query.search}%` } },
+      ];
+    }
+
+    const { rows, count } = await User.findAndCountAll({
+      where,
+      attributes: { exclude: ["password", "otpCode", "otpExpiresAt", "resetToken", "resetTokenExpiresAt"] },
+      order,
+      limit,
+      offset,
+    });
+
+    return res.status(200).json({ success: true, users: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Admin list users error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching users" });
@@ -150,11 +175,26 @@ const getAdminStats = async (req, res) => {
   }
 };
 
-// GET /api/admin/tasks — every employee's tasks.
+// GET /api/admin/tasks — every employee's tasks. Supports ?page=&limit=&
+// sortBy=&sortDir= and ?search= (title/assignee name).
 const getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.findAll({ order: [["createdAt", "DESC"]] });
-    return res.status(200).json({ success: true, tasks });
+    const { page, limit, offset, order } = parsePagination(req.query, {
+      sortableFields: ["title", "priority", "status", "dueDate", "createdAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "DESC",
+    });
+
+    const where = {};
+    if (req.query.search) {
+      where[Op.or] = [
+        { title: { [Op.iLike]: `%${req.query.search}%` } },
+        { assignedTo: { [Op.iLike]: `%${req.query.search}%` } },
+      ];
+    }
+
+    const { rows, count } = await Task.findAndCountAll({ where, order, limit, offset });
+    return res.status(200).json({ success: true, tasks: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Admin get all tasks error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching tasks" });
