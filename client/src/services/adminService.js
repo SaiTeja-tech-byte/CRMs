@@ -11,9 +11,10 @@ export const getAdminStats = async () => {
   return res.data.stats;
 };
 
-export const getAdminUsers = async () => {
-  const res = await axios.get(`${API_BASE}/admin/users`, authHeaders());
-  return res.data.users;
+// params: { page, limit, sortBy, sortDir, search, department, role, employmentStatus }
+export const getAdminUsers = async (params = {}) => {
+  const res = await axios.get(`${API_BASE}/admin/users`, { ...authHeaders(), params });
+  return { users: res.data.users, pagination: res.data.pagination };
 };
 
 export const updateAdminUser = async (id, updates) => {
