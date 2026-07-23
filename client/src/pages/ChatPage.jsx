@@ -65,6 +65,15 @@ const ChatPage = () => {
 
   // Group Chat states
   const [activeTab, setActiveTab] = useState("individual"); // 'individual' or 'groups'
+  const [chatFilter, setChatFilter] = useState("all"); // 'all', 'unread', 'read'
+  const [openMenuId, setOpenMenuId] = useState(null);
+
+  useEffect(() => {
+    const closeMenu = () => setOpenMenuId(null);
+    document.addEventListener("click", closeMenu);
+    return () => document.removeEventListener("click", closeMenu);
+  }, []);
+
   const [groups, setGroups] = useState([]);
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
@@ -163,7 +172,7 @@ const ChatPage = () => {
             return prev
               .map((c) =>
                 c.id === conversationId
-                  ? { ...c, lastMessageAt: message.createdAt, unreadCount: isViewing ? 0 : (c.unreadCount || 0) + 1 }
+                  ? { ...c, lastMessageAt: message.createdAt, lastMessageText: message.message, lastMessageSender: message.senderId, unreadCount: isViewing ? 0 : (c.unreadCount || 0) + 1 }
                   : c
               )
               .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0));
@@ -226,7 +235,7 @@ const ChatPage = () => {
             prev
               .map((g) =>
                 g.id === groupId
-                  ? { ...g, lastMessageAt: message.createdAt, unreadCount: isViewing ? 0 : (g.unreadCount || 0) + 1 }
+                  ? { ...g, lastMessageAt: message.createdAt, lastMessageText: message.message, lastMessageSender: message.senderId, unreadCount: isViewing ? 0 : (g.unreadCount || 0) + 1 }
                   : g
               )
               .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
@@ -468,6 +477,15 @@ const ChatPage = () => {
     }
   };
 
+  const toggleReadStatus = (e, item, isGroup) => {
+    e.stopPropagation();
+    if (isGroup) {
+      setGroups(prev => prev.map(g => g.id === item.id ? { ...g, unreadCount: g.unreadCount > 0 ? 0 : 1 } : g));
+    } else {
+      setConversations(prev => prev.map(c => c.id === item.id ? { ...c, unreadCount: c.unreadCount > 0 ? 0 : 1 } : c));
+    }
+  };
+
   // Splits message text around the search term (case-insensitive) and wraps
   // matches in <mark> — brighter highlight for whichever match is "current".
   const renderHighlightedText = (text, messageId) => {
@@ -530,7 +548,7 @@ const ChatPage = () => {
         setMessages((prev) => prev.map((m) => (m.id === tempId ? dummyMsg : m)));
         setGroups((prev) =>
           prev
-            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: dummyMsg.createdAt } : g))
+            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: dummyMsg.createdAt, lastMessageText: dummyMsg.message, lastMessageSender: currentUser?.id } : g))
             .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
         );
         return;
@@ -540,7 +558,7 @@ const ChatPage = () => {
         setMessages((prev) => prev.map((m) => (m.id === tempId ? message : m)));
         setGroups((prev) =>
           prev
-            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: message.createdAt } : g))
+            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: message.createdAt, lastMessageText: message.message, lastMessageSender: currentUser?.id } : g))
             .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
         );
       } catch (err) {
@@ -555,7 +573,7 @@ const ChatPage = () => {
       setMessages((prev) => prev.map((m) => (m.id === tempId ? message : m)));
       setConversations((prev) =>
         prev
-          .map((c) => (c.id === activeConversation.id ? { ...c, lastMessageAt: message.createdAt } : c))
+          .map((c) => (c.id === activeConversation.id ? { ...c, lastMessageAt: message.createdAt, lastMessageText: message.message, lastMessageSender: currentUser?.id } : c))
           .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
       );
     } catch (err) {
@@ -603,17 +621,29 @@ const ChatPage = () => {
         </div>
         
         <div className="p-2 border-bottom bg-light">
-          <div className="input-group input-group-sm">
-            <span className="input-group-text bg-white border-end-0 text-muted">
-              <Search size={14} />
-            </span>
-            <input
-              type="text"
-              className="form-control border-start-0 ps-0"
-              placeholder={`Search ${activeTab === "individual" ? "conversations" : "groups"}...`}
-              value={listSearch}
-              onChange={(e) => setListSearch(e.target.value)}
-            />
+          <div className="d-flex gap-2 mb-2">
+            <select 
+              className="form-select form-select-sm border-0 shadow-sm" 
+              style={{ width: "100px", fontSize: "12px", fontWeight: "500", backgroundColor: "#fff" }}
+              value={chatFilter}
+              onChange={(e) => setChatFilter(e.target.value)}
+            >
+              <option value="all">All Chats</option>
+              <option value="unread">Unread</option>
+              <option value="read">Read</option>
+            </select>
+            <div className="input-group input-group-sm flex-fill shadow-sm">
+              <span className="input-group-text bg-white border-0 text-muted">
+                <Search size={14} />
+              </span>
+              <input
+                type="text"
+                className="form-control border-0 ps-0"
+                placeholder={`Search ${activeTab === "individual" ? "conversations" : "groups"}...`}
+                value={listSearch}
+                onChange={(e) => setListSearch(e.target.value)}
+              />
+            </div>
           </div>
         </div>
 
@@ -639,66 +669,163 @@ const ChatPage = () => {
                 </div>
               )}
               <div>
-                {conversations.filter(c => !listSearch || (c.otherUser?.fullName || "").toLowerCase().includes(listSearch.toLowerCase())).length === 0 && (
-                  <div className="p-4 text-center text-muted small">No personal chats exist.</div>
-                )}
-                {conversations
-                  .filter(c => !listSearch || (c.otherUser?.fullName || "").toLowerCase().includes(listSearch.toLowerCase()))
-                  .map((c) => (
-                  <button
-                    key={c.id}
-                    onClick={() => openConversation(c)}
-                    className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-center ${
-                      activeConversation?.id === c.id ? "bg-light" : "bg-white"
-                    }`}
-                  >
-                    <div>
-                      <div className="fw-medium">{c.otherUser?.fullName || "Unknown"}</div>
-                      <div className="small text-muted">{c.otherUser?.email}</div>
-                    </div>
-                    {c.unreadCount > 0 && (
-                      <span className="badge rounded-pill bg-danger">{c.unreadCount}</span>
-                    )}
-                  </button>
-                ))}
+                {(() => {
+                  const filteredList = conversations.filter(c => {
+                    const matchSearch = !listSearch || (c.otherUser?.fullName || "").toLowerCase().includes(listSearch.toLowerCase());
+                    if (!matchSearch) return false;
+                    if (chatFilter === "unread") return c.unreadCount > 0;
+                    if (chatFilter === "read") return !c.unreadCount || c.unreadCount === 0;
+                    return true;
+                  });
+                  if (filteredList.length === 0) {
+                    return (
+                      <div className="p-4 text-center text-muted small">
+                        {chatFilter === "unread" ? "No unread messages." : "No personal chats exist."}
+                      </div>
+                    );
+                  }
+                  return filteredList.map((c) => {
+                    const isUnread = c.unreadCount > 0;
+                    const previewText = c.lastMessageText || c.lastMessage?.message || "Started a conversation";
+                    const formattedTime = c.lastMessageAt ? new Date(c.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                    const senderName = c.lastMessageSender === currentUser?.id ? "You: " : "";
+                    
+                    return (
+                      <div
+                        key={c.id}
+                        className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-start position-relative group-chat-item ${
+                          activeConversation?.id === c.id ? "bg-light" : isUnread ? "bg-primary bg-opacity-10" : "bg-white"
+                        }`}
+                        style={{ cursor: "pointer", transition: "background-color 0.2s" }}
+                        onClick={() => openConversation(c)}
+                      >
+                        <div className="flex-fill overflow-hidden pe-2">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <div className={`text-truncate ${isUnread ? "fw-bold text-dark" : "fw-medium"}`} style={{ fontSize: "14px", color: "#111827" }}>
+                              {c.otherUser?.fullName || "Unknown"}
+                            </div>
+                            {formattedTime && <div className={`small ${isUnread ? "fw-bold text-primary" : "text-muted"}`} style={{ fontSize: "11px" }}>{formattedTime}</div>}
+                          </div>
+                          <div className={`text-truncate small ${isUnread ? "fw-bold text-dark" : "text-muted"}`} style={{ fontSize: "13px" }}>
+                            {senderName}{previewText}
+                          </div>
+                        </div>
+                        <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
+                          <button 
+                            className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === c.id ? null : c.id); }}
+                          >
+                            <MoreVertical size={14} />
+                          </button>
+                          {openMenuId === c.id && (
+                            <div className="position-absolute bg-white border rounded shadow py-1 z-3" style={{ right: 0, top: "20px", width: "130px" }}>
+                              <button 
+                                className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
+                                style={{ fontSize: "12px" }}
+                                onClick={(e) => { setOpenMenuId(null); toggleReadStatus(e, c, false); }}
+                              >
+                                {isUnread ? "Mark as Read" : "Mark as Unread"}
+                              </button>
+                            </div>
+                          )}
+                          {isUnread && (
+                            <span className="badge rounded-pill bg-primary d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "18px", height: "18px", padding: 0 }}>{c.unreadCount}</span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </>
           ) : (
             <div>
-              {groups.filter(g => !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase())).length === 0 && (
-                <div className="p-5 text-center text-muted">
-                  <div className="fw-medium mb-1">No Groups Available</div>
-                  <div className="small">
-                    Create your first group to start collaborating.
-                  </div>
-                </div>
-              )}
-              {groups
-                .filter(g => !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase()))
-                .map((g) => (
-                <button
-                  key={g.id}
-                  onClick={() => openGroupConversation(g)}
-                  className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-center ${
-                    activeConversation?.id === g.id ? "bg-light" : "bg-white"
-                  }`}
-                >
-                  <div className="d-flex align-items-center gap-3">
-                    <div className="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0" style={{ width: "40px", height: "40px" }}>
-                      <Users size={20} />
-                    </div>
-                    <div>
-                      <div className="fw-medium">{g.name}</div>
-                      <div className="small text-muted text-truncate" style={{ maxWidth: "200px" }}>
-                        {g.description || `${g.members?.length || 0} members`}
+              {(() => {
+                const filteredList = groups.filter(g => {
+                  const matchSearch = !listSearch || g.name.toLowerCase().includes(listSearch.toLowerCase());
+                  if (!matchSearch) return false;
+                  if (chatFilter === "unread") return g.unreadCount > 0;
+                  if (chatFilter === "read") return !g.unreadCount || g.unreadCount === 0;
+                  return true;
+                });
+                
+                if (filteredList.length === 0) {
+                  return (
+                    <div className="p-5 text-center text-muted">
+                      <div className="fw-medium mb-1">No Groups Available</div>
+                      <div className="small">
+                        {chatFilter === "unread" ? "No unread messages." : "Create your first group to start collaborating."}
                       </div>
                     </div>
-                  </div>
-                  {g.unreadCount > 0 && (
-                    <span className="badge rounded-pill bg-danger">{g.unreadCount}</span>
-                  )}
-                </button>
-              ))}
+                  );
+                }
+                
+                return filteredList.map((g) => {
+                  const isUnread = g.unreadCount > 0;
+                  const previewText = g.lastMessageText || g.lastMessage?.message || (g.description || `${g.members?.length || 0} members`);
+                  const formattedTime = g.lastMessageAt ? new Date(g.lastMessageAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : "";
+                  let senderName = "";
+                  if (g.lastMessageSender) {
+                    if (g.lastMessageSender === currentUser?.id) {
+                      senderName = "You: ";
+                    } else {
+                      const sender = g.members?.find(m => m.userId === g.lastMessageSender)?.user;
+                      senderName = sender ? `${sender.fullName.split(" ")[0]}: ` : "Member: ";
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={g.id}
+                      onClick={() => openGroupConversation(g)}
+                      className={`w-100 text-start border-0 p-3 border-bottom d-flex justify-content-between align-items-start position-relative group-chat-item ${
+                        activeConversation?.id === g.id ? "bg-light" : isUnread ? "bg-primary bg-opacity-10" : "bg-white"
+                      }`}
+                      style={{ cursor: "pointer", transition: "background-color 0.2s" }}
+                    >
+                      <div className="d-flex align-items-center gap-3 flex-fill overflow-hidden pe-2">
+                        <div className={`text-white rounded-circle d-flex align-items-center justify-content-center flex-shrink-0 ${isUnread ? "bg-primary" : "bg-secondary"}`} style={{ width: "40px", height: "40px" }}>
+                          <Users size={20} />
+                        </div>
+                        <div className="flex-fill overflow-hidden pe-2">
+                          <div className="d-flex justify-content-between align-items-center mb-1">
+                            <div className={`text-truncate ${isUnread ? "fw-bold text-dark" : "fw-medium"}`} style={{ fontSize: "14px", color: "#111827" }}>
+                              {g.name}
+                            </div>
+                            {formattedTime && <div className={`small ${isUnread ? "fw-bold text-primary" : "text-muted"}`} style={{ fontSize: "11px" }}>{formattedTime}</div>}
+                          </div>
+                          <div className={`text-truncate small ${isUnread ? "fw-bold text-dark" : "text-muted"}`} style={{ fontSize: "13px" }}>
+                            {senderName}{previewText}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
+                        <button 
+                          className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
+                          onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === g.id ? null : g.id); }}
+                        >
+                          <MoreVertical size={14} />
+                        </button>
+                        {openMenuId === g.id && (
+                          <div className="position-absolute bg-white border rounded shadow py-1 z-3" style={{ right: 0, top: "20px", width: "130px" }}>
+                            <button 
+                              className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
+                              style={{ fontSize: "12px" }}
+                              onClick={(e) => { setOpenMenuId(null); toggleReadStatus(e, g, true); }}
+                            >
+                              {isUnread ? "Mark as Read" : "Mark as Unread"}
+                            </button>
+                          </div>
+                        )}
+                        {isUnread && (
+                          <span className="badge rounded-pill bg-primary d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "18px", height: "18px", padding: 0 }}>{g.unreadCount}</span>
+                        )}
+                      </div>
+                    </div>
+                  );
+                });
+              })()}
             </div>
           )}
         </div>
@@ -890,7 +1017,11 @@ const ChatPage = () => {
                             {renderHighlightedText(m.message, m.id)}
                             <div className={`d-flex align-items-center gap-1 justify-content-end mt-1 ${isMine ? "text-white-50" : "text-muted"}`} style={{ fontSize: "10px" }}>
                               {m.edited && <span>edited</span>}
-                              {isMine && (m.pending ? <span title="Sending...">🕓</span> : m.readAt ? <CheckCheck size={13} color="#8ec9ff" /> : <Check size={13} />)}
+                              {isMine && (
+                                <span className="ms-1 text-white opacity-75" style={{ fontSize: "11px", fontWeight: "500" }}>
+                                  {m.pending ? "Sending..." : m.readAt ? "Read" : activeConversation.isGroup ? "Sent" : "Delivered"}
+                                </span>
+                              )}
                             </div>
                           </>
                         )}
