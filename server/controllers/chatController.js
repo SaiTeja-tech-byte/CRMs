@@ -78,13 +78,18 @@ const getIncomingRequests = async (req, res) => {
     const requests = await ChatRequest.findAll({
       where: { receiverId: req.user.id, status: "pending" },
       order: [["createdAt", "DESC"]],
+      raw: true,
     });
 
     const senderIds = requests.map((r) => r.senderId);
-    const senders = await User.findAll({ where: { id: senderIds }, attributes: SAFE_USER_ATTRS });
+    const senders = await User.findAll({ 
+      where: { id: senderIds }, 
+      attributes: SAFE_USER_ATTRS,
+      raw: true,
+    });
     const senderMap = Object.fromEntries(senders.map((s) => [s.id, s]));
 
-    const enriched = requests.map((r) => ({ ...r.toJSON(), sender: senderMap[r.senderId] || null }));
+    const enriched = requests.map((r) => ({ ...r, sender: senderMap[r.senderId] || null }));
 
     return res.status(200).json({ success: true, requests: enriched });
   } catch (error) {
@@ -154,14 +159,20 @@ const getConversations = async (req, res) => {
     const conversations = await Conversation.findAll({
       where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },
       order: [["lastMessageAt", "DESC"]],
+      limit: 100, // Pagination limits the payload size
+      raw: true,
     });
 
     const otherIds = conversations.map((c) => (c.userAId === userId ? c.userBId : c.userAId));
-    const others = await User.findAll({ where: { id: otherIds }, attributes: SAFE_USER_ATTRS });
+    const others = await User.findAll({ 
+      where: { id: otherIds }, 
+      attributes: SAFE_USER_ATTRS,
+      raw: true, 
+    });
     const otherMap = Object.fromEntries(others.map((u) => [u.id, u]));
 
     const enriched = conversations.map((c) => ({
-      ...c.toJSON(),
+      ...c,
       otherUser: otherMap[c.userAId === userId ? c.userBId : c.userAId] || null,
       unreadCount: c.userAId === userId ? c.userAUnread : c.userBUnread,
     }));
@@ -195,7 +206,7 @@ const getMessages = async (req, res) => {
     if (!Number.isFinite(limit) || limit < 1) limit = 50;
     if (limit > 100) limit = 100;
 
-    const page = await ChatMessage.findAll({ where, order: [["createdAt", "DESC"]], limit });
+    const page = await ChatMessage.findAll({ where, order: [["createdAt", "DESC"]], limit, raw: true });
     const messages = page.reverse(); // back to chronological order for rendering
     const hasMore = page.length === limit;
 
@@ -279,6 +290,7 @@ const getUnreadCount = async (req, res) => {
     const conversations = await Conversation.findAll({
       where: { [Op.or]: [{ userAId: userId }, { userBId: userId }] },
       attributes: ["id", "userAId", "userBId", "userAUnread", "userBUnread"],
+      raw: true,
     });
     const unreadMessages = conversations.reduce(
       (sum, c) => sum + (c.userAId === userId ? c.userAUnread : c.userBUnread),
@@ -391,7 +403,8 @@ const searchMessages = async (req, res) => {
         [Op.and]: [sequelizeWhere(fn("LOWER", col("message")), { [Op.like]: `%${term.toLowerCase()}%` })],
       },
       order: [["createdAt", "ASC"]],
-      limit: 500,
+      limit: 50, // Reduced from 500 to 50 for search performance
+      raw: true,
     });
 
     return res.status(200).json({ success: true, matches, count: matches.length });
