@@ -4,6 +4,7 @@ import { useCRMContext } from "../context/CRMContext";
 import "../styles/dashboard-layout.css";
 
 import Sidebar from "../components/layout/Sidebar";
+import { PaginationBar, SortableHeader } from "../components/PaginationBar";
 import { adminGetAllTasks, adminAssignTask, adminDeleteTask, adminGetEmployees } from '../services/taskService';
 import { getAdminStats, getAdminUsers, updateAdminUser } from '../services/adminService';
 import { getCompanySettings, updateCompanySettings } from '../services/companySettingsService';
@@ -1253,11 +1254,20 @@ const AdminCalendar = () => {
 // =========================
 const AdminTeam = () => {
   const [teamMembers, setTeamMembers] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState({ sortBy: "createdAt", sortDir: "asc" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
+
+  // Org-wide summary numbers, fetched separately from the paginated table —
+  // "Total Employees" etc. should reflect the whole company, not just
+  // whatever 20 rows happen to be on the current page.
+  const [orgStats, setOrgStats] = useState({ totalEmployees: 0, activeEmployees: 0 });
 
   // Modals
   const [showAddModal, setShowAddModal] = useState(false);
@@ -1265,13 +1275,33 @@ const AdminTeam = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [activeActionMenu, setActiveActionMenu] = useState(null);
 
+  // Debounce search input so every keystroke doesn't fire a request.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  // Any filter/sort change should snap back to page 1 — page 4 of an
+  // unfiltered list isn't page 4 once a search narrows the results.
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, deptFilter, sort.sortBy, sort.sortDir]);
+
   const loadTeam = async () => {
     try {
       setLoading(true);
       setError("");
       if (typeof getAdminUsers !== "undefined") {
-        const users = await getAdminUsers();
+        const { users, pagination: meta } = await getAdminUsers({
+          page,
+          limit: 20,
+          sortBy: sort.sortBy,
+          sortDir: sort.sortDir,
+          search: debouncedSearch || undefined,
+          department: deptFilter || undefined,
+        });
         setTeamMembers(users || []);
+        setPagination(meta || null);
       } else {
         setTeamMembers([]);
       }
@@ -1289,20 +1319,34 @@ const AdminTeam = () => {
       const unsub = onSocketEvent("team:updated", () => loadTeam());
       return () => unsub();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort.sortBy, sort.sortDir, debouncedSearch, deptFilter]);
+
+  useEffect(() => {
+    if (typeof getAdminStats === "undefined") return;
+    getAdminStats()
+      .then((stats) => setOrgStats({ totalEmployees: stats?.totalEmployees || 0, activeEmployees: stats?.activeEmployees || 0 }))
+      .catch(() => {});
   }, []);
 
-  const uniqueDepartments = [...new Set(teamMembers.map(m => m.department).filter(Boolean))];
-  const activeEmployees = teamMembers.filter(m => m.employmentStatus === 'Active').length;
-  const totalTeams = 0; 
+  // The department sidebar needs org-wide counts, not just whatever's on
+  // the current table page — fetched once, separately from the paginated
+  // table query above.
+  const [deptCounts, setDeptCounts] = useState({});
+  useEffect(() => {
+    if (typeof getAdminUsers === "undefined") return;
+    getAdminUsers({ limit: 1000 })
+      .then(({ users }) => {
+        const counts = {};
+        (users || []).forEach((u) => { if (u.department) counts[u.department] = (counts[u.department] || 0) + 1; });
+        setDeptCounts(counts);
+      })
+      .catch(() => {});
+  }, []);
 
-  const filteredMembers = teamMembers.filter(m => {
-    const matchesSearch = m.fullName?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                          m.employeeId?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          m.department?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                          m.designation?.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDept = deptFilter ? m.department === deptFilter : true;
-    return matchesSearch && matchesDept;
-  });
+  const uniqueDepartments = Object.keys(deptCounts);
+  const activeEmployees = orgStats.activeEmployees;
+  const totalTeams = 0;
 
   const initials = (name) => (name || "").split(" ").filter(Boolean).slice(0, 2).map(p => p[0]).join("").toUpperCase();
 
@@ -1342,7 +1386,7 @@ const AdminTeam = () => {
       {/* SUMMARY CARDS */}
       <div className="row g-3">
         {[
-          { title: "Total Team Members", value: teamMembers.length || "0", icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
+          { title: "Total Team Members", value: orgStats.totalEmployees || "0", icon: "bi-people", color: "#2563eb", bg: "#dbeafe" },
           { title: "Total Departments", value: uniqueDepartments.length || "0", icon: "bi-diagram-3", color: "#8b5cf6", bg: "#ede9fe" },
           { title: "Total Teams", value: totalTeams || "--", icon: "bi-collection", color: "#f59e0b", bg: "#fef3c7" },
           { title: "Active Team Members", value: activeEmployees || "0", icon: "bi-person-check", color: "#10b981", bg: "#d1fae5" }
@@ -1387,7 +1431,7 @@ const AdminTeam = () => {
                     <button key={dept} className={`btn w-100 text-start px-3 py-2 d-flex justify-content-between align-items-center ${deptFilter === dept ? "btn-primary" : "btn-light bg-transparent border-0"}`} style={{ borderRadius: "6px", fontSize: "13px" }} onClick={() => setDeptFilter(dept)}>
                       <span>{dept}</span>
                       <span className={`badge ${deptFilter === dept ? "bg-white text-primary" : "bg-light text-muted"}`} style={{ fontSize: "10px" }}>
-                        {teamMembers.filter(m => m.department === dept).length}
+                        {deptCounts[dept] || 0}
                       </span>
                     </button>
                   ))}
@@ -1410,7 +1454,7 @@ const AdminTeam = () => {
             <div className="card-body p-0">
               {loading ? (
                 <div className="text-center py-5 text-muted">Loading team records...</div>
-              ) : filteredMembers.length === 0 ? (
+              ) : teamMembers.length === 0 ? (
                 <div className="text-center py-5 my-5">
                   <div className="mb-3 d-inline-flex align-items-center justify-content-center bg-light rounded-circle" style={{ width: "80px", height: "80px" }}>
                     <i className="bi bi-people text-muted" style={{ fontSize: "36px" }}></i>
@@ -1419,19 +1463,20 @@ const AdminTeam = () => {
                   <p className="text-muted mb-0 mx-auto" style={{ maxWidth: "350px", fontSize: "14px" }}>Team records will appear here after backend integration.</p>
                 </div>
               ) : (
+                <>
                 <div className="table-responsive">
                   <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
                     <thead className="table-light">
                       <tr>
-                        <th className="px-4 py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Team Member</th>
+                        <SortableHeader label="Team Member" field="fullName" sort={sort} onSort={setSort} className="px-4 py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }} />
                         <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Team ID</th>
-                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Department & Role</th>
-                        <th className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Status</th>
+                        <SortableHeader label="Department & Role" field="department" sort={sort} onSort={setSort} className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }} />
+                        <SortableHeader label="Status" field="employmentStatus" sort={sort} onSort={setSort} className="py-3 text-muted fw-semibold text-uppercase" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }} />
                         <th className="py-3 px-4 text-muted fw-semibold text-uppercase text-end" style={{ fontSize: "11px", borderBottom: "1px solid #e2e8f0" }}>Actions</th>
                       </tr>
                     </thead>
                     <tbody>
-                      {filteredMembers.map(m => (
+                      {teamMembers.map(m => (
                         <tr key={m.id}>
                           <td className="px-4 py-3">
                             <div className="d-flex align-items-center gap-3">
@@ -1473,6 +1518,10 @@ const AdminTeam = () => {
                     </tbody>
                   </table>
                 </div>
+                <div className="px-3">
+                  <PaginationBar pagination={pagination} onPageChange={setPage} />
+                </div>
+                </>
               )}
             </div>
           </div>
@@ -1583,10 +1632,14 @@ const AdminTeam = () => {
 // =========================
 const AdminTasks = () => {
   const [tasks, setTasks] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState({ sortBy: "createdAt", sortDir: "desc" });
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -1596,12 +1649,25 @@ const AdminTasks = () => {
     targetType: "employee", title: "", description: "", employeeId: "", department: "", dueDate: "", priority: "Medium", category: "General"
   });
 
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, sort.sortBy, sort.sortDir]);
+
   const loadData = async () => {
     try {
       setLoading(true);
       setError("");
-      const [taskList, employeeList] = await Promise.all([adminGetAllTasks(), adminGetEmployees()]);
+      const [{ tasks: taskList, pagination: meta }, employeeList] = await Promise.all([
+        adminGetAllTasks({ page, limit: 20, sortBy: sort.sortBy, sortDir: sort.sortDir, search: debouncedSearch || undefined }),
+        adminGetEmployees(),
+      ]);
       setTasks(taskList);
+      setPagination(meta || null);
       setEmployees(employeeList.filter(e => e.role === "employee"));
     } catch (err) {
       console.error(err);
@@ -1619,12 +1685,8 @@ const AdminTasks = () => {
       onSocketEvent("task:deleted", () => loadData()),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
-  }, []);
-
-  const filteredTasks = tasks.filter(t =>
-    t.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (t.assignedTo && t.assignedTo.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort.sortBy, sort.sortDir, debouncedSearch]);
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
@@ -1662,7 +1724,7 @@ const AdminTasks = () => {
     if (!window.confirm("Delete this task?")) return;
     try {
       await adminDeleteTask(id);
-      setTasks(tasks.filter(t => t.id !== id));
+      await loadData();
     } catch (err) {
       console.error(err);
       alert("Couldn't delete the task. Please try again.");
@@ -1705,11 +1767,11 @@ const AdminTasks = () => {
             <table className="table table-hover mb-0" style={{ verticalAlign: "middle" }}>
               <thead className="table-light">
                 <tr>
-                  <th className="px-4 py-3 text-muted small fw-semibold text-uppercase">Task</th>
+                  <SortableHeader label="Task" field="title" sort={sort} onSort={setSort} className="px-4 py-3 text-muted small fw-semibold text-uppercase" />
                   <th className="py-3 text-muted small fw-semibold text-uppercase">Assignee</th>
-                  <th className="py-3 text-muted small fw-semibold text-uppercase">Due Date</th>
-                  <th className="py-3 text-muted small fw-semibold text-uppercase">Priority</th>
-                  <th className="py-3 text-muted small fw-semibold text-uppercase">Status</th>
+                  <SortableHeader label="Due Date" field="dueDate" sort={sort} onSort={setSort} className="py-3 text-muted small fw-semibold text-uppercase" />
+                  <SortableHeader label="Priority" field="priority" sort={sort} onSort={setSort} className="py-3 text-muted small fw-semibold text-uppercase" />
+                  <SortableHeader label="Status" field="status" sort={sort} onSort={setSort} className="py-3 text-muted small fw-semibold text-uppercase" />
                   <th className="py-3 text-muted small fw-semibold text-uppercase text-end px-4">Actions</th>
                 </tr>
               </thead>
@@ -1717,7 +1779,7 @@ const AdminTasks = () => {
                 {loading && (
                   <tr><td colSpan="6" className="text-center py-5 text-muted">Loading tasks...</td></tr>
                 )}
-                {!loading && filteredTasks.map(t => (
+                {!loading && tasks.map(t => (
                   <tr key={t.id}>
                     <td className="px-4 py-3">
                       <div className="fw-semibold text-dark">{t.title}</div>
@@ -1746,7 +1808,7 @@ const AdminTasks = () => {
                     </td>
                   </tr>
                 ))}
-                {!loading && filteredTasks.length === 0 && (
+                {!loading && tasks.length === 0 && (
                   <tr>
                     <td colSpan="6" className="text-center py-5 text-muted">No tasks found.</td>
                   </tr>
@@ -1754,6 +1816,11 @@ const AdminTasks = () => {
               </tbody>
             </table>
           </div>
+          {!loading && tasks.length > 0 && (
+            <div className="px-3">
+              <PaginationBar pagination={pagination} onPageChange={setPage} />
+            </div>
+          )}
         </div>
       </div>
 
@@ -1853,9 +1920,13 @@ const AdminTasks = () => {
 // =========================
 const AdminDocuments = () => {
   const [documents, setDocuments] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
+  const [sort, setSort] = useState({ sortBy: "createdAt", sortDir: "desc" });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [deptFilter, setDeptFilter] = useState("");
   const [showUploadModal, setShowUploadModal] = useState(false);
   const [showViewModal, setShowViewModal] = useState(false);
@@ -1877,12 +1948,32 @@ const AdminDocuments = () => {
     "Legal Documents", "Finance", "Marketing", "Engineering", "Sales", "General"
   ];
 
+  // Org-wide counts (recent/shared), independent of the current page.
+  const [allDocsForStats, setAllDocsForStats] = useState([]);
+
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, deptFilter, sort.sortBy, sort.sortDir]);
+
   const loadDocs = async () => {
     try {
       setLoading(true);
       setError("");
-      const docs = await getDocuments();
+      const { documents: docs, pagination: meta } = await getDocuments({
+        page,
+        limit: 20,
+        sortBy: sort.sortBy,
+        sortDir: sort.sortDir,
+        search: debouncedSearch || undefined,
+        department: deptFilter || undefined,
+      });
       setDocuments(docs);
+      setPagination(meta || null);
     } catch (err) {
       console.error(err);
       setError(describeApiError(err, "Couldn't load documents."));
@@ -1898,6 +1989,15 @@ const AdminDocuments = () => {
       onSocketEvent("document:deleted", () => loadDocs()),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, sort.sortBy, sort.sortDir, debouncedSearch, deptFilter]);
+
+  // Fetched once (high limit) purely for the "recent"/"shared" summary
+  // counts, which should reflect all documents, not just the current page.
+  useEffect(() => {
+    getDocuments({ limit: 1000 })
+      .then(({ documents: all }) => setAllDocsForStats(all || []))
+      .catch(() => {});
   }, []);
 
   const notify = (msg) => {
@@ -1907,14 +2007,8 @@ const AdminDocuments = () => {
   };
 
   const isRecent = (d) => d.createdAt && new Date(d.createdAt) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-  const recentCount = documents.filter(isRecent).length;
-  const sharedCount = documents.filter(d => d.visibility === 'Everyone').length;
-
-  const filteredDocs = documents.filter(d => {
-    const matchesSearch = d.name.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesDept = deptFilter ? d.department === deptFilter : true;
-    return matchesSearch && matchesDept;
-  });
+  const recentCount = allDocsForStats.filter(isRecent).length;
+  const sharedCount = allDocsForStats.filter(d => d.visibility === 'Everyone').length;
 
   const handleFilePick = (e) => {
     const file = e.target.files?.[0];
@@ -1964,7 +2058,7 @@ const AdminDocuments = () => {
   const handleDelete = async () => {
     try {
       await deleteDocument(selectedDoc.id);
-      setDocuments(documents.filter(d => d.id !== selectedDoc.id));
+      await loadDocs();
       setShowDeleteModal(false);
       setShowViewModal(false);
       setSelectedDoc(null);
@@ -2008,7 +2102,7 @@ const AdminDocuments = () => {
       {/* SUMMARY CARDS */}
       <div className="row g-3">
         {[
-          { title: "Total Documents", value: documents.length, icon: "bi-files" },
+          { title: "Total Documents", value: pagination?.total ?? documents.length, icon: "bi-files" },
           { title: "Recently Uploaded", value: recentCount, icon: "bi-cloud-arrow-up" },
           { title: "Shared Documents", value: sharedCount, icon: "bi-share" }
         ].map((stat, idx) => (
@@ -2049,7 +2143,7 @@ const AdminDocuments = () => {
         <div className="card-body p-0">
           {loading ? (
             <div className="text-center py-5 text-secondary">Loading documents...</div>
-          ) : filteredDocs.length === 0 ? (
+          ) : documents.length === 0 ? (
             <div className="text-center py-5">
               <div className="mb-3"><i className="bi bi-file-earmark text-secondary" style={{ fontSize: "24px" }}></i></div>
               <h6 className="fw-semibold text-dark mb-1">No Documents Found</h6>
@@ -2057,20 +2151,21 @@ const AdminDocuments = () => {
               <button className="btn btn-primary mt-2" style={{ borderRadius: "6px", fontSize: "14px", padding: "8px 16px", border: "none" }} onClick={() => setShowUploadModal(true)}>Upload Document</button>
             </div>
           ) : (
+            <>
             <div className="table-responsive">
               <table className="table mb-0" style={{ verticalAlign: "middle", fontSize: "14px" }}>
                 <thead style={{ backgroundColor: "#f8fafc" }}>
                   <tr>
-                    <th className="px-4 py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Document Name</th>
-                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Category & Dept</th>
+                    <SortableHeader label="Document Name" field="name" sort={sort} onSort={setSort} className="px-4 py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }} />
+                    <SortableHeader label="Category & Dept" field="category" sort={sort} onSort={setSort} className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }} />
                     <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Uploaded By</th>
-                    <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Date & Size</th>
+                    <SortableHeader label="Date & Size" field="createdAt" sort={sort} onSort={setSort} className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }} />
                     <th className="py-3 text-secondary fw-semibold border-bottom" style={{ fontSize: "13px" }}>Visibility</th>
                     <th className="py-3 px-4 text-secondary fw-semibold text-end border-bottom" style={{ fontSize: "13px" }}>Actions</th>
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredDocs.map(d => (
+                  {documents.map(d => (
                     <tr key={d.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                       <td className="px-4 py-3 fw-medium text-dark">
                         <div className="d-flex align-items-center gap-2">
@@ -2098,6 +2193,10 @@ const AdminDocuments = () => {
                 </tbody>
               </table>
             </div>
+            <div className="px-3">
+              <PaginationBar pagination={pagination} onPageChange={setPage} />
+            </div>
+            </>
           )}
         </div>
       </div>
@@ -2882,6 +2981,8 @@ const AdminSettings = () => {
 // =========================
 const AdminNews = () => {
   const [announcements, setAnnouncements] = useState([]);
+  const [pagination, setPagination] = useState(null);
+  const [page, setPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   
@@ -2899,8 +3000,9 @@ const AdminNews = () => {
     if (showLoading) setLoading(true);
     setError("");
     try {
-      const data = await getNews();
+      const data = await getNews({ page, limit: 10 });
       setAnnouncements(data.announcements || []);
+      setPagination(data.pagination || null);
     } catch (err) {
       setError(describeApiError(err, "Failed to load announcements."));
     } finally {
@@ -2915,7 +3017,8 @@ const AdminNews = () => {
       onSocketEvent("news:deleted", () => fetchAnnouncements(false)),
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page]);
 
   const handleCreateSubmit = async () => {
     if (!newNews.title || !newNews.content) {
@@ -2935,7 +3038,8 @@ const AdminNews = () => {
       setToastType("success");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
-      fetchAnnouncements(false);
+      if (page === 1) fetchAnnouncements(false);
+      else setPage(1);
     } catch (err) {
       alert(describeApiError(err, "Failed to publish news."));
     } finally {
@@ -3045,6 +3149,10 @@ const AdminNews = () => {
             </div>
           ))}
         </div>
+      )}
+
+      {!loading && !error && announcements.length > 0 && (
+        <PaginationBar pagination={pagination} onPageChange={setPage} />
       )}
 
       {showCreateModal && (
