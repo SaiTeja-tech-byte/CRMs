@@ -1,13 +1,17 @@
 const Announcement = require("../models/Announcement");
 const { emitToAll } = require("../utils/socket");
+const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
-// GET /api/news  — returns all announcements newest first
+// GET /api/news — supports ?page=&limit=&sortBy=&sortDir=, defaults to newest first
 const getAnnouncements = async (req, res) => {
   try {
-    const announcements = await Announcement.findAll({
-      order: [["createdAt", "DESC"]],
+    const { page, limit, offset, order } = parsePagination(req.query, {
+      sortableFields: ["title", "department", "createdAt"],
+      defaultSort: "createdAt",
+      defaultOrder: "DESC",
     });
-    return res.status(200).json({ success: true, announcements });
+    const { rows, count } = await Announcement.findAndCountAll({ order, limit, offset });
+    return res.status(200).json({ success: true, announcements: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Get announcements error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching announcements" });
