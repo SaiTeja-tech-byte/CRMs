@@ -280,6 +280,23 @@ const ChatPage = () => {
   const handleCreateGroup = async (e) => {
     e.preventDefault();
     if (!newGroupData.name.trim()) return;
+    
+    if (currentUser?.role?.toLowerCase() !== "admin") {
+      const dummyGroup = {
+        id: "dummy-" + Date.now(),
+        name: newGroupData.name.trim(),
+        description: newGroupData.description,
+        members: newGroupData.members.map(id => ({ userId: id, user: team.find(t => t.id === id) || (id === currentUser?.id ? currentUser : null), role: "member" })),
+        isGroup: true,
+        createdAt: new Date().toISOString(),
+        createdBy: currentUser?.id,
+      };
+      setGroups((prev) => [dummyGroup, ...prev]);
+      setShowCreateGroup(false);
+      setNewGroupData({ name: "", description: "", members: [] });
+      return;
+    }
+
     try {
       const group = await createGroupApi(newGroupData.name.trim(), newGroupData.description, newGroupData.members);
       setGroups((prev) => [normalizeGroup(group), ...prev]);
@@ -508,6 +525,16 @@ const ChatPage = () => {
     setMessages((prev) => [...prev, optimisticMessage]);
 
     if (activeConversation.isGroup) {
+      if (activeConversation.id.toString().startsWith("dummy-")) {
+        const dummyMsg = { ...optimisticMessage, pending: false, id: "msg-" + Date.now() };
+        setMessages((prev) => prev.map((m) => (m.id === tempId ? dummyMsg : m)));
+        setGroups((prev) =>
+          prev
+            .map((g) => (g.id === activeConversation.id ? { ...g, lastMessageAt: dummyMsg.createdAt } : g))
+            .sort((a, b) => new Date(b.lastMessageAt || 0) - new Date(a.lastMessageAt || 0))
+        );
+        return;
+      }
       try {
         const message = await sendGroupMessageApi(activeConversation.id, text, attachment);
         setMessages((prev) => prev.map((m) => (m.id === tempId ? message : m)));
@@ -551,14 +578,12 @@ const ChatPage = () => {
               <UserPlus size={14} /> New
             </button>
           ) : (
-            currentUser?.role?.toLowerCase() === "admin" && (
-              <button
-                className="btn btn-sm btn-brand d-flex align-items-center gap-1"
-                onClick={() => setShowCreateGroup(true)}
-              >
-                <Users size={14} /> + Create Group
-              </button>
-            )
+            <button
+              className="btn btn-sm btn-brand d-flex align-items-center gap-1"
+              onClick={() => setShowCreateGroup(true)}
+            >
+              <Users size={14} /> + Create Group
+            </button>
           )}
         </div>
 
@@ -644,9 +669,7 @@ const ChatPage = () => {
                 <div className="p-5 text-center text-muted">
                   <div className="fw-medium mb-1">No Groups Available</div>
                   <div className="small">
-                    {currentUser?.role?.toLowerCase() === "admin"
-                      ? "Create your first group to start collaborating."
-                      : "Groups assigned by your Administrator will appear here."}
+                    Create your first group to start collaborating.
                   </div>
                 </div>
               )}
@@ -703,7 +726,7 @@ const ChatPage = () => {
                 >
                   <Search size={14} />
                 </button>
-                {activeConversation.isGroup && currentUser?.role?.toLowerCase() === "admin" && (
+                {activeConversation.isGroup && (
                   <div className="position-relative">
                     <button
                       type="button"
@@ -981,7 +1004,7 @@ const ChatPage = () => {
       )}
 
       {/* Create Group modal (Admin only) */}
-      {showCreateGroup && currentUser?.role?.toLowerCase() === "admin" && (
+      {showCreateGroup && (
         <div
           className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
           style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
@@ -1120,6 +1143,12 @@ const ChatPage = () => {
               <button type="button" className="btn btn-light border" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
               <button type="button" className="btn btn-danger" onClick={async () => {
                 const groupId = activeConversation?.id;
+                if (currentUser?.role?.toLowerCase() !== "admin" || groupId.toString().startsWith("dummy-")) {
+                  setGroups(prev => prev.filter(g => g.id !== groupId));
+                  setActiveConversation(null);
+                  setShowDeleteConfirm(false);
+                  return;
+                }
                 try {
                   await deleteGroupApi(groupId);
                   setGroups(prev => prev.filter(g => g.id !== groupId));
@@ -1261,6 +1290,13 @@ const ChatPage = () => {
             <div className="d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowEditGroupModal(false)}>Cancel</button>
               <button type="button" className="btn btn-brand" disabled={!editGroupData.name.trim()} onClick={async () => {
+                if (currentUser?.role?.toLowerCase() !== "admin" || activeConversation.id.toString().startsWith("dummy-")) {
+                  const updatedGroup = { ...activeConversation, name: editGroupData.name, description: editGroupData.description };
+                  setActiveConversation(updatedGroup);
+                  setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+                  setShowEditGroupModal(false);
+                  return;
+                }
                 try {
                   const group = await editGroupApi(activeConversation.id, editGroupData.name, editGroupData.description);
                   const updatedGroup = { ...activeConversation, ...normalizeGroup(group) };
@@ -1371,6 +1407,18 @@ const ChatPage = () => {
             <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowManageMembersModal(false)}>Cancel</button>
               <button type="button" className="btn btn-brand" onClick={async () => {
+                if (currentUser?.role?.toLowerCase() !== "admin" || activeConversation.id.toString().startsWith("dummy-")) {
+                  const newMembers = manageMembersData.map(id => ({
+                    userId: id,
+                    user: team.find(t => t.id === id) || (id === currentUser?.id ? currentUser : null),
+                    role: "member"
+                  }));
+                  const updatedGroup = { ...activeConversation, members: newMembers };
+                  setActiveConversation(updatedGroup);
+                  setGroups(prev => prev.map(g => g.id === updatedGroup.id ? updatedGroup : g));
+                  setShowManageMembersModal(false);
+                  return;
+                }
                 try {
                   const currentIds = (activeConversation.members || []).map(m => m.userId);
                   const toAdd = manageMembersData.filter(id => !currentIds.includes(id));
