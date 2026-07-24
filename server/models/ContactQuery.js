@@ -23,6 +23,14 @@ const ContactQuery = sequelize.define(
       allowNull: false,
       defaultValue: "new", // new | assigned | replied | closed
     },
+    // Separate from `status` - `status` tracks the reply workflow, `isRead`
+    // is purely for the sidebar badge count and gets set true the moment an
+    // admin opens the query, regardless of what happens to it afterward.
+    isRead: {
+      type: DataTypes.BOOLEAN,
+      allowNull: false,
+      defaultValue: false,
+    },
     assignedToId: { type: DataTypes.UUID, allowNull: true },
 
     reply: { type: DataTypes.TEXT, allowNull: true },
