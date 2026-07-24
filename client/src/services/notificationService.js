@@ -11,8 +11,9 @@ export const getNotifications = async () => {
   return res.data.notifications;
 };
 
-export const getUnreadNotificationCount = async () => {
-  const res = await axios.get(`${API_BASE}/notifications/unread-count`, authHeaders());
+export const getUnreadNotificationCount = async (type) => {
+  const query = type ? `?type=${encodeURIComponent(type)}` : "";
+  const res = await axios.get(`${API_BASE}/notifications/unread-count${query}`, authHeaders());
   return res.data.count;
 };
 
@@ -21,6 +22,7 @@ export const markNotificationRead = async (id) => {
   return res.data.notification;
 };
 
-export const markAllNotificationsRead = async () => {
-  await axios.patch(`${API_BASE}/notifications/read-all`, {}, authHeaders());
+export const markAllNotificationsRead = async (type) => {
+  const query = type ? `?type=${encodeURIComponent(type)}` : "";
+  await axios.patch(`${API_BASE}/notifications/read-all${query}`, {}, authHeaders());
 };
