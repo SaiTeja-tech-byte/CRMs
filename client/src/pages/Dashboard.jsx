@@ -4474,6 +4474,17 @@ const Dashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarActive, setMobileSidebarActive] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
+
+  // Clear the Documents sidebar badge the moment the employee opens that
+  // tab - same pattern as handleMarkAllNotifsRead, just scoped to type
+  // "document" so it doesn't also clear unrelated bell notifications.
+  React.useEffect(() => {
+    if (activeMenu === "documents") {
+      markAllServerNotificationsRead("document")
+        .then(() => window.dispatchEvent(new Event("crm_notifications_updated")))
+        .catch(() => {});
+    }
+  }, [activeMenu]);
   const [searchTerm, setSearchTerm] = useState("");
   
   // Dropdowns
