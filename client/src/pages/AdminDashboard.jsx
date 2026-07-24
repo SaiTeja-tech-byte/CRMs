@@ -9,6 +9,7 @@ import { adminGetAllTasks, adminAssignTask, adminDeleteTask, adminGetEmployees }
 import { getAdminStats, getAdminUsers, updateAdminUser } from '../services/adminService';
 import { getCompanySettings, updateCompanySettings } from '../services/companySettingsService';
 import { getDocuments, createDocument, deleteDocument, fileToDataUrl, formatFileSize } from '../services/documentService';
+import { markAllNotificationsRead } from '../services/notificationService';
 import { getNews, createNews, deleteNews } from '../services/newsService';
 import { createAdminUser } from '../services/adminService';
 import { adminGetAllEvents, adminAssignEvent, adminDeleteEvent } from '../services/eventService';
@@ -1950,6 +1951,14 @@ const AdminDocuments = () => {
 
   // Org-wide counts (recent/shared), independent of the current page.
   const [allDocsForStats, setAllDocsForStats] = useState([]);
+
+  // Clear the Documents sidebar badge the moment the admin opens this tab -
+  // scoped to type "document" so it doesn't touch unrelated bell notifications.
+  useEffect(() => {
+    markAllNotificationsRead("document")
+      .then(() => window.dispatchEvent(new Event("crm_notifications_updated")))
+      .catch(() => {});
+  }, []);
 
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
