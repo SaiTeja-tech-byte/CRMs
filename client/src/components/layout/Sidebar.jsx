@@ -2,11 +2,13 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import useChatUnreadCount from '../../hooks/useChatUnreadCount';
 import useNotificationUnreadCount from '../../hooks/useNotificationUnreadCount';
+import useContactQueryUnreadCount from '../../hooks/useContactQueryUnreadCount';
 
 const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin = false }) => {
   const navigate = useNavigate();
   const chatUnread = useChatUnreadCount();
   const notifUnread = useNotificationUnreadCount();
+  const queriesUnread = useContactQueryUnreadCount();
 
   const employeeMenuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
@@ -84,6 +86,14 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
                   style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
                 >
                   {notifUnread > 99 ? "99+" : notifUnread}
+                </span>
+              )}
+              {item.key === "contact-queries" && queriesUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {queriesUnread > 99 ? "99+" : queriesUnread}
                 </span>
               )}
             </button>
