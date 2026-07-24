@@ -12,7 +12,7 @@ const useNotificationUnreadCount = (type) => {
     const refresh = () => {
       getUnreadNotificationCount(type)
         .then((c) => { if (mountedRef.current) setCount(c || 0); })
-        .catch(() => {});
+        .catch((err) => console.error(`Notification unread-count fetch failed (type=${type || "all"}):`, err.response?.status, err.message));
     };
 
     refresh();
