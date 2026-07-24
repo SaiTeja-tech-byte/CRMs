@@ -1,4 +1,7 @@
+const { Op } = require("sequelize");
 const { CompanySettings, SINGLETON_ID } = require("../models/CompanySettings");
+const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { emitToAll } = require("../utils/socket");
 
 const EDITABLE_FIELDS = [
@@ -35,6 +38,26 @@ const updateCompanySettings = async (req, res) => {
 
     await settings.save();
     emitToAll("settings:updated", { settings });
+
+    // Notify everyone - admins and employees alike - that system settings
+    // changed, so the bell badge picks it up on both sides. Best-effort:
+    // the settings save above already succeeded regardless of this.
+    User.findAll({ where: { id: { [Op.ne]: req.user.id } }, attributes: ["id"] })
+      .then((users) =>
+        Promise.all(
+          users.map((u) =>
+            Notification.create({
+              userId: u.id,
+              text: `${req.user.fullName} updated the system settings`,
+              icon: "bi-gear",
+              type: "system",
+            })
+          )
+        )
+      )
+      .then(() => emitToAll("notification:new", { type: "system" }))
+      .catch((err) => console.error("Settings notification fan-out failed:", err.message));
+
     return res.status(200).json({ success: true, settings });
   } catch (error) {
     console.error("Update company settings error:", error);
