@@ -1,198 +1,113 @@
-import React, { useState, useEffect, useCallback } from "react";
-import { getContactQueries, replyToContactQuery, closeContactQuery } from "../services/contactService";
-import { onSocketEvent } from "../services/socketService";
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
+import useChatUnreadCount from '../../hooks/useChatUnreadCount';
+import useNotificationUnreadCount from '../../hooks/useNotificationUnreadCount';
+import useContactQueryUnreadCount from '../../hooks/useContactQueryUnreadCount';
 
-const statusColors = {
-  new: "primary",
-  assigned: "warning",
-  replied: "success",
-  closed: "secondary",
-};
+const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin = false }) => {
+  const navigate = useNavigate();
+  const chatUnread = useChatUnreadCount();
+  const notifUnread = useNotificationUnreadCount();
+  const queriesUnread = useContactQueryUnreadCount();
 
-const AdminContactQueries = () => {
-  const [queries, setQueries] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-  const [selected, setSelected] = useState(null);
-  const [replyText, setReplyText] = useState("");
-  const [sending, setSending] = useState(false);
-  const [filter, setFilter] = useState("all");
+  const employeeMenuItems = [
+    { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { key: "me", label: "Me", icon: "bi-person" },
+    { key: "news", label: "News", icon: "bi-newspaper" },
+    { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
+    { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
+    { key: "team", label: "Team", icon: "bi-people" },
+    // Chat lives at its own route (/chat), not a tab inside Dashboard.jsx's
+    // activeMenu switch, so it needs `to` instead of relying on setActiveMenu.
+    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
+    { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
+    { key: "notifications", label: "Notifications", icon: "bi-bell" },
+    { key: "settings", label: "Settings", icon: "bi-gear" },
+    { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
+  ];
 
-  const loadQueries = useCallback(async () => {
-    try {
-      setError("");
-      const data = await getContactQueries();
-      setQueries(data || []);
-    } catch (err) {
-      console.error("Failed to load contact queries:", err);
-      setError(err.response?.data?.message || "Failed to load customer queries.");
-    } finally {
-      setLoading(false);
+  const adminMenuItems = [
+    { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
+    { key: "me", label: "My Profile", icon: "bi-person-badge" },
+    { key: "team", label: "Team", icon: "bi-people" },
+    { key: "news", label: "News", icon: "bi-newspaper" },
+    { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
+    { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
+    { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
+    { key: "contact-queries", label: "Customer Queries", icon: "bi-envelope-paper" },
+    { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
+    { key: "notifications", label: "Notifications", icon: "bi-bell" },
+    { key: "settings", label: "Company Settings", icon: "bi-gear" },
+    { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
+  ];
+
+  const menuItems = isAdmin ? adminMenuItems : employeeMenuItems;
+
+  const handleItemClick = (item) => {
+    setMobileActive(false);
+    
+    // Explicitly ensure Chat always renders inside the dashboard layout
+    // bypassing any potential legacy 'to' properties
+    if (item.key === "chat") {
+      setActiveMenu(item.key);
+      return;
     }
-  }, []);
-
-  useEffect(() => {
-    loadQueries();
-    const interval = setInterval(() => {
-      loadQueries();
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [loadQueries]);
-
-  useEffect(() => {
-    const unsub = onSocketEvent("contact:new-query", () => loadQueries());
-    return unsub;
-  }, [loadQueries]);
-
-  const [emailWarning, setEmailWarning] = useState("");
-
-  const handleReply = async (e) => {
-    e.preventDefault();
-    if (!replyText.trim() || !selected) return;
-    setSending(true);
-    setEmailWarning("");
-    try {
-      const updated = await replyToContactQuery(selected.id, replyText.trim());
-      setQueries((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
-      setSelected(updated);
-      setReplyText("");
-      if (updated.emailWarning) setEmailWarning(updated.emailWarning);
-    } catch (err) {
-      alert(err.response?.data?.message || "Could not send reply.");
-    } finally {
-      setSending(false);
+    
+    if (item.to) {
+      navigate(item.to);
+    } else {
+      setActiveMenu(item.key);
     }
   };
-
-  const handleClose = async (id) => {
-    try {
-      const updated = await closeContactQuery(id);
-      setQueries((prev) => prev.map((q) => (q.id === updated.id ? updated : q)));
-      if (selected?.id === id) setSelected(updated);
-    } catch (err) {
-      console.error(err);
-    }
-  };
-
-  const filtered = filter === "all" ? queries : queries.filter((q) => q.status === filter);
 
   return (
-    <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
-      {/* List */}
-      <div className="border-end" style={{ width: "380px", overflowY: "auto" }}>
-        <div className="p-3 border-bottom">
-          <h6 className="fw-bold mb-2">Customer Queries</h6>
-          <select
-            className="form-select form-select-sm"
-            value={filter}
-            onChange={(e) => setFilter(e.target.value)}
-          >
-            <option value="all">All</option>
-            <option value="new">New</option>
-            <option value="assigned">Assigned</option>
-            <option value="replied">Replied</option>
-            <option value="closed">Closed</option>
-          </select>
-        </div>
-
-        {loading && <div className="p-4 text-center text-muted small">Loading queries...</div>}
-
-        {error && <div className="p-3 text-center text-danger small">{error}</div>}
-
-        {!loading && !error && filtered.length === 0 && (
-          <div className="p-4 text-center text-muted small">No queries here.</div>
-        )}
-
-        {!loading &&
-          filtered.map((q) => (
-          <button
-            key={q.id}
-            onClick={() => {
-              setSelected(q);
-              setReplyText("");
-            }}
-            className={`w-100 text-start border-0 p-3 border-bottom ${
-              selected?.id === q.id ? "bg-light" : "bg-white"
-            }`}
-          >
-            <div className="d-flex justify-content-between align-items-start">
-              <div className="fw-medium">{q.name}</div>
-              <span className={`badge bg-${statusColors[q.status] || "secondary"}`} style={{ fontSize: "10px" }}>
-                {q.status}
-              </span>
-            </div>
-            <div className="small text-muted">{q.email}</div>
-            <div className="small text-truncate mt-1" style={{ maxWidth: "300px" }}>
-              {q.message}
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Detail / reply panel */}
-      <div className="flex-fill d-flex flex-column">
-        {selected ? (
-          <>
-            <div className="p-3 border-bottom">
-              <div className="d-flex justify-content-between align-items-start">
-                <div>
-                  <div className="fw-bold">{selected.name}</div>
-                  <div className="small text-muted">
-                    {selected.email}
-                    {selected.phone ? ` · ${selected.phone}` : ""}
-                    {selected.company ? ` · ${selected.company}` : ""}
-                  </div>
-                </div>
-                {selected.status !== "closed" && (
-                  <button className="btn btn-sm btn-outline-secondary" onClick={() => handleClose(selected.id)}>
-                    Close query
-                  </button>
-                )}
-              </div>
-            </div>
-
-            <div className="p-3 flex-fill" style={{ overflowY: "auto" }}>
-              <div className="mb-4">
-                <div className="small fw-bold text-muted mb-1">CUSTOMER MESSAGE</div>
-                <div className="p-3 bg-light rounded-3">{selected.message}</div>
-              </div>
-
-              {selected.reply && (
-                <div className="mb-4">
-                  <div className="small fw-bold text-muted mb-1">
-                    YOUR REPLY {selected.repliedAt ? `· ${new Date(selected.repliedAt).toLocaleString()}` : ""}
-                  </div>
-                  <div className="p-3 bg-primary bg-opacity-10 rounded-3">{selected.reply}</div>
-                </div>
+    <aside className="crm-sidebar-menu">
+      <ul className="sidebar-links-stack">
+        {menuItems.map(item => (
+          <li className={activeMenu === item.key ? "active" : ""} key={item.key}>
+            <button
+              title={item.label}
+              onClick={() => handleItemClick(item)}
+              style={{ position: "relative" }}
+            >
+              <i className={`bi ${item.icon}`}></i>
+              <span className="sidebar-nav-label">{item.label}</span>
+              {item.key === "chat" && chatUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {chatUnread > 99 ? "99+" : chatUnread}
+                </span>
               )}
-            </div>
-
-            {selected.status !== "closed" && (
-              <form onSubmit={handleReply} className="p-3 border-top">
-                {emailWarning && (
-                  <div className="alert alert-warning py-2 small mb-2">{emailWarning}</div>
-                )}
-                <textarea
-                  className="form-control mb-2"
-                  rows={3}
-                  placeholder="Write a reply — this gets emailed to the customer..."
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                />
-                <button type="submit" className="btn btn-brand" disabled={sending || !replyText.trim()}>
-                  {sending ? "Sending..." : "Send Reply"}
-                </button>
-              </form>
-            )}
-          </>
-        ) : (
-          <div className="flex-fill d-flex align-items-center justify-content-center text-muted">
-            Select a query to view and reply
-          </div>
-        )}
-      </div>
-    </div>
+              {item.key === "notifications" && notifUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {notifUnread > 99 ? "99+" : notifUnread}
+                </span>
+              )}
+              {item.key === "contact-queries" && queriesUnread > 0 && (
+                <span
+                  className="badge rounded-pill bg-danger"
+                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
+                >
+                  {queriesUnread > 99 ? "99+" : queriesUnread}
+                </span>
+              )}
+            </button>
+          </li>
+        ))}
+        <li className="sidebar-logout-item">
+          <button title="Logout" onClick={onLogout}>
+            <i className="bi bi-box-arrow-right"></i>
+            <span className="sidebar-nav-label">Logout</span>
+          </button>
+        </li>
+      </ul>
+    </aside>
   );
 };
 
-export default AdminContactQueries;
+export default Sidebar;
