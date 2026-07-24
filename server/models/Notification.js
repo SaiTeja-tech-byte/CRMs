@@ -23,6 +23,14 @@ const Notification = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
+    // Lets a section (Documents, Settings/System) show its own badge count
+    // by filtering on type instead of only the combined bell count.
+    // "general" | "document" | "system"
+    type: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "general",
+    },
     read: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
