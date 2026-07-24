@@ -39,6 +39,11 @@ const AdminContactQueries = () => {
     return () => clearInterval(interval);
   }, [loadQueries]);
 
+  useEffect(() => {
+    const unsub = onSocketEvent("contact:new-query", () => loadQueries());
+    return unsub;
+  }, [loadQueries]);
+
   const handleSelectQuery = async (q) => {
     setSelected(q);
     setReplyText("");
@@ -56,11 +61,6 @@ const AdminContactQueries = () => {
       }
     }
   };
-
-  useEffect(() => {
-    const unsub = onSocketEvent("contact:new-query", () => loadQueries());
-    return unsub;
-  }, [loadQueries]);
 
   const [emailWarning, setEmailWarning] = useState("");
 
