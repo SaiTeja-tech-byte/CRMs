@@ -57,6 +57,35 @@ const getQueries = async (req, res) => {
   }
 };
 
+// GET /api/contact/unread-count - admin only, powers the sidebar badge
+const getUnreadCount = async (req, res) => {
+  try {
+    const count = await ContactQuery.count({ where: { isRead: false } });
+    return res.status(200).json({ success: true, count });
+  } catch (error) {
+    console.error("Get unread query count error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching unread count" });
+  }
+};
+
+// PATCH /api/contact/:id/read - admin only, called when a query is opened
+const markQueryRead = async (req, res) => {
+  try {
+    const query = await ContactQuery.findByPk(req.params.id);
+    if (!query) return res.status(404).json({ success: false, message: "Query not found" });
+
+    if (!query.isRead) {
+      query.isRead = true;
+      await query.save();
+    }
+
+    return res.status(200).json({ success: true, query });
+  } catch (error) {
+    console.error("Mark query read error:", error);
+    return res.status(500).json({ success: false, message: "Server error marking query as read" });
+  }
+};
+
 // PATCH /api/contact/:id/assign  body: { assignedToId }
 const assignQuery = async (req, res) => {
   try {
@@ -138,4 +167,4 @@ const closeQuery = async (req, res) => {
   }
 };
 
-module.exports = { submitQuery, getQueries, assignQuery, replyToQuery, closeQuery };
+module.exports = { submitQuery, getQueries, getUnreadCount, markQueryRead, assignQuery, replyToQuery, closeQuery };
