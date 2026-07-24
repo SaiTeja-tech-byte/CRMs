@@ -12,8 +12,8 @@ export const getNotifications = async () => {
 };
 
 export const getUnreadNotificationCount = async (type) => {
-  const query = type ? `?type=${encodeURIComponent(type)}` : "";
-  const res = await axios.get(`${API_BASE}/notifications/unread-count${query}`, authHeaders());
+  const query = type ? `&type=${encodeURIComponent(type)}` : "";
+  const res = await axios.get(`${API_BASE}/notifications/unread-count?_=${Date.now()}${query}`, authHeaders());
   return res.data.count;
 };
 
