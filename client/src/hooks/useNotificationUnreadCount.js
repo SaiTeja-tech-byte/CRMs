@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { getUnreadNotificationCount } from "../services/notificationService";
 import { onSocketEvent } from "../services/socketService";
 
-const useNotificationUnreadCount = () => {
+const useNotificationUnreadCount = (type) => {
   const [count, setCount] = useState(0);
   const mountedRef = useRef(true);
 
@@ -10,7 +10,7 @@ const useNotificationUnreadCount = () => {
     mountedRef.current = true;
 
     const refresh = () => {
-      getUnreadNotificationCount()
+      getUnreadNotificationCount(type)
         .then((c) => { if (mountedRef.current) setCount(c || 0); })
         .catch(() => {});
     };
@@ -31,7 +31,7 @@ const useNotificationUnreadCount = () => {
       window.removeEventListener("crm_notifications_updated", refresh);
       unsubscribers.forEach((unsub) => unsub && unsub());
     };
-  }, []);
+  }, [type]);
 
   return count;
 };
