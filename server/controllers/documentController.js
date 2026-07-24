@@ -1,5 +1,7 @@
 const { Op } = require("sequelize");
 const Document = require("../models/Document");
+const User = require("../models/User");
+const Notification = require("../models/Notification");
 const { emitToAll } = require("../utils/socket");
 const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
@@ -51,6 +53,26 @@ const createDocument = async (req, res) => {
     });
 
     emitToAll("document:new", { document });
+
+    // Give every other user (employee + admin dashboards alike) a badge
+    // on the Documents section for this new file. Best-effort: a failure
+    // here shouldn't fail the upload itself, which is already saved above.
+    User.findAll({ where: { id: { [Op.ne]: req.user.id } }, attributes: ["id"] })
+      .then((users) =>
+        Promise.all(
+          users.map((u) =>
+            Notification.create({
+              userId: u.id,
+              text: `${req.user.fullName} uploaded a new document: "${name}"`,
+              icon: "bi-file-earmark-arrow-up",
+              type: "document",
+            })
+          )
+        )
+      )
+      .then(() => emitToAll("notification:new", { type: "document" }))
+      .catch((err) => console.error("Document notification fan-out failed:", err.message));
+
     return res.status(201).json({ success: true, document });
   } catch (error) {
     console.error("Create document error:", error);
