@@ -89,6 +89,13 @@ const ChatPage = () => {
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const [listSearch, setListSearch] = useState("");
 
+  const [showDeleteFeedbackModal, setShowDeleteFeedbackModal] = useState(false);
+  const [feedbackTarget, setFeedbackTarget] = useState(null);
+  const [feedbackReason, setFeedbackReason] = useState("");
+  const [feedbackComments, setFeedbackComments] = useState("");
+  const [showFinalDeleteConfirm, setShowFinalDeleteConfirm] = useState(false);
+  const [deleteToast, setDeleteToast] = useState(null);
+
   // "Search in this chat" — WhatsApp-style find + next/previous
   const [showSearchBar, setShowSearchBar] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
@@ -584,6 +591,17 @@ const ChatPage = () => {
 
   return (
     <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
+      {deleteToast && (
+        <div style={{
+          position: "fixed", top: "20px", right: "20px", zIndex: 1100,
+          background: deleteToast.type === "success" ? "#10b981" : "#ef4444",
+          color: "white", padding: "12px 24px", borderRadius: "8px",
+          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
+          display: "flex", alignItems: "center", gap: "10px", fontWeight: "500", fontSize: "14px"
+        }}>
+          {deleteToast.message}
+        </div>
+      )}
       {/* Sidebar */}
       <div className="border-end d-flex flex-column" style={{ width: "320px" }}>
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
@@ -726,6 +744,22 @@ const ChatPage = () => {
                               >
                                 {isUnread ? "Mark as Read" : "Mark as Unread"}
                               </button>
+                              {currentUser?.role?.toLowerCase() === "admin" && (
+                                <button 
+                                  className="btn btn-sm btn-light w-100 text-start text-danger border-0 rounded-0" 
+                                  style={{ fontSize: "12px" }}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    setOpenMenuId(null);
+                                    setFeedbackTarget({ type: 'individual', id: c.id, name: c.otherUser?.fullName });
+                                    setFeedbackReason("");
+                                    setFeedbackComments("");
+                                    setShowDeleteFeedbackModal(true);
+                                  }}
+                                >
+                                  Delete Conversation
+                                </button>
+                              )}
                             </div>
                           )}
                           {isUnread && (
@@ -886,7 +920,14 @@ const ChatPage = () => {
                         }}>Clear Chat</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
                           setShowGroupMenu(false); 
-                          setShowDeleteConfirm(true);
+                          if (currentUser?.role?.toLowerCase() === "admin") {
+                            setFeedbackTarget({ type: 'group', id: activeConversation.id, name: activeConversation.name });
+                            setFeedbackReason("");
+                            setFeedbackComments("");
+                            setShowDeleteFeedbackModal(true);
+                          } else {
+                            setShowDeleteConfirm(true);
+                          }
                         }}>Delete Group</button>
                       </div>
                     )}
@@ -1576,6 +1617,129 @@ const ChatPage = () => {
                   alert("Failed to update members.");
                 }
               }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Feedback Modal (Admin Only) */}
+      {showDeleteFeedbackModal && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowDeleteFeedbackModal(false)}
+        >
+          <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "450px" }} onClick={(e) => e.stopPropagation()}>
+            <h5 className="fw-bold mb-2">Before You Delete</h5>
+            <p className="text-muted small mb-4">Please tell us why you are deleting this conversation. Your feedback helps us improve the communication experience.</p>
+            
+            <div className="mb-4">
+              <div className="fw-medium small mb-2">Why are you deleting this conversation?</div>
+              <div className="d-flex flex-column gap-2">
+                {["No longer needed", "Conversation created by mistake", "Duplicate conversation", "Inactive conversation", "Inappropriate or irrelevant content", "Other"].map(reason => (
+                  <label key={reason} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                    <input 
+                      type="radio" 
+                      name="deleteFeedbackReason"
+                      className="form-check-input mt-0"
+                      value={reason}
+                      checked={feedbackReason === reason}
+                      onChange={(e) => setFeedbackReason(e.target.value)}
+                    />
+                    <span className="small">{reason}</span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <div className="fw-medium small mb-2">Additional Feedback (Optional)</div>
+              <textarea 
+                className="form-control text-sm" 
+                rows="2"
+                placeholder="Tell us more about your reason..."
+                value={feedbackComments}
+                onChange={(e) => setFeedbackComments(e.target.value)}
+                style={{ fontSize: "13px" }}
+              ></textarea>
+            </div>
+
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => setShowDeleteFeedbackModal(false)}>Cancel</button>
+              <button 
+                type="button" 
+                className="btn btn-brand" 
+                disabled={!feedbackReason || (feedbackReason === "Other" && !feedbackComments.trim())}
+                onClick={() => {
+                  setShowDeleteFeedbackModal(false);
+                  setShowFinalDeleteConfirm(true);
+                }}
+              >
+                Continue
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Final Admin Delete Confirmation */}
+      {showFinalDeleteConfirm && feedbackTarget && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowFinalDeleteConfirm(false)}
+        >
+          <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
+            <h5 className="fw-bold mb-3">{feedbackTarget.type === 'group' ? 'Delete Group?' : 'Delete Conversation?'}</h5>
+            <p className="mb-2">This {feedbackTarget.type === 'group' ? 'group and its conversation' : 'conversation'} will be permanently deleted.</p>
+            <p className="text-muted small mb-4">This action cannot be undone.</p>
+            <div className="d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => {
+                setShowFinalDeleteConfirm(false);
+                setShowDeleteFeedbackModal(true);
+              }}>Back</button>
+              <button type="button" className="btn btn-danger" onClick={async () => {
+                const targetId = feedbackTarget.id;
+                
+                const feedbackData = {
+                  feedbackType: "chat_deletion",
+                  chatType: feedbackTarget.type,
+                  conversationId: targetId,
+                  reason: feedbackReason,
+                  comments: feedbackComments,
+                  deletedBy: currentUser?.id,
+                  createdAt: new Date().toISOString()
+                };
+                console.log("Submitting feedback:", feedbackData);
+                
+                try {
+                  if (feedbackTarget.type === 'group') {
+                    if (!targetId.toString().startsWith("dummy-")) {
+                      await deleteGroupApi(targetId);
+                    }
+                    setGroups(prev => prev.filter(g => g.id !== targetId));
+                    setDeleteToast({ message: "Group deleted successfully.", type: "success" });
+                  } else {
+                    setConversations(prev => prev.filter(c => c.id !== targetId));
+                    setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
+                  }
+                  
+                  if (activeConversation?.id === targetId) {
+                    setActiveConversation(null);
+                  }
+                  setShowFinalDeleteConfirm(false);
+                  
+                  setTimeout(() => setDeleteToast(null), 3000);
+                } catch (err) {
+                  console.error("Failed to delete:", err);
+                  setDeleteToast({ 
+                    message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
+                    type: "error" 
+                  });
+                  setTimeout(() => setDeleteToast(null), 3000);
+                  setShowFinalDeleteConfirm(false);
+                }
+              }}>Delete</button>
             </div>
           </div>
         </div>
