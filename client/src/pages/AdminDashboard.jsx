@@ -5,6 +5,7 @@ import "../styles/dashboard-layout.css";
 
 import Sidebar from "../components/layout/Sidebar";
 import { PaginationBar, SortableHeader } from "../components/PaginationBar";
+import AdminFeedback from "./AdminFeedback";
 import { adminGetAllTasks, adminAssignTask, adminDeleteTask, adminGetEmployees } from '../services/taskService';
 import { getAdminStats, getAdminUsers, updateAdminUser } from '../services/adminService';
 import { getCompanySettings, updateCompanySettings } from '../services/companySettingsService';
@@ -3279,6 +3280,9 @@ const AdminDashboard = () => {
 
       case "contact-queries":
         return <AdminContactQueries />;
+
+      case "feedback":
+        return <AdminFeedback />;
 
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;

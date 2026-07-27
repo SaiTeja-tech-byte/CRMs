@@ -38,6 +38,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "contact-queries", label: "Customer Queries", icon: "bi-envelope-paper" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
+    { key: "feedback", label: "Feedback", icon: "bi-chat-square-text" },
     { key: "settings", label: "Company Settings", icon: "bi-gear" },
     { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
   ];

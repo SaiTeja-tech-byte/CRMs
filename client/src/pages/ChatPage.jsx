@@ -22,6 +22,7 @@ import {
   deleteGroup as deleteGroupApi,
 } from "../services/chatService";
 import { connectSocket, onSocketEvent } from "../services/socketService";
+import { submitFeedback } from "../services/feedbackService";
 import DeleteChatFeedbackModal from "../components/DeleteChatFeedbackModal";
 
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
@@ -1632,9 +1633,11 @@ const ChatPage = () => {
         onClose={() => setShowDeleteFeedbackModal(false)}
         onConfirmDelete={async (feedbackData) => {
           const targetId = feedbackTarget.id;
-          console.log("Submitting feedback:", feedbackData);
           
           try {
+            // Persist the feedback to the backend
+            await submitFeedback(feedbackData);
+            
             if (feedbackTarget.type === 'group') {
               if (!targetId.toString().startsWith("dummy-")) {
                 await deleteGroupApi(targetId);

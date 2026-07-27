@@ -1,0 +1,347 @@
+import React, { useState, useEffect, useCallback, useMemo } from "react";
+import { getAllFeedback, updateFeedbackStatus } from "../services/feedbackService";
+import { PaginationBar } from "../components/PaginationBar";
+
+const AdminFeedback = () => {
+  const [feedbacks, setFeedbacks] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+  
+  // Filters
+  const [searchTerm, setSearchTerm] = useState("");
+  const [statusFilter, setStatusFilter] = useState("All");
+  const [typeFilter, setTypeFilter] = useState("All");
+  
+  // Modal State
+  const [selectedFeedback, setSelectedFeedback] = useState(null);
+  const [showModal, setShowModal] = useState(false);
+
+  // Pagination (client-side)
+  const [page, setPage] = useState(1);
+  const limit = 15;
+
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError("");
+      const data = await getAllFeedback();
+      setFeedbacks(data || []);
+    } catch (err) {
+      console.error(err);
+      setError("Failed to load feedback records.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // Derived Summary Stats
+  const stats = useMemo(() => {
+    const total = feedbacks.length;
+    let newCount = 0;
+    let reviewedCount = 0;
+    let thisMonthCount = 0;
+    
+    const now = new Date();
+    const currentMonth = now.getMonth();
+    const currentYear = now.getFullYear();
+
+    feedbacks.forEach(f => {
+      if (f.status === "New") newCount++;
+      if (f.status === "Reviewed") reviewedCount++;
+      
+      const created = new Date(f.createdAt);
+      if (created.getMonth() === currentMonth && created.getFullYear() === currentYear) {
+        thisMonthCount++;
+      }
+    });
+
+    return { total, newCount, reviewedCount, thisMonthCount };
+  }, [feedbacks]);
+
+  // Filtering
+  const filteredFeedbacks = useMemo(() => {
+    return feedbacks.filter(f => {
+      const matchStatus = statusFilter === "All" || f.status === statusFilter;
+      const matchType = typeFilter === "All" || f.feedbackType === typeFilter;
+      const term = searchTerm.toLowerCase();
+      const matchSearch = term === "" || 
+        f.submitter?.fullName?.toLowerCase().includes(term) ||
+        f.submitter?.email?.toLowerCase().includes(term) ||
+        f.reason?.toLowerCase().includes(term) ||
+        f.comments?.toLowerCase().includes(term);
+      return matchStatus && matchType && matchSearch;
+    });
+  }, [feedbacks, statusFilter, typeFilter, searchTerm]);
+
+  // Reset page when filters change
+  useEffect(() => { setPage(1); }, [statusFilter, typeFilter, searchTerm]);
+
+  // Pagination slice
+  const paginatedData = useMemo(() => {
+    const start = (page - 1) * limit;
+    return filteredFeedbacks.slice(start, start + limit);
+  }, [filteredFeedbacks, page]);
+
+  // Unique Feedback Types for filter dropdown
+  const uniqueTypes = useMemo(() => {
+    const types = new Set(feedbacks.map(f => f.feedbackType).filter(Boolean));
+    return ["All", ...Array.from(types)];
+  }, [feedbacks]);
+
+  const handleView = (f) => {
+    setSelectedFeedback(f);
+    setShowModal(true);
+  };
+
+  const handleMarkReviewed = async () => {
+    if (!selectedFeedback) return;
+    try {
+      const updated = await updateFeedbackStatus(selectedFeedback.id, "Reviewed");
+      setFeedbacks(prev => prev.map(f => f.id === updated.id ? updated : f));
+      setSelectedFeedback(updated);
+    } catch (err) {
+      alert("Failed to update status.");
+    }
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    setSelectedFeedback(null);
+  };
+
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: "24px", minHeight: "100%" }}>
+      {/* HEADER */}
+      <div className="d-flex justify-content-between align-items-end flex-wrap gap-3">
+        <div>
+          <h2 className="fw-bold mb-1" style={{ fontSize: "28px", letterSpacing: "-0.02em", color: "var(--crm-dark)" }}>
+            Feedback
+          </h2>
+          <p className="text-muted mb-0" style={{ fontSize: "15px" }}>
+            View and manage feedback submitted by employees.
+          </p>
+        </div>
+      </div>
+
+      {/* SUMMARY CARDS */}
+      <div className="row g-3">
+        {[
+          { label: "Total Feedback", value: stats.total, icon: "bi-chat-left-text", color: "#2563eb", bg: "#eff6ff" },
+          { label: "New Feedback", value: stats.newCount, icon: "bi-asterisk", color: "#d97706", bg: "#fef3c7" },
+          { label: "Reviewed", value: stats.reviewedCount, icon: "bi-check2-circle", color: "#16a34a", bg: "#dcfce7" },
+          { label: "This Month", value: stats.thisMonthCount, icon: "bi-calendar2-check", color: "#9333ea", bg: "#faf5ff" },
+        ].map((card, idx) => (
+          <div key={idx} className="col-12 col-sm-6 col-lg-3">
+            <div className="crm-card dashboard-card-flat h-100 d-flex flex-column justify-content-center p-3" style={{ border: "1px solid var(--crm-border)", background: "var(--crm-card)" }}>
+              <div className="d-flex align-items-center gap-3">
+                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: card.bg, color: card.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
+                  <i className={`bi ${card.icon}`}></i>
+                </div>
+                <div>
+                  <div className="text-muted fw-medium" style={{ fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{card.label}</div>
+                  <div className="fw-bold text-dark mt-1" style={{ fontSize: "24px", lineHeight: 1 }}>
+                    {loading ? "--" : card.value}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* FILTERS */}
+      <div className="crm-card dashboard-card-flat p-3" style={{ border: "1px solid var(--crm-border)" }}>
+        <div className="d-flex gap-3 flex-wrap">
+          <div className="flex-fill" style={{ minWidth: "200px" }}>
+            <div className="input-group">
+              <span className="input-group-text bg-white border-end-0 text-muted">
+                <i className="bi bi-search"></i>
+              </span>
+              <input
+                type="text"
+                className="form-control border-start-0 ps-0"
+                placeholder="Search by employee, reason, or comments..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </div>
+          </div>
+          <div style={{ minWidth: "150px" }}>
+            <select className="form-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+              {uniqueTypes.map(type => (
+                <option key={type} value={type}>{type === "All" ? "All Types" : type}</option>
+              ))}
+            </select>
+          </div>
+          <div style={{ minWidth: "150px" }}>
+            <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="All">All Statuses</option>
+              <option value="New">New</option>
+              <option value="Reviewed">Reviewed</option>
+            </select>
+          </div>
+        </div>
+      </div>
+
+      {/* TABLE */}
+      <div className="crm-card dashboard-card-flat flex-fill d-flex flex-column" style={{ border: "1px solid var(--crm-border)", minHeight: "400px" }}>
+        {loading ? (
+          <div className="flex-fill d-flex align-items-center justify-content-center text-muted">
+            <div className="spinner-border spinner-border-sm me-2" /> Loading feedback...
+          </div>
+        ) : error ? (
+          <div className="flex-fill d-flex align-items-center justify-content-center text-danger">
+            {error}
+          </div>
+        ) : filteredFeedbacks.length === 0 ? (
+          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-muted p-5">
+            <i className="bi bi-inbox fs-1 mb-3 opacity-50"></i>
+            <h5 className="fw-medium text-dark">No feedback available</h5>
+            <p className="small mb-0">No employee feedback has been submitted yet.</p>
+          </div>
+        ) : (
+          <>
+            <div className="table-responsive">
+              <table className="table crm-table align-middle mb-0">
+                <thead className="bg-light">
+                  <tr>
+                    <th className="text-muted fw-semibold small py-3 px-4 border-0">EMPLOYEE</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">TYPE</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">REASON</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">DATE</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">STATUS</th>
+                    <th className="text-muted fw-semibold small py-3 px-4 border-0 text-end">ACTIONS</th>
+                  </tr>
+                </thead>
+                <tbody className="border-top-0">
+                  {paginatedData.map(f => (
+                    <tr key={f.id} style={{ transition: "background 0.2s" }} className="hover-bg-light">
+                      <td className="px-4 py-3">
+                        <div className="d-flex align-items-center gap-2">
+                          {f.submitter?.avatarUrl ? (
+                            <img src={f.submitter.avatarUrl} alt="Avatar" className="rounded-circle object-fit-cover" width="32" height="32" />
+                          ) : (
+                            <div className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold" style={{ width: "32px", height: "32px", fontSize: "12px" }}>
+                              {(f.submitter?.fullName || "U").charAt(0).toUpperCase()}
+                            </div>
+                          )}
+                          <div>
+                            <div className="fw-medium text-dark" style={{ fontSize: "14px" }}>{f.submitter?.fullName || "Unknown"}</div>
+                            <div className="text-muted" style={{ fontSize: "12px" }}>{f.submitter?.email || ""}</div>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="py-3">
+                        <span className="badge bg-secondary bg-opacity-10 text-secondary border">
+                          {f.feedbackType.replace("_", " ")}
+                        </span>
+                      </td>
+                      <td className="py-3 text-dark text-truncate" style={{ maxWidth: "200px", fontSize: "14px" }}>
+                        {f.reason || "--"}
+                      </td>
+                      <td className="py-3 text-muted" style={{ fontSize: "14px" }}>
+                        {new Date(f.createdAt).toLocaleDateString()}
+                      </td>
+                      <td className="py-3">
+                        <span className={`badge rounded-pill ${f.status === "New" ? "bg-warning text-dark" : "bg-success"} bg-opacity-10 border border-${f.status === "New" ? "warning" : "success"}-subtle`}>
+                          {f.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-end">
+                        <button className="btn btn-sm btn-light border shadow-sm" onClick={() => handleView(f)}>
+                          View Details
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+            
+            {/* Pagination Component - same one used elsewhere */}
+            {filteredFeedbacks.length > limit && (
+              <div className="p-3 border-top d-flex justify-content-center bg-white mt-auto">
+                <PaginationBar
+                  currentPage={page}
+                  totalPages={Math.ceil(filteredFeedbacks.length / limit)}
+                  onPageChange={setPage}
+                />
+              </div>
+            )}
+          </>
+        )}
+      </div>
+
+      {/* DETAILS MODAL */}
+      {showModal && selectedFeedback && (
+        <div className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center" style={{ background: "rgba(15,23,42,0.4)", zIndex: 1050 }} onClick={closeModal}>
+          <div className="bg-white rounded-3 shadow-lg d-flex flex-column" style={{ width: "500px", maxWidth: "95%" }} onClick={e => e.stopPropagation()}>
+            <div className="d-flex justify-content-between align-items-center p-4 border-bottom">
+              <h5 className="fw-bold mb-0">Feedback Details</h5>
+              <button className="btn-close" onClick={closeModal}></button>
+            </div>
+            <div className="p-4" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+              
+              <div className="d-flex align-items-center gap-3 mb-4">
+                {selectedFeedback.submitter?.avatarUrl ? (
+                  <img src={selectedFeedback.submitter.avatarUrl} alt="Avatar" className="rounded-circle object-fit-cover shadow-sm border" width="48" height="48" />
+                ) : (
+                  <div className="rounded-circle bg-primary bg-opacity-10 text-primary d-flex align-items-center justify-content-center fw-bold shadow-sm border border-primary-subtle" style={{ width: "48px", height: "48px", fontSize: "16px" }}>
+                    {(selectedFeedback.submitter?.fullName || "U").charAt(0).toUpperCase()}
+                  </div>
+                )}
+                <div>
+                  <div className="fw-bold fs-6 text-dark">{selectedFeedback.submitter?.fullName || "Unknown"}</div>
+                  <div className="text-muted small">{selectedFeedback.submitter?.email || ""}</div>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Type & Date</label>
+                <div>
+                  <span className="badge bg-secondary bg-opacity-10 text-secondary border me-2">
+                    {selectedFeedback.feedbackType.replace("_", " ")}
+                  </span>
+                  <span className="text-muted small">
+                    {new Date(selectedFeedback.createdAt).toLocaleString()}
+                  </span>
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Reason</label>
+                <div className="bg-light p-3 rounded text-dark border">
+                  {selectedFeedback.reason || "No reason provided"}
+                </div>
+              </div>
+
+              {selectedFeedback.comments && (
+                <div className="mb-3">
+                  <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Additional Comments</label>
+                  <div className="bg-light p-3 rounded text-dark border" style={{ whiteSpace: "pre-wrap" }}>
+                    {selectedFeedback.comments}
+                  </div>
+                </div>
+              )}
+
+            </div>
+            <div className="p-3 border-top d-flex justify-content-end gap-2 bg-light rounded-bottom">
+              <button className="btn btn-outline-secondary px-4 fw-medium" onClick={closeModal}>Close</button>
+              {selectedFeedback.status === "New" && (
+                <button className="btn btn-primary px-4 fw-medium shadow-sm" onClick={handleMarkReviewed}>
+                  Mark as Reviewed
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default AdminFeedback;
