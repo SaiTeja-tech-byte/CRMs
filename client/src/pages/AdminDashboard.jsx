@@ -575,7 +575,7 @@ const AdminProfile = () => {
                     {formData?.firstName?.[0] || ""}{formData?.lastName?.[0] || ""}
                   </div>
                 }
-                <button className="btn btn-primary rounded-circle position-absolute bottom-0 end-0" style={{ width: "28px", height: "28px", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transform: "translate(25%, 25%)" }}>
+                <button className="btn btn-primary rounded-circle position-absolute bottom-0 end-0" style={{ width: "28px", height: "28px", padding: 0, display: "flex", alignItems: "center", justifyContent: "center", transform: "translate(25%, 25%)" }} aria-label="Change profile photo">
                   <i className="bi bi-camera" style={{ fontSize: "14px" }}></i>
                 </button>
               </div>
