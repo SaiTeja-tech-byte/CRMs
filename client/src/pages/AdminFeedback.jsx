@@ -185,12 +185,6 @@ const AdminFeedback = () => {
           <div className="flex-fill d-flex align-items-center justify-content-center text-muted" style={{ fontSize: "13px" }}>
             <div className="spinner-border spinner-border-sm me-2" /> Loading feedback...
           </div>
-        ) : error ? (
-          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-center p-4">
-            <h6 className="fw-medium text-dark mb-1">Unable to load feedback</h6>
-            <p className="text-muted small mb-3">Feedback records could not be retrieved. Please try again.</p>
-            <button className="btn btn-sm btn-outline-secondary" onClick={loadData}>Retry</button>
-          </div>
         ) : filteredFeedbacks.length === 0 ? (
           <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-muted p-4">
             <h6 className="fw-medium text-dark mb-1">No feedback available</h6>
