@@ -33,6 +33,7 @@ const PasswordInput = forwardRef(
             onClick={() => setShowPassword((prev) => !prev)}
             tabIndex={-1}
             className="auth-toggle-eye"
+            aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
           </button>
