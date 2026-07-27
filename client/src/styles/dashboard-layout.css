@@ -118,7 +118,7 @@ h6 { font-size: 0.875rem; }
 }
 
 .nav-search-bar i {
-  color: #94a3b8;
+  color: #64748b;
   font-size: 13px;
 }
 
@@ -227,7 +227,7 @@ h6 { font-size: 0.875rem; }
 .dropdown-header-label {
   font-size: 10px;
   font-weight: 700;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.03em;
   padding: 6px 10px;
@@ -316,7 +316,7 @@ h6 { font-size: 0.875rem; }
 
 .sidebar-links-stack li button i {
   font-size: 17px;
-  color: #9CA3AF;
+  color: #64748b;
   flex-shrink: 0;
   width: 20px;
   text-align: center;
@@ -712,7 +712,7 @@ h6 { font-size: 0.875rem; }
 
 .timeline-time-meta {
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
   margin-top: 1px;
 }
@@ -939,7 +939,7 @@ h6 { font-size: 0.875rem; }
   padding: 16px 0;
   border-top: 1px solid var(--crm-border);
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748b;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -959,7 +959,7 @@ h6 { font-size: 0.875rem; }
 
 .clean-footer-links a {
   text-decoration: none;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 
