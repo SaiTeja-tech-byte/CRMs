@@ -1625,46 +1625,98 @@ const ChatPage = () => {
       )}
 
       {/* Reusable Delete Feedback Modal */}
-      <DeleteChatFeedbackModal 
-        isOpen={showDeleteFeedbackModal}
-        chatType={feedbackTarget?.type}
-        targetName={feedbackTarget?.name}
-        currentUser={currentUser}
-        onClose={() => setShowDeleteFeedbackModal(false)}
-        onConfirmDelete={async (feedbackData) => {
-          const targetId = feedbackTarget.id;
-          
-          try {
-            // Persist the feedback to the backend
-            await submitFeedback(feedbackData);
+      {currentUser?.role?.toLowerCase() === "admin" ? (
+        showDeleteFeedbackModal && (
+          <div
+            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+            style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+            onClick={() => setShowDeleteFeedbackModal(false)}
+          >
+            <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
+              <h5 className="fw-bold mb-3">{feedbackTarget?.type === 'group' ? 'Delete group?' : 'Delete conversation?'}</h5>
+              <p className="mb-4">Are you sure you want to delete this {feedbackTarget?.type === 'group' ? 'group' : 'conversation'}? This action cannot be undone.</p>
+              <div className="d-flex justify-content-end gap-2 mt-auto">
+                <button type="button" className="btn btn-light border" onClick={() => setShowDeleteFeedbackModal(false)}>Cancel</button>
+                <button type="button" className="btn btn-danger" onClick={async (e) => {
+                  const targetId = feedbackTarget.id;
+                  const btn = e.target;
+                  btn.disabled = true;
+                  btn.textContent = 'Deleting...';
+                  try {
+                    if (feedbackTarget.type === 'group') {
+                      if (!targetId.toString().startsWith("dummy-")) {
+                        await deleteGroupApi(targetId);
+                      }
+                      setGroups(prev => prev.filter(g => g.id !== targetId));
+                      setDeleteToast({ message: "Group deleted successfully.", type: "success" });
+                    } else {
+                      setConversations(prev => prev.filter(c => c.id !== targetId));
+                      setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
+                    }
+                    
+                    if (activeConversation?.id === targetId) {
+                      setActiveConversation(null);
+                    }
+                    setTimeout(() => setDeleteToast(null), 3000);
+                  } catch (err) {
+                    console.error("Failed to delete:", err);
+                    setDeleteToast({ 
+                      message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
+                      type: "error" 
+                    });
+                    setTimeout(() => setDeleteToast(null), 3000);
+                  } finally {
+                    setShowDeleteFeedbackModal(false);
+                  }
+                }}>
+                  Delete
+                </button>
+              </div>
+            </div>
+          </div>
+        )
+      ) : (
+        <DeleteChatFeedbackModal 
+          isOpen={showDeleteFeedbackModal}
+          chatType={feedbackTarget?.type}
+          targetName={feedbackTarget?.name}
+          currentUser={currentUser}
+          onClose={() => setShowDeleteFeedbackModal(false)}
+          onConfirmDelete={async (feedbackData) => {
+            const targetId = feedbackTarget.id;
             
-            if (feedbackTarget.type === 'group') {
-              if (!targetId.toString().startsWith("dummy-")) {
-                await deleteGroupApi(targetId);
+            try {
+              // Persist the feedback to the backend
+              await submitFeedback(feedbackData);
+              
+              if (feedbackTarget.type === 'group') {
+                if (!targetId.toString().startsWith("dummy-")) {
+                  await deleteGroupApi(targetId);
+                }
+                setGroups(prev => prev.filter(g => g.id !== targetId));
+                setDeleteToast({ message: "Group deleted successfully.", type: "success" });
+              } else {
+                setConversations(prev => prev.filter(c => c.id !== targetId));
+                setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
               }
-              setGroups(prev => prev.filter(g => g.id !== targetId));
-              setDeleteToast({ message: "Group deleted successfully.", type: "success" });
-            } else {
-              setConversations(prev => prev.filter(c => c.id !== targetId));
-              setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
+              
+              if (activeConversation?.id === targetId) {
+                setActiveConversation(null);
+              }
+              setTimeout(() => setDeleteToast(null), 3000);
+              return true;
+            } catch (err) {
+              console.error("Failed to delete:", err);
+              setDeleteToast({ 
+                message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
+                type: "error" 
+              });
+              setTimeout(() => setDeleteToast(null), 3000);
+              return false;
             }
-            
-            if (activeConversation?.id === targetId) {
-              setActiveConversation(null);
-            }
-            setTimeout(() => setDeleteToast(null), 3000);
-            return true;
-          } catch (err) {
-            console.error("Failed to delete:", err);
-            setDeleteToast({ 
-              message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
-              type: "error" 
-            });
-            setTimeout(() => setDeleteToast(null), 3000);
-            return false;
-          }
-        }}
-      />
+          }}
+        />
+      )}
     </div>
   );
 };
