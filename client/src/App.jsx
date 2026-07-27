@@ -5,6 +5,11 @@ import ScrollToTop from "./components/ScrollToTop";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./components/RequireAdmin";
 
+// Dashboard stays eager: it's the primary authenticated route, and lazy-loading it
+// causes a Suspense-fallback-to-content swap that shows up as layout shift (CLS)
+// on the exact page Lighthouse measures.
+import Dashboard from "./pages/Dashboard";
+
 // Marketing / existing pages (all built by teammate)
 // Lazy-loaded so each route ships its own chunk instead of one giant bundle
 const Landing = lazy(() => import("./pages/Landing"));
@@ -20,7 +25,6 @@ const Pricing = lazy(() => import("./pages/Pricing"));
 const Contact = lazy(() => import("./pages/Contact"));
 const Resources = lazy(() => import("./pages/Resources"));
 const TrustCenter = lazy(() => import("./pages/TrustCenter"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const AdminContactQueries = lazy(() => import("./pages/AdminContactQueries"));
 
