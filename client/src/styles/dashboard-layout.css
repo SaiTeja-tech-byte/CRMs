@@ -624,7 +624,7 @@ h6 { font-size: 0.875rem; }
 }
 
 .funnel-arrow-connector {
-  color: #cbd5e1;
+  color: #64748b;
   font-size: 14px;
 }
 
@@ -828,7 +828,7 @@ h6 { font-size: 0.875rem; }
 
 .calendar-grid-cell.out-of-month {
   background: #f8fafc;
-  color: #cbd5e1;
+  color: #64748b;
 }
 
 .calendar-day-num {
@@ -1154,7 +1154,7 @@ h6 { font-size: 0.875rem; }
  
  .empty-state-icon {
    font-size: 48px;
-   color: #cbd5e1;
+   color: #64748b;
    margin-bottom: 16px;
  }
  
