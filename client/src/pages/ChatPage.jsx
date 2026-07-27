@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown, Users, MoreVertical } from "lucide-react";
+import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown, Users, MoreVertical, ArrowLeft } from "lucide-react";
 
 import {
   sendChatRequest,
@@ -93,6 +93,14 @@ const ChatPage = () => {
   const [showDeleteFeedbackModal, setShowDeleteFeedbackModal] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState(null);
   const [deleteToast, setDeleteToast] = useState(null);
+
+  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobileView(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   // "Search in this chat" — WhatsApp-style find + next/previous
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -601,7 +609,7 @@ const ChatPage = () => {
         </div>
       )}
       {/* Sidebar */}
-      <div className="border-end d-flex flex-column" style={{ width: "320px" }}>
+      <div className={`border-end d-flex flex-column chat-sidebar-panel ${isMobileView && activeConversation ? 'chat-sidebar-hidden' : ''}`} style={{ width: "320px" }}>
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
           <h6 className="fw-bold m-0">Chats</h6>
           {activeTab === "individual" ? (
@@ -860,11 +868,16 @@ const ChatPage = () => {
       </div>
 
       {/* Conversation window */}
-      <div className="flex-fill d-flex flex-column">
+      <div className={`flex-fill d-flex flex-column ${isMobileView && !activeConversation ? 'd-none' : ''}`}>
         {activeConversation ? (
           <>
             <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
               <div className="d-flex align-items-center gap-2">
+                {isMobileView && (
+                  <button className="btn btn-sm btn-light p-1 me-1 border-0" onClick={() => setActiveConversation(null)}>
+                    <ArrowLeft size={20} />
+                  </button>
+                )}
                 <span className="fw-bold">
                   {activeConversation.isGroup ? activeConversation.name : (activeConversation.otherUser?.fullName || "Chat")}
                 </span>
