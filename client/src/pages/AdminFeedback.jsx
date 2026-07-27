@@ -114,39 +114,32 @@ const AdminFeedback = () => {
   };
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "24px", minHeight: "100%" }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "16px", minHeight: "100%", padding: "4px 0" }}>
       {/* HEADER */}
-      <div className="d-flex justify-content-between align-items-end flex-wrap gap-3">
+      <div className="d-flex justify-content-between align-items-end flex-wrap gap-2">
         <div>
-          <h2 className="fw-bold mb-1" style={{ fontSize: "28px", letterSpacing: "-0.02em", color: "var(--crm-dark)" }}>
+          <h2 className="fw-bold mb-1" style={{ fontSize: "20px", letterSpacing: "-0.01em", color: "var(--crm-dark)" }}>
             Feedback
           </h2>
-          <p className="text-muted mb-0" style={{ fontSize: "15px" }}>
+          <p className="text-muted mb-0" style={{ fontSize: "13px" }}>
             View and manage feedback submitted by employees.
           </p>
         </div>
       </div>
 
       {/* SUMMARY CARDS */}
-      <div className="row g-3">
+      <div className="row g-2">
         {[
-          { label: "Total Feedback", value: stats.total, icon: "bi-chat-left-text", color: "#2563eb", bg: "#eff6ff" },
-          { label: "New Feedback", value: stats.newCount, icon: "bi-asterisk", color: "#d97706", bg: "#fef3c7" },
-          { label: "Reviewed", value: stats.reviewedCount, icon: "bi-check2-circle", color: "#16a34a", bg: "#dcfce7" },
-          { label: "This Month", value: stats.thisMonthCount, icon: "bi-calendar2-check", color: "#9333ea", bg: "#faf5ff" },
+          { label: "TOTAL FEEDBACK", value: stats.total },
+          { label: "NEW FEEDBACK", value: stats.newCount },
+          { label: "REVIEWED", value: stats.reviewedCount },
+          { label: "THIS MONTH", value: stats.thisMonthCount },
         ].map((card, idx) => (
-          <div key={idx} className="col-12 col-sm-6 col-lg-3">
-            <div className="crm-card dashboard-card-flat h-100 d-flex flex-column justify-content-center p-3" style={{ border: "1px solid var(--crm-border)", background: "var(--crm-card)" }}>
-              <div className="d-flex align-items-center gap-3">
-                <div style={{ width: "48px", height: "48px", borderRadius: "12px", background: card.bg, color: card.color, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "20px" }}>
-                  <i className={`bi ${card.icon}`}></i>
-                </div>
-                <div>
-                  <div className="text-muted fw-medium" style={{ fontSize: "13px", textTransform: "uppercase", letterSpacing: "0.5px" }}>{card.label}</div>
-                  <div className="fw-bold text-dark mt-1" style={{ fontSize: "24px", lineHeight: 1 }}>
-                    {loading ? "--" : card.value}
-                  </div>
-                </div>
+          <div key={idx} className="col-6 col-md-3">
+            <div className="bg-white rounded-2 px-3 py-2" style={{ border: "1px solid var(--crm-border)", boxShadow: "0 1px 2px rgba(0,0,0,0.02)" }}>
+              <div className="text-muted fw-semibold" style={{ fontSize: "11px", letterSpacing: "0.5px" }}>{card.label}</div>
+              <div className="fw-bold text-dark mt-1" style={{ fontSize: "18px", lineHeight: 1 }}>
+                {loading ? "--" : card.value}
               </div>
             </div>
           </div>
@@ -154,54 +147,54 @@ const AdminFeedback = () => {
       </div>
 
       {/* FILTERS */}
-      <div className="crm-card dashboard-card-flat p-3" style={{ border: "1px solid var(--crm-border)" }}>
-        <div className="d-flex gap-3 flex-wrap">
-          <div className="flex-fill" style={{ minWidth: "200px" }}>
+      <div className="d-flex gap-2 flex-wrap align-items-center mt-2">
+        <div className="flex-fill" style={{ minWidth: "200px" }}>
             <div className="input-group">
               <span className="input-group-text bg-white border-end-0 text-muted">
                 <i className="bi bi-search"></i>
               </span>
               <input
                 type="text"
-                className="form-control border-start-0 ps-0"
+                className="form-control form-control-sm border-start-0 ps-0"
+                style={{ height: "36px" }}
                 placeholder="Search by employee, reason, or comments..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
           </div>
-          <div style={{ minWidth: "150px" }}>
-            <select className="form-select" value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
+          <div style={{ minWidth: "140px" }}>
+            <select className="form-select form-select-sm" style={{ height: "36px" }} value={typeFilter} onChange={(e) => setTypeFilter(e.target.value)}>
               {uniqueTypes.map(type => (
                 <option key={type} value={type}>{type === "All" ? "All Types" : type}</option>
               ))}
             </select>
           </div>
-          <div style={{ minWidth: "150px" }}>
-            <select className="form-select" value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+          <div style={{ minWidth: "140px" }}>
+            <select className="form-select form-select-sm" style={{ height: "36px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
               <option value="All">All Statuses</option>
               <option value="New">New</option>
               <option value="Reviewed">Reviewed</option>
             </select>
           </div>
         </div>
-      </div>
 
       {/* TABLE */}
-      <div className="crm-card dashboard-card-flat flex-fill d-flex flex-column" style={{ border: "1px solid var(--crm-border)", minHeight: "400px" }}>
+      <div className="bg-white rounded-3 flex-fill d-flex flex-column" style={{ border: "1px solid var(--crm-border)", minHeight: "350px" }}>
         {loading ? (
-          <div className="flex-fill d-flex align-items-center justify-content-center text-muted">
+          <div className="flex-fill d-flex align-items-center justify-content-center text-muted" style={{ fontSize: "13px" }}>
             <div className="spinner-border spinner-border-sm me-2" /> Loading feedback...
           </div>
         ) : error ? (
-          <div className="flex-fill d-flex align-items-center justify-content-center text-danger">
-            {error}
+          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-center p-4">
+            <h6 className="fw-medium text-dark mb-1">Unable to load feedback</h6>
+            <p className="text-muted small mb-3">Feedback records could not be retrieved. Please try again.</p>
+            <button className="btn btn-sm btn-outline-secondary" onClick={loadData}>Retry</button>
           </div>
         ) : filteredFeedbacks.length === 0 ? (
-          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-muted p-5">
-            <i className="bi bi-inbox fs-1 mb-3 opacity-50"></i>
-            <h5 className="fw-medium text-dark">No feedback available</h5>
-            <p className="small mb-0">No employee feedback has been submitted yet.</p>
+          <div className="flex-fill d-flex flex-column align-items-center justify-content-center text-muted p-4">
+            <h6 className="fw-medium text-dark mb-1">No feedback available</h6>
+            <p className="small mb-0">Employee feedback will appear here.</p>
           </div>
         ) : (
           <>
