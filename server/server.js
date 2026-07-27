@@ -1,6 +1,7 @@
 const express = require("express");
 const http = require("http");
 const cors = require("cors");
+const helmet = require("helmet");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -55,6 +56,7 @@ const app = express();
 const httpServer = http.createServer(app);
 initSocket(httpServer);
 
+app.use(helmet());
 app.use(cors());
 app.use(express.json({ limit: "15mb" })); // documents are uploaded as base64, raise the default 100kb JSON limit
 
