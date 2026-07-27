@@ -505,7 +505,7 @@ const OrgChartTree = ({ isAdmin }) => {
                   Add a new employee to the organization hierarchy.
                 </p>
               </div>
-              <button type="button" className="btn btn-sm btn-light p-1 text-muted" onClick={closeForm}>
+              <button type="button" className="btn btn-sm btn-light p-1 text-muted" onClick={closeForm} aria-label="Close">
                 <X size={18} />
               </button>
             </div>
