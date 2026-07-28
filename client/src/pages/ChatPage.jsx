@@ -81,6 +81,9 @@ const ChatPage = () => {
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
   const [feedbackData, setFeedbackData] = useState({ satisfaction: 0, easyToUse: "", issues: "", improvements: "", comments: "" });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState({ text: "", type: "success" });
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
@@ -584,13 +587,22 @@ const ChatPage = () => {
     }
   };
 
+  const showToastMessage = (text, type = "success") => {
+    setToastMsg({ text, type });
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
+    if (isSubmitting) return;
+
     if (feedbackData.satisfaction === 0) {
-      alert("Please provide a satisfaction rating for question 1.");
+      showToastMessage("Please provide a satisfaction rating for question 1.", "error");
       return;
     }
     
+    setIsSubmitting(true);
     try {
       const compiledComments = [
         `Q2 (Easy to use?): ${feedbackData.easyToUse || "N/A"}`,
@@ -613,14 +625,19 @@ const ChatPage = () => {
         body: JSON.stringify(payload)
       });
       
-      if (!res.ok) throw new Error("Failed to submit feedback");
+      if (!res.ok) {
+        const errorData = await res.json().catch(() => ({}));
+        throw new Error(errorData.message || "Failed to submit feedback");
+      }
       
       setShowFeedbackModal(false);
       setFeedbackData({ satisfaction: 0, easyToUse: "", issues: "", improvements: "", comments: "" });
-      alert("Feedback submitted successfully. Thank you!");
+      showToastMessage("Feedback submitted successfully. Thank you!");
     } catch (err) {
       console.error(err);
-      alert("Error submitting feedback. Please try again.");
+      showToastMessage(err.message || "Error submitting feedback. Please try again.", "error");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -1751,12 +1768,30 @@ const ChatPage = () => {
             </div>
             
             <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
-              <button type="button" className="btn btn-light border" onClick={() => setShowFeedbackModal(false)}>Cancel</button>
-              <button type="button" className="btn btn-brand" onClick={handleFeedbackSubmit} disabled={feedbackData.satisfaction === 0}>
-                Submit Feedback
+              <button type="button" className="btn btn-light border" onClick={() => setShowFeedbackModal(false)} disabled={isSubmitting}>Cancel</button>
+              <button type="button" className="btn btn-brand" onClick={handleFeedbackSubmit} disabled={isSubmitting || feedbackData.satisfaction === 0}>
+                {isSubmitting ? "Submitting..." : "Submit Feedback"}
               </button>
             </div>
           </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {showToast && (
+        <div 
+          style={{
+            position: "fixed", top: "20px", right: "20px", zIndex: 9999,
+            background: toastMsg.type === "success" ? "#10b981" : "#ef4444",
+            color: "white", padding: "12px 24px",
+            borderRadius: "8px", boxShadow: "0 4px 12px rgba(0,0,0,0.15)",
+            display: "flex", alignItems: "center", gap: "8px",
+            fontSize: "14px", fontWeight: "500",
+            animation: "slideInRight 0.3s ease-out forwards"
+          }}
+        >
+          <i className={`bi ${toastMsg.type === "success" ? "bi-check-circle-fill" : "bi-x-circle-fill"}`}></i>
+          {toastMsg.text}
         </div>
       )}
     </div>
