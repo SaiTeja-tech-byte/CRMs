@@ -4,287 +4,139 @@ import { ChevronDown, Cloud, ExternalLink, Facebook, Globe, Linkedin, Twitter, U
 
 const industriesData = [
   {
-    id: "automotive",
+    id: "auto",
     name: "Automotive",
-    icon: "🚗",
-    bootstrapIcon: "bi-car-front-fill",
-    description: "Manage dealership leads, customer inquiries, test drives, and after-sales service from one CRM.",
-    solutions: ["Lead Management", "Test Drive Scheduling", "Service Reminders", "Customer History"],
-    preview: {
-      title: "Automotive Dashboard Preview",
-      items: ["Dealership pipeline", "Test drive bookings", "Service scheduler", "Inventory tracking"],
-      metrics: [
-        { value: "+32%", label: "Lead Conversion" },
-        { value: "8,400", label: "Test Drives Logged" },
-        { value: "97%", label: "Satisfaction" }
-      ]
-    }
+    title: "Automotive CRM",
+    description: "Streamline dealership operations, manage leads, and enhance customer loyalty with specialized automotive CRM tools.",
+    features: [
+      "Lead scoring & distribution",
+      "Inventory integration",
+      "Service scheduling automation",
+      "Follow-up reminders",
+      "Mobile access for sales floor"
+    ],
+    rightPanelTitle: "Top Use Cases",
+    rightPanelContent: [
+      "New & Used Car Sales",
+      "Service Department",
+      "Finance & Insurance",
+      "Fleet Management"
+    ],
+    linkText: "Explore Automotive ->",
+    linkUrl: "#automotive"
   },
   {
-    id: "healthcare",
+    id: "health",
     name: "Healthcare",
-    icon: "🏥",
-    bootstrapIcon: "bi-heart-pulse-fill",
-    description: "Improve patient engagement and streamline healthcare operations with intelligent CRM automation.",
-    solutions: ["Patient Appointment Management", "Electronic Medical Records", "Automated Follow-ups", "Doctor Scheduling", "AI Insights"],
-    preview: {
-      title: "Healthcare Dashboard Preview",
-      items: ["Doctor dashboard", "Patient analytics", "Appointment calendar", "KPI cards"],
-      metrics: [
-        { value: "+42%", label: "Engagement Growth" },
-        { value: "12,400", label: "Patients Managed" },
-        { value: "98%", label: "Patient Satisfaction" }
-      ]
-    }
-  },
-  {
-    id: "retail",
-    name: "Retail & eCommerce",
-    icon: "🛍",
-    bootstrapIcon: "bi-cart3",
-    description: "Track customers, purchases, loyalty programs, and personalized marketing campaigns.",
-    solutions: ["Customer Profiles", "Purchase History", "Loyalty Rewards", "Marketing Automation"],
-    preview: {
-      title: "Retail Dashboard Preview",
-      items: ["Sales analytics", "Customer segmentation", "Revenue chart", "Product insights"],
-      metrics: [
-        { value: "+54%", label: "Repeat Purchases" },
-        { value: "48,200", label: "Active Customers" },
-        { value: "95%", label: "CSAT Score" }
-      ]
-    }
-  },
-  {
-    id: "finance",
-    name: "Financial Services",
-    icon: "💰",
-    bootstrapIcon: "bi-bank",
-    description: "Manage client relationships securely while automating onboarding and compliance.",
-    solutions: ["Client Management", "Loan Pipeline", "Compliance", "Investment Tracking"],
-    preview: {
-      title: "Financial Dashboard Preview",
-      items: ["Client dashboard", "Loan pipeline", "Investment chart", "Compliance status"],
-      metrics: [
-        { value: "+28%", label: "AUM Growth" },
-        { value: "3,150", label: "Clients Onboarded" },
-        { value: "99.4%", label: "Compliance Rate" }
-      ]
-    }
+    title: "Healthcare CRM",
+    description: "Improve patient engagement and manage care coordination while maintaining strict compliance.",
+    features: [
+      "Patient relationship management",
+      "Appointment scheduling",
+      "Secure communication",
+      "Referral tracking",
+      "Integration with EHR systems"
+    ],
+    rightPanelTitle: "Top Use Cases",
+    rightPanelContent: [
+      "Hospitals & Clinics",
+      "Specialty Care Centers",
+      "Medical Equipment Sales",
+      "Telehealth Providers"
+    ],
+    linkText: "Explore Healthcare ->",
+    linkUrl: "#healthcare"
   },
   {
     id: "realestate",
     name: "Real Estate",
-    icon: "🏠",
-    bootstrapIcon: "bi-buildings-fill",
-    description: "Capture property inquiries and convert prospects into successful property sales.",
-    solutions: ["Property Listings", "Buyer Tracking", "Site Visit Scheduling", "Deal Pipeline"],
-    preview: {
-      title: "Real Estate Dashboard Preview",
-      items: ["Property CRM", "Buyer pipeline", "Lead funnel", "Deal stages"],
-      metrics: [
-        { value: "+39%", label: "Deal Velocity" },
-        { value: "1,850", label: "Properties Listed" },
-        { value: "96%", label: "Agent Productivity" }
-      ]
-    }
-  },
-  {
-    id: "education",
-    name: "Education",
-    icon: "🎓",
-    bootstrapIcon: "bi-mortarboard-fill",
-    description: "Manage student admissions, inquiries, alumni engagement, and communication.",
-    solutions: ["Student CRM", "Admission Pipeline", "Communication", "Reports"],
-    preview: {
-      title: "Education CRM Preview",
-      items: ["Student enrollment stats", "Application funnel", "Alumni engagement score", "Course analytics"],
-      metrics: [
-        { value: "+45%", label: "Enrollment Rate" },
-        { value: "15,600", label: "Students Managed" },
-        { value: "98.2%", label: "Retention Rate" }
-      ]
-    }
-  },
-  {
-    id: "manufacturing",
-    name: "Manufacturing",
-    icon: "🏭",
-    bootstrapIcon: "bi-gear-fill",
-    description: "Track distributors, suppliers, quotations, and customer orders efficiently.",
-    solutions: ["Distributor CRM", "Inventory Requests", "Sales Orders", "Service Requests"],
-    preview: {
-      title: "Manufacturing Portal Preview",
-      items: ["Supply chain pipeline", "Order tracking", "Distributor metrics", "Quote funnel"],
-      metrics: [
-        { value: "+26%", label: "Order Accuracy" },
-        { value: "180+", label: "Distributors Managed" },
-        { value: "94.8%", label: "On-time Delivery" }
-      ]
-    }
-  },
-  {
-    id: "saas",
-    name: "SaaS & Technology",
-    icon: "💻",
-    bootstrapIcon: "bi-cpu-fill",
-    description: "Manage trial users, subscriptions, onboarding, and customer success.",
-    solutions: ["Trial Management", "Customer Success", "Subscription Tracking", "Support Tickets"],
-    preview: {
-      title: "SaaS Console Preview",
-      items: ["Subscription MRR chart", "Churn stats", "Trial conversion funnel", "Support volume"],
-      metrics: [
-        { value: "+62%", label: "MRR Growth" },
-        { value: "98.5%", label: "NPS Score" },
-        { value: "3.2%", label: "Net Churn Rate" }
-      ]
-    }
-  },
-  {
-    id: "telecom",
-    name: "Telecommunications",
-    icon: "📞",
-    bootstrapIcon: "bi-broadcast-pin",
-    description: "Manage subscribers, support tickets, and customer lifecycle with AI automation.",
-    solutions: ["Customer Accounts", "Service Requests", "Billing Support", "Renewals"],
-    preview: {
-      title: "Telecom Analytics Preview",
-      items: ["Billing alerts", "Subscriber lifecycle", "Customer support ticket stats", "Plan renewal forecast"],
-      metrics: [
-        { value: "-18%", label: "Churn Reduction" },
-        { value: "320,000", label: "Subscribers" },
-        { value: "92%", label: "First-contact Resolution" }
-      ]
-    }
-  },
-  {
-    id: "travel",
-    name: "Travel & Hospitality",
-    icon: "🌍",
-    bootstrapIcon: "bi-airplane-fill",
-    description: "Deliver personalized booking experiences and manage guest relationships.",
-    solutions: ["Booking CRM", "Guest Profiles", "Promotions", "Loyalty Programs"],
-    preview: {
-      title: "Hospitality Dashboard Preview",
-      items: ["Booking analytics", "Guest loyalty segmentation", "Campaign ROI", "Room availability chart"],
-      metrics: [
-        { value: "+34%", label: "Direct Bookings" },
-        { value: "14,800", label: "Loyalty Members" },
-        { value: "97.5%", label: "Guest Rating" }
-      ]
-    }
+    title: "Real Estate CRM",
+    description: "Manage properties, track buyers and sellers, and close deals faster from anywhere.",
+    features: [
+      "Property listing management",
+      "Client preference matching",
+      "Open house tracking",
+      "Contract & document management",
+      "Automated follow-up campaigns"
+    ],
+    rightPanelTitle: "Top Use Cases",
+    rightPanelContent: [
+      "Residential Agencies",
+      "Commercial Brokerages",
+      "Property Management",
+      "Real Estate Developers"
+    ],
+    linkText: "Explore Real Estate ->",
+    linkUrl: "#realestate"
   }
 ];
 
 const customersData = [
   {
-    id: "stories",
-    name: "Customer Success Stories",
-    icon: "📈",
-    bootstrapIcon: "bi-bar-chart-line-fill",
+    id: "success",
+    name: "Customer Success",
     title: "Customer Success Stories",
-    description: "Discover how businesses use CRM Platform to automate sales, improve customer relationships, and accelerate revenue growth.",
-    content: {
-      type: "list",
-      header: "Featured Stories",
-      items: [
-        { label: "TechNova Solutions", highlight: "Increased sales by 42%" },
-        { label: "RetailHub", highlight: "Reduced response time by 60%" },
-        { label: "HealthCare Plus", highlight: "Managed 50,000+ patient interactions" },
-        { label: "FinTrust Bank", highlight: "Improved customer retention by 35%" }
-      ],
-      linkText: "Explore All Success Stories →",
-      linkUrl: "#stories"
-    }
+    description: "See how forward-thinking companies use our CRM to scale operations and accelerate growth.",
+    features: [
+      "Customer Success Stories",
+      "Enterprise Implementations",
+      "Case Studies",
+      "Customer Testimonials",
+      "ROI & Business Growth"
+    ],
+    rightPanelTitle: "Featured Resources",
+    rightPanelContent: [
+      "Industry Success Stories",
+      "Customer Interviews",
+      "Implementation Guides",
+      "Best Practices"
+    ],
+    linkText: "Explore Customer Stories ->",
+    linkUrl: "#success"
   },
   {
     id: "enterprise",
     name: "Enterprise Customers",
-    icon: "🏢",
-    bootstrapIcon: "bi-building-fill",
-    title: "Enterprise Customers",
-    description: "Trusted by growing enterprises to manage millions of customer interactions every month.",
-    content: {
-      type: "grid",
-      header: "Featured Companies",
-      items: ["TechNova", "RetailHub", "FinTrust", "Global Logistics", "EduSmart", "HealthCare Plus"],
-      linkText: "View Enterprise Solutions →",
-      linkUrl: "#enterprise"
-    }
+    title: "Enterprise Solutions",
+    description: "Built for scale, security, and performance. See how large organizations deploy our CRM globally.",
+    features: [
+      "Global Deployment Strategies",
+      "Advanced Security Configurations",
+      "Custom API Integrations",
+      "Dedicated Support Plans",
+      "Volume Licensing"
+    ],
+    rightPanelTitle: "Enterprise Highlights",
+    rightPanelContent: [
+      "Compliance Frameworks",
+      "SLA Guarantees",
+      "Data Residency Options",
+      "Custom Onboarding"
+    ],
+    linkText: "View Enterprise Options ->",
+    linkUrl: "#enterprise"
   },
   {
-    id: "testimonials",
-    name: "Testimonials",
-    icon: "⭐",
-    bootstrapIcon: "bi-star-fill",
-    title: "Customer Testimonials",
-    description: "See what our users say about their experience with CRM Platform.",
-    content: {
-      type: "testimonial",
-      quote: "“CRM Platform transformed our sales workflow and increased our conversion rate by 45%.”",
-      author: "Sarah Johnson, Sales Director",
-      stars: 5,
-      linkText: "More Testimonials →",
-      linkUrl: "#testimonials"
-    }
-  },
-  {
-    id: "case-studies",
-    name: "Industry Case Studies",
-    icon: "📚",
-    bootstrapIcon: "bi-journal-text",
-    title: "Industry Case Studies",
-    description: "Deep dives into how specific sectors implement CRM solutions for maximum business impact.",
-    content: {
-      type: "list",
-      header: "Case Studies by Industry",
-      items: [
-        { label: "Retail CRM Success Guide" },
-        { label: "Healthcare CRM Implementation" },
-        { label: "Financial Services Trust Metrics" },
-        { label: "Manufacturing & Supply Integration" },
-        { label: "Real Estate Property Funnels" }
-      ],
-      linkText: "Read Case Studies →",
-      linkUrl: "#case-studies"
-    }
-  },
-  {
-    id: "videos",
-    name: "Video Reviews",
-    icon: "🎥",
-    bootstrapIcon: "bi-play-btn-fill",
-    title: "Customer Video Reviews",
-    description: "Watch our customers share how they scaled operations and automated workflows with CRM Platform.",
-    content: {
-      type: "list",
-      header: "Video Library Highlights",
-      items: [
-        { label: "TechNova Interview", highlight: "5 mins video" },
-        { label: "RetailHub Journey", highlight: "3 mins video" },
-        { label: "FinTrust Deployment", highlight: "8 mins video" }
-      ],
-      linkText: "Watch Video Library →",
-      linkUrl: "#videos"
-    }
-  },
-  {
-    id: "partners",
-    name: "Partner Success",
-    icon: "🤝",
-    bootstrapIcon: "bi-handshake",
-    title: "Partner Success",
-    description: "Learn how our consulting and technology partners help customers deploy and succeed.",
-    content: {
-      type: "list",
-      header: "Partner Ecosystem",
-      items: [
-        { label: "Consulting Partners & integrators" },
-        { label: "App Exchange Developers" },
-        { label: "Managed Service Providers" }
-      ],
-      linkText: "Explore Partner Directory →",
-      linkUrl: "#partners"
-    }
+    id: "casestudies",
+    name: "Case Studies",
+    title: "In-Depth Case Studies",
+    description: "Detailed analyses of how organizations solved complex business challenges with our platform.",
+    features: [
+      "Sales Pipeline Optimization",
+      "Marketing Automation ROI",
+      "Service Team Efficiency",
+      "Cross-Department Alignment",
+      "Legacy System Migration"
+    ],
+    rightPanelTitle: "Latest Reports",
+    rightPanelContent: [
+      "Q3 Growth Analysis",
+      "Retail Sector Benchmark",
+      "Automation Impact Study",
+      "Migration Checklists"
+    ],
+    linkText: "Read Case Studies ->",
+    linkUrl: "#cases"
   }
 ];
 
@@ -292,92 +144,91 @@ const learningData = [
   {
     id: "basics",
     name: "CRM Basics",
-    icon: "📚",
-    bootstrapIcon: "bi-book-fill",
     title: "CRM Fundamentals",
     description: "Learn the core concepts of Customer Relationship Management and how it helps align teams and build relationships.",
-    modules: ["What is a CRM system?", "Key components of CRM", "Benefits of centralizing customer data", "Getting started checklist"]
+    features: [
+      "Contact Management",
+      "Lead Management",
+      "Sales Pipeline",
+      "Task Tracking",
+      "Reports"
+    ],
+    rightPanelTitle: "Resources",
+    rightPanelContent: [
+      "Documentation",
+      "API Guides",
+      "Tutorials",
+      "Best Practices",
+      "FAQs"
+    ],
+    linkText: "Start Learning ->",
+    linkUrl: "#basics"
   },
   {
-    id: "academy",
-    name: "AI CRM Academy",
-    icon: "🤖",
-    bootstrapIcon: "bi-cpu-fill",
-    title: "AI Workflow Automation",
-    description: "Master artificial intelligence in CRM, from automated replies to smart pipeline insights and predictions.",
-    modules: ["AI-powered lead scoring", "Predictive sales forecasts", "Automating repetitive follow-ups", "AI chatbot configuration"]
+    id: "ai",
+    name: "AI CRM",
+    title: "AI in CRM",
+    description: "Discover how Artificial Intelligence automates data entry, predicts sales, and personalizes outreach.",
+    features: [
+      "Predictive Lead Scoring",
+      "Automated Data Capture",
+      "Sentiment Analysis",
+      "Smart Email Drafting",
+      "Sales Forecasting"
+    ],
+    rightPanelTitle: "AI Resources",
+    rightPanelContent: [
+      "AI Implementation Guide",
+      "Machine Learning Basics",
+      "Data Privacy Standards",
+      "AI Webinars"
+    ],
+    linkText: "Explore AI Features ->",
+    linkUrl: "#ai"
   },
   {
-    id: "videos",
-    name: "Video Tutorials",
-    icon: "🎥",
-    bootstrapIcon: "bi-play-circle-fill",
-    title: "Interactive Video Library",
-    description: "Step-by-step visual guides showing how to configure your sales pipeline and build custom automation workflows.",
-    modules: ["Vite deployment walkthrough (3 mins)", "Pipeline stage configuration (5 mins)", "Integrating email systems (4 mins)", "Running reports & dashboards (6 mins)"]
-  },
-  {
-    id: "blog",
-    name: "Blog & Articles",
-    icon: "📝",
-    bootstrapIcon: "bi-pencil-square",
-    title: "Sales Insights & Trends",
-    description: "Read the latest research, articles, and thought leadership pieces from CRM experts and industry leaders.",
-    modules: ["Sales forecasting best practices", "Reducing customer churn rates", "How AI is changing B2B sales", "Startups growth hacks"]
+    id: "certifications",
+    name: "Certifications",
+    title: "Platform Certifications",
+    description: "Validate your expertise. Earn globally recognized certifications for administrators and developers.",
+    features: [
+      "Administrator Track",
+      "Developer Track",
+      "Marketing Specialist",
+      "Sales Consultant",
+      "Architect Level"
+    ],
+    rightPanelTitle: "Study Materials",
+    rightPanelContent: [
+      "Exam Guides",
+      "Practice Tests",
+      "Study Groups",
+      "Instructor-led Training"
+    ],
+    linkText: "View Certifications ->",
+    linkUrl: "#certs"
   },
   {
     id: "docs",
     name: "Documentation",
-    icon: "📖",
-    bootstrapIcon: "bi-file-earmark-text-fill",
     title: "Technical Documentation",
-    description: "Detailed setup guides, server installation parameters, security protocols, and advanced admin settings.",
-    modules: ["Installation guidelines", "Database synchronization", "User role permissions", "Security & data privacy protocols"]
-  },
-  {
-    id: "practices",
-    name: "Best Practices",
-    icon: "💡",
-    bootstrapIcon: "bi-lightbulb-fill",
-    title: "CRM Best Practices",
-    description: "Proven tips and strategies to increase CRM adoption rates, clean customer data, and boost sales efficiency.",
-    modules: ["CRM data cleanup checklists", "Increasing rep adoption rates", "Designing clear deal pipelines", "Optimizing contact profiles"]
-  },
-  {
-    id: "guides",
-    name: "Product Guides",
-    icon: "🚀",
-    bootstrapIcon: "bi-rocket-takeoff-fill",
-    title: "Interactive Product Guides",
-    description: "Deep dives into specific features of CRM Platform, including contact management, email tracking, and AI insights.",
-    modules: ["Lead management workbook", "Email tracking setups", "AI Sales Assistant configuration", "Custom dashboard guides"]
-  },
-  {
-    id: "certification",
-    name: "CRM Certification",
-    icon: "🏅",
-    bootstrapIcon: "bi-award-fill",
-    title: "Professional Certifications",
-    description: "Validate your skills and earn badges by completing CRM Platform training modules and passing certification exams.",
-    modules: ["Sales Professional Exam", "Administrator Certification", "Automation Specialist Exam", "Developer Certification"]
-  },
-  {
-    id: "api",
-    name: "Developer API Guides",
-    icon: "👨💻",
-    bootstrapIcon: "bi-terminal-fill",
-    title: "REST APIs & Developer Tools",
-    description: "Connect external software, synchronize databases, and build custom applications on top of CRM Platform API.",
-    modules: ["API Authentication setup", "Webhook listener endpoints", "Syncing contact databases", "Rate limiting policies"]
-  },
-  {
-    id: "community",
-    name: "Community Forum",
-    icon: "💬",
-    bootstrapIcon: "bi-chat-left-text-fill",
-    title: "Join the CRM Forum",
-    description: "Connect with thousands of users, developers, and administrators to share ideas, ask questions, and collaborate.",
-    modules: ["Developer discussion groups", "Sales rep community chats", "Feature request portal", "Local user groups"]
+    description: "Comprehensive guides and references for developers and technical administrators.",
+    features: [
+      "REST API Reference",
+      "Webhooks Guide",
+      "Authentication flows",
+      "Data Models",
+      "SDK Setup"
+    ],
+    rightPanelTitle: "Quick Links",
+    rightPanelContent: [
+      "Getting Started",
+      "Code Samples",
+      "Rate Limits",
+      "Changelog"
+    ],
+    linkText: "Read the Docs ->",
+    linkUrl: "#docs"
   }
 ];
 
@@ -385,187 +236,187 @@ const supportData = [
   {
     id: "help",
     name: "Help Center",
-    icon: "🆘",
-    bootstrapIcon: "bi-question-circle-fill",
-    title: "Browse Knowledge Base",
-    description: "Search thousands of helpful guides, tips, and step-by-step documentation articles for CRM Platform.",
-    topics: ["Setting Up Your CRM", "Importing Customer Data", "Managing Sales Pipelines", "AI Automation Setup"]
+    title: "Help Center",
+    description: "Search our extensive knowledge base for step-by-step guides, troubleshooting tips, and setup instructions.",
+    features: [
+      "Getting Started Guides",
+      "Account Configuration",
+      "Billing & Subscriptions",
+      "User Management",
+      "Integration Setup"
+    ],
+    rightPanelTitle: "Popular Articles",
+    rightPanelContent: [
+      "How to reset your password",
+      "Importing contacts via CSV",
+      "Setting up 2FA",
+      "Understanding user roles"
+    ],
+    linkText: "Visit Help Center ->",
+    linkUrl: "#help"
   },
   {
-    id: "docs",
-    name: "Documentation",
-    icon: "📖",
-    bootstrapIcon: "bi-file-earmark-text-fill",
-    title: "Technical Documentation",
-    description: "Read detailed integration references, configuration settings, user roles, and security policies.",
-    topics: ["User Roles & Permissions", "API Integration Guide", "Database synchronization", "Security & data privacy"]
-  },
-  {
-    id: "chat",
-    name: "Live Chat Support",
-    icon: "💬",
-    bootstrapIcon: "bi-chat-dots-fill",
-    title: "Chat with an Agent 24/7",
-    description: "Start a real-time conversation with our support specialists. Average response time is under 15 minutes.",
-    topics: ["Real-time troubleshooting", "Billing & plan questions", "Feature walkthrough requests", "API debugging support"]
-  },
-  {
-    id: "ticket",
-    name: "Submit a Support Ticket",
-    icon: "🎫",
-    bootstrapIcon: "bi-ticket-detailed-fill",
-    title: "Create Support Case",
-    description: "Open a support ticket with our engineering team for complex queries or technical issues.",
-    topics: ["Track existing tickets", "Urgent bug reports", "Feature request submissions", "Account access recovery"]
-  },
-  {
-    id: "tutorials",
-    name: "Video Tutorials",
-    icon: "📺",
-    bootstrapIcon: "bi-tv-fill",
-    title: "Video Learning Library",
-    description: "Watch short screencasts and interactive video guides demonstrating how to configure automation workflows.",
-    topics: ["Workflow automation setup", "Custom deal stages guide", "Configuring lead ingestion", "Email client integration"]
-  },
-  {
-    id: "trouble",
-    name: "Troubleshooting Guides",
-    icon: "🔧",
-    bootstrapIcon: "bi-tools",
-    title: "Self-Service Troubleshooting",
-    description: "Find instant solutions for common configuration challenges, syncing issues, or permission mismatches.",
-    topics: ["SMTP email sync problems", "CSV import error codes", "API rate limiting fixes", "UI dashboard loading lags"]
-  },
-  {
-    id: "status",
-    name: "System Status",
-    icon: "⚙️",
-    bootstrapIcon: "bi-activity",
-    title: "All Systems Operational",
-    description: "Check the current operational status of the CRM platform, cloud databases, and API integrations.",
-    topics: ["Platform uptime history", "Scheduled maintenance alerts", "API performance metrics", "Database response speeds"]
+    id: "community",
+    name: "Community",
+    title: "Community Forums",
+    description: "Connect with other users, share best practices, and get answers from our global community of experts.",
+    features: [
+      "Discussion Boards",
+      "Feature Requests",
+      "User Groups",
+      "Expert Q&A",
+      "Virtual Meetups"
+    ],
+    rightPanelTitle: "Top Categories",
+    rightPanelContent: [
+      "Sales Automation",
+      "Reporting Customization",
+      "API Integrations",
+      "Admin Tips"
+    ],
+    linkText: "Join Community ->",
+    linkUrl: "#community"
   },
   {
     id: "contact",
     name: "Contact Support",
-    icon: "📞",
-    bootstrapIcon: "bi-telephone-fill",
-    title: "Get in Touch Directly",
-    description: "Contact our dedicated support helpdesk by phone or direct email address for immediate assistance.",
-    topics: ["Toll-free hotline numbers", "Direct email support links", "Enterprise support manager contacts", "Local office addresses"]
-  },
-  {
-    id: "dev",
-    name: "Developer Support",
-    icon: "👨💻",
-    bootstrapIcon: "bi-terminal-fill",
-    title: "Developer Help Center",
-    description: "Developer resources, SDK documentation, code samples, webhook setups, and API keys help.",
-    topics: ["REST API endpoint specs", "Webhook debugger tools", "Client SDK libraries", "Sandbox environment setups"]
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise Support",
-    icon: "🏢",
-    bootstrapIcon: "bi-building-fill",
-    title: "Priority Enterprise Desk",
-    description: "Exclusive priority support channels for our Enterprise customers including dedicated customer managers.",
-    topics: ["Dedicated account managers", "SLA policy definitions", "Custom onboarding services", "On-premise deployment help"]
+    title: "Get Support",
+    description: "Our award-winning support team is available 24/7 to help you resolve technical issues quickly.",
+    features: [
+      "Live Chat Support",
+      "Ticket Submission",
+      "Phone Support (Premium)",
+      "Priority Routing",
+      "Screen Sharing"
+    ],
+    rightPanelTitle: "Support Tiers",
+    rightPanelContent: [
+      "Standard (Email only)",
+      "Professional (Chat + Email)",
+      "Enterprise (24/7 Phone)",
+      "Dedicated Success Manager"
+    ],
+    linkText: "Open a Ticket ->",
+    linkUrl: "#contact"
   }
 ];
 
 const companyData = [
   {
     id: "about",
-    name: "About CRM Platform",
-    icon: "🏢",
-    bootstrapIcon: "bi-info-square-fill",
+    name: "About Us",
     title: "About Our Company",
-    description: "CRM Platform helps businesses automate sales, strengthen customer relationships, and accelerate growth through intelligent CRM technology. Trusted by thousands of growing companies worldwide.",
-    links: ["Meet Our Team", "Explore Careers", "Read Company Blog", "Partner With Us"]
-  },
-  {
-    id: "mission",
-    name: "Our Mission & Vision",
-    icon: "🌟",
-    bootstrapIcon: "bi-bullseye",
-    title: "Our Mission & Vision",
-    description: "To connect businesses with their customers in a whole new way using artificial intelligence, making customer relationships more human and automated at the same time.",
-    links: ["Read our story", "AI Ethics statement", "Product roadmap", "Executive letters"]
-  },
-  {
-    id: "values",
-    name: "Our Values",
-    icon: "💙",
-    bootstrapIcon: "bi-heart-fill",
-    title: "Trust, Innovation & Success",
-    description: "We are guided by four core values: Trust, Customer Success, Continuous Innovation, and Equality for all stakeholders.",
-    links: ["Our values booklet", "Customer success stories", "Diversity & inclusion", "Community outreach"]
-  },
-  {
-    id: "team",
-    name: "Leadership Team",
-    icon: "👥",
-    bootstrapIcon: "bi-people-fill",
-    title: "Our Executive Leadership",
-    description: "Meet the visionary leaders and experts guiding CRM Platform's strategy and technological innovation.",
-    links: ["Board of Directors", "Advisory council", "Our founders", "Executive bios"]
+    description: "We are on a mission to democratize enterprise-grade CRM software for growing businesses everywhere.",
+    features: [
+      "Our Mission & Vision",
+      "Core Values",
+      "Leadership Team",
+      "Company History",
+      "Global Offices"
+    ],
+    rightPanelTitle: "Company Highlights",
+    rightPanelContent: [
+      "Over 10M Users Globally",
+      "Carbon Neutral since 2020",
+      "Voted Best Place to Work",
+      "Open Source Contributors"
+    ],
+    linkText: "Learn More ->",
+    linkUrl: "#about"
   },
   {
     id: "careers",
     name: "Careers",
-    icon: "💼",
-    bootstrapIcon: "bi-briefcase-fill",
-    title: "Join Our Global Team",
-    description: "Build the future of CRM with us. We are always looking for passionate engineers, designers, sales reps, and customer success heroes.",
-    links: ["Open positions", "Life at CRM Platform", "Benefits & perks", "Internship programs"]
+    title: "Join Our Team",
+    description: "Explore opportunities to build the future of CRM. We're always looking for passionate, talented people.",
+    features: [
+      "Engineering Roles",
+      "Sales & Marketing",
+      "Customer Success",
+      "Product & Design",
+      "Remote Opportunities"
+    ],
+    rightPanelTitle: "Perks & Benefits",
+    rightPanelContent: [
+      "Fully Remote Options",
+      "Unlimited PTO",
+      "Comprehensive Health",
+      "Learning Stipend"
+    ],
+    linkText: "View Openings ->",
+    linkUrl: "#careers"
   },
   {
     id: "news",
-    name: "News & Press",
-    icon: "📰",
-    bootstrapIcon: "bi-newspaper",
-    title: "Press Releases & News room",
-    description: "Stay up to date with CRM Platform product launches, corporate announcements, feature reports, and press coverage.",
-    links: ["Press kit downloads", "Media contacts", "News archive", "Award certifications"]
-  },
-  {
-    id: "partners",
-    name: "Partners & Affiliates",
-    icon: "🤝",
-    bootstrapIcon: "bi-handshake",
-    title: "Partner Ecosystem",
-    description: "Collaborate, integrate, and grow with CRM Platform. Join our global affiliate network or consulting integrations desk.",
-    links: ["Consulting integrations", "Developer portal", "Affiliate sign up", "Directory listings"]
-  },
-  {
-    id: "sustain",
-    name: "Sustainability & Impact",
-    icon: "🌍",
-    bootstrapIcon: "bi-globe",
-    title: "Sustainability & Social Impact",
-    description: "We are committed to building a sustainable future. We donate 1% of equity, product, and employee time to non-profits.",
-    links: ["Net-zero carbon pledge", "Community donations", "Volunteer highlights", "Annual impact report"]
-  },
-  {
-    id: "legal",
-    name: "Legal & Compliance",
-    icon: "⚖️",
-    bootstrapIcon: "bi-shield-check",
-    title: "Trust & Security Center",
-    description: "Review our service terms, privacy policies, GDPR compliance declarations, and security certifications.",
-    links: ["GDPR & CCPA policies", "Terms of service", "Data processing agreement", "Security compliance"]
-  },
-  {
-    id: "contact",
-    name: "Contact Us",
-    icon: "📞",
-    bootstrapIcon: "bi-envelope-fill",
-    title: "Get In Touch",
-    description: "Reach out to our offices, sales departments, or media relations division for custom inquiries and assistance.",
-    links: ["Sales inquiries", "Media relations", "Global office locations", "Support hotline"]
+    name: "Newsroom",
+    title: "Latest News",
+    description: "Stay up to date with our latest product announcements, company milestones, and press releases.",
+    features: [
+      "Product Announcements",
+      "Press Releases",
+      "Media Kit & Assets",
+      "Executive Interviews",
+      "Industry Reports"
+    ],
+    rightPanelTitle: "Recent Articles",
+    rightPanelContent: [
+      "Our Series C Funding",
+      "New AI Features Launched",
+      "European Expansion",
+      "Q2 Performance Report"
+    ],
+    linkText: "Go to Newsroom ->",
+    linkUrl: "#news"
   }
 ];
+
+const crmData = [
+  {
+    id: "overview",
+    name: "What is CRM?",
+    title: "Understanding CRM",
+    description: "Customer Relationship Management software helps organizations track, manage, and analyze customer interactions.",
+    features: [
+      "Centralized Contact Data",
+      "Interaction History",
+      "Pipeline Visualization",
+      "Activity Tracking",
+      "Performance Metrics"
+    ],
+    rightPanelTitle: "Key Benefits",
+    rightPanelContent: [
+      "Improved Customer Retention",
+      "Higher Sales Conversion",
+      "Better Team Collaboration",
+      "Data-Driven Decisions"
+    ],
+    linkText: "Read the Guide ->",
+    linkUrl: "#crm"
+  },
+  {
+    id: "benefits",
+    name: "Benefits",
+    title: "Why Use a CRM?",
+    description: "Discover the tangible business benefits of moving away from spreadsheets and adopting a unified CRM platform.",
+    features: [
+      "Increase Sales Productivity",
+      "Enhance Customer Satisfaction",
+      "Streamline Internal Processes",
+      "Accurate Revenue Forecasting",
+      "Automate Repetitive Tasks"
+    ],
+    rightPanelTitle: "By The Numbers",
+    rightPanelContent: [
+      "32% average sales increase",
+      "40% reduction in admin time",
+      "27% higher retention rates",
+      "Fast ROI (typically < 6 months)"
+    ],
+    linkText: "See ROI Calculator ->",
+    linkUrl: "#benefits"
+  }
+];
+
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
