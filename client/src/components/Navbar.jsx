@@ -2,294 +2,575 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, Cloud, ExternalLink, Facebook, Globe, Linkedin, Twitter, User } from "lucide-react";
 
-export const industriesData = [
+const industriesData = [
   {
     id: "automotive",
     name: "Automotive",
-    title: "Automotive Solutions",
+    icon: "🚗",
+    bootstrapIcon: "bi-car-front-fill",
     description: "Manage dealership leads, customer inquiries, test drives, and after-sales service from one CRM.",
-    features: ["Lead Management", "Test Drive Scheduling", "Service Reminders", "Customer History"],
-    linkText: "Explore Automotive CRM →",
-    linkUrl: "#industry-automotive",
-    rightPanelTitle: "Supported Features",
-    rightPanelContent: ["Dealership pipeline", "Test drive bookings", "Service scheduler", "Inventory tracking", "Sales analytics"]
+    solutions: ["Lead Management", "Test Drive Scheduling", "Service Reminders", "Customer History"],
+    preview: {
+      title: "Automotive Dashboard Preview",
+      items: ["Dealership pipeline", "Test drive bookings", "Service scheduler", "Inventory tracking"],
+      metrics: [
+        { value: "+32%", label: "Lead Conversion" },
+        { value: "8,400", label: "Test Drives Logged" },
+        { value: "97%", label: "Satisfaction" }
+      ]
+    }
   },
   {
     id: "healthcare",
     name: "Healthcare",
-    title: "Healthcare CRM",
+    icon: "🏥",
+    bootstrapIcon: "bi-heart-pulse-fill",
     description: "Improve patient engagement and streamline healthcare operations with intelligent CRM automation.",
-    features: ["Patient Appointment Management", "Electronic Medical Records", "Automated Follow-ups", "Doctor Scheduling"],
-    linkText: "Explore Healthcare CRM →",
-    linkUrl: "#industry-healthcare",
-    rightPanelTitle: "Common Use Cases",
-    rightPanelContent: ["Doctor dashboard", "Patient analytics", "Appointment calendar", "KPI tracking", "Compliance management"]
+    solutions: ["Patient Appointment Management", "Electronic Medical Records", "Automated Follow-ups", "Doctor Scheduling", "AI Insights"],
+    preview: {
+      title: "Healthcare Dashboard Preview",
+      items: ["Doctor dashboard", "Patient analytics", "Appointment calendar", "KPI cards"],
+      metrics: [
+        { value: "+42%", label: "Engagement Growth" },
+        { value: "12,400", label: "Patients Managed" },
+        { value: "98%", label: "Patient Satisfaction" }
+      ]
+    }
   },
   {
     id: "retail",
     name: "Retail & eCommerce",
-    title: "Retail Solutions",
+    icon: "🛍",
+    bootstrapIcon: "bi-cart3",
     description: "Track customers, purchases, loyalty programs, and personalized marketing campaigns.",
-    features: ["Customer Profiles", "Purchase History", "Loyalty Rewards", "Marketing Automation"],
-    linkText: "Explore Retail CRM →",
-    linkUrl: "#industry-retail",
-    rightPanelTitle: "Benefits",
-    rightPanelContent: ["Increase repeat purchases", "Customer segmentation", "Revenue forecasting", "Product insights", "Campaign ROI"]
+    solutions: ["Customer Profiles", "Purchase History", "Loyalty Rewards", "Marketing Automation"],
+    preview: {
+      title: "Retail Dashboard Preview",
+      items: ["Sales analytics", "Customer segmentation", "Revenue chart", "Product insights"],
+      metrics: [
+        { value: "+54%", label: "Repeat Purchases" },
+        { value: "48,200", label: "Active Customers" },
+        { value: "95%", label: "CSAT Score" }
+      ]
+    }
   },
   {
     id: "finance",
     name: "Financial Services",
-    title: "Financial Services CRM",
+    icon: "💰",
+    bootstrapIcon: "bi-bank",
     description: "Manage client relationships securely while automating onboarding and compliance.",
-    features: ["Client Management", "Loan Pipeline", "Compliance Tracking", "Investment Portfolios"],
-    linkText: "Explore Financial CRM →",
-    linkUrl: "#industry-finance",
-    rightPanelTitle: "Supported Features",
-    rightPanelContent: ["Client dashboard", "Loan pipeline stages", "Investment tracking", "Compliance status", "Secure messaging"]
+    solutions: ["Client Management", "Loan Pipeline", "Compliance", "Investment Tracking"],
+    preview: {
+      title: "Financial Dashboard Preview",
+      items: ["Client dashboard", "Loan pipeline", "Investment chart", "Compliance status"],
+      metrics: [
+        { value: "+28%", label: "AUM Growth" },
+        { value: "3,150", label: "Clients Onboarded" },
+        { value: "99.4%", label: "Compliance Rate" }
+      ]
+    }
   },
   {
     id: "realestate",
     name: "Real Estate",
-    title: "Real Estate Solutions",
+    icon: "🏠",
+    bootstrapIcon: "bi-buildings-fill",
     description: "Capture property inquiries and convert prospects into successful property sales.",
-    features: ["Property Listings", "Buyer Tracking", "Site Visit Scheduling", "Deal Pipeline"],
-    linkText: "Explore Real Estate CRM →",
-    linkUrl: "#industry-realestate",
-    rightPanelTitle: "Common Use Cases",
-    rightPanelContent: ["Property CRM", "Buyer pipeline management", "Lead funnel optimization", "Deal staging", "Agent productivity tracking"]
+    solutions: ["Property Listings", "Buyer Tracking", "Site Visit Scheduling", "Deal Pipeline"],
+    preview: {
+      title: "Real Estate Dashboard Preview",
+      items: ["Property CRM", "Buyer pipeline", "Lead funnel", "Deal stages"],
+      metrics: [
+        { value: "+39%", label: "Deal Velocity" },
+        { value: "1,850", label: "Properties Listed" },
+        { value: "96%", label: "Agent Productivity" }
+      ]
+    }
   },
   {
     id: "education",
     name: "Education",
-    title: "Education CRM",
-    description: "Manage student admissions, inquiries, alumni engagement, and campus communication.",
-    features: ["Student Profiles", "Admission Pipeline", "Omnichannel Communication", "Custom Reports"],
-    linkText: "Explore Education CRM →",
-    linkUrl: "#industry-education",
-    rightPanelTitle: "Benefits",
-    rightPanelContent: ["Streamline enrollments", "Application funnel tracking", "Alumni engagement scoring", "Course analytics", "Automated reminders"]
+    icon: "🎓",
+    bootstrapIcon: "bi-mortarboard-fill",
+    description: "Manage student admissions, inquiries, alumni engagement, and communication.",
+    solutions: ["Student CRM", "Admission Pipeline", "Communication", "Reports"],
+    preview: {
+      title: "Education CRM Preview",
+      items: ["Student enrollment stats", "Application funnel", "Alumni engagement score", "Course analytics"],
+      metrics: [
+        { value: "+45%", label: "Enrollment Rate" },
+        { value: "15,600", label: "Students Managed" },
+        { value: "98.2%", label: "Retention Rate" }
+      ]
+    }
   },
   {
     id: "manufacturing",
     name: "Manufacturing",
-    title: "Manufacturing Solutions",
+    icon: "🏭",
+    bootstrapIcon: "bi-gear-fill",
     description: "Track distributors, suppliers, quotations, and customer orders efficiently.",
-    features: ["Distributor CRM", "Inventory Requests", "Sales Orders", "Service Requests"],
-    linkText: "Explore Manufacturing CRM →",
-    linkUrl: "#industry-manufacturing",
-    rightPanelTitle: "Supported Features",
-    rightPanelContent: ["Supply chain pipeline", "Order tracking systems", "Distributor metrics", "Quote funnel", "Delivery optimization"]
+    solutions: ["Distributor CRM", "Inventory Requests", "Sales Orders", "Service Requests"],
+    preview: {
+      title: "Manufacturing Portal Preview",
+      items: ["Supply chain pipeline", "Order tracking", "Distributor metrics", "Quote funnel"],
+      metrics: [
+        { value: "+26%", label: "Order Accuracy" },
+        { value: "180+", label: "Distributors Managed" },
+        { value: "94.8%", label: "On-time Delivery" }
+      ]
+    }
   },
   {
     id: "saas",
     name: "SaaS & Technology",
-    title: "SaaS CRM",
+    icon: "💻",
+    bootstrapIcon: "bi-cpu-fill",
     description: "Manage trial users, subscriptions, onboarding, and customer success.",
-    features: ["Trial Management", "Customer Success", "Subscription Tracking", "Support Tickets"],
-    linkText: "Explore SaaS CRM →",
-    linkUrl: "#industry-saas",
-    rightPanelTitle: "Common Use Cases",
-    rightPanelContent: ["Subscription MRR tracking", "Churn analytics", "Trial conversion funnel", "Support volume metrics", "Onboarding automation"]
+    solutions: ["Trial Management", "Customer Success", "Subscription Tracking", "Support Tickets"],
+    preview: {
+      title: "SaaS Console Preview",
+      items: ["Subscription MRR chart", "Churn stats", "Trial conversion funnel", "Support volume"],
+      metrics: [
+        { value: "+62%", label: "MRR Growth" },
+        { value: "98.5%", label: "NPS Score" },
+        { value: "3.2%", label: "Net Churn Rate" }
+      ]
+    }
+  },
+  {
+    id: "telecom",
+    name: "Telecommunications",
+    icon: "📞",
+    bootstrapIcon: "bi-broadcast-pin",
+    description: "Manage subscribers, support tickets, and customer lifecycle with AI automation.",
+    solutions: ["Customer Accounts", "Service Requests", "Billing Support", "Renewals"],
+    preview: {
+      title: "Telecom Analytics Preview",
+      items: ["Billing alerts", "Subscriber lifecycle", "Customer support ticket stats", "Plan renewal forecast"],
+      metrics: [
+        { value: "-18%", label: "Churn Reduction" },
+        { value: "320,000", label: "Subscribers" },
+        { value: "92%", label: "First-contact Resolution" }
+      ]
+    }
+  },
+  {
+    id: "travel",
+    name: "Travel & Hospitality",
+    icon: "🌍",
+    bootstrapIcon: "bi-airplane-fill",
+    description: "Deliver personalized booking experiences and manage guest relationships.",
+    solutions: ["Booking CRM", "Guest Profiles", "Promotions", "Loyalty Programs"],
+    preview: {
+      title: "Hospitality Dashboard Preview",
+      items: ["Booking analytics", "Guest loyalty segmentation", "Campaign ROI", "Room availability chart"],
+      metrics: [
+        { value: "+34%", label: "Direct Bookings" },
+        { value: "14,800", label: "Loyalty Members" },
+        { value: "97.5%", label: "Guest Rating" }
+      ]
+    }
   }
 ];
 
-export const customersData = [
+const customersData = [
   {
     id: "stories",
-    name: "Success Stories",
+    name: "Customer Success Stories",
+    icon: "📈",
+    bootstrapIcon: "bi-bar-chart-line-fill",
     title: "Customer Success Stories",
     description: "Discover how businesses use CRM Platform to automate sales, improve customer relationships, and accelerate revenue growth.",
-    features: ["Read detailed case studies", "Watch customer interviews", "Explore ROI metrics", "Learn implementation strategies"],
-    linkText: "Explore Success Stories →",
-    linkUrl: "#stories",
-    rightPanelTitle: "Featured Outcomes",
-    rightPanelContent: ["Increased sales velocity", "Reduced response times", "Improved customer retention", "Streamlined global operations"]
+    content: {
+      type: "list",
+      header: "Featured Stories",
+      items: [
+        { label: "TechNova Solutions", highlight: "Increased sales by 42%" },
+        { label: "RetailHub", highlight: "Reduced response time by 60%" },
+        { label: "HealthCare Plus", highlight: "Managed 50,000+ patient interactions" },
+        { label: "FinTrust Bank", highlight: "Improved customer retention by 35%" }
+      ],
+      linkText: "Explore All Success Stories →",
+      linkUrl: "#stories"
+    }
   },
   {
     id: "enterprise",
     name: "Enterprise Customers",
-    title: "Enterprise Solutions",
-    description: "Trusted by growing enterprises to manage millions of customer interactions every month securely.",
-    features: ["Dedicated account management", "Custom deployment options", "Advanced security protocols", "SLA guarantees"],
-    linkText: "View Enterprise Solutions →",
-    linkUrl: "#enterprise",
-    rightPanelTitle: "Recommended Modules",
-    rightPanelContent: ["Advanced Analytics", "Custom Workflows", "API Integrations", "Role-based Access Control", "Audit Logging"]
+    icon: "🏢",
+    bootstrapIcon: "bi-building-fill",
+    title: "Enterprise Customers",
+    description: "Trusted by growing enterprises to manage millions of customer interactions every month.",
+    content: {
+      type: "grid",
+      header: "Featured Companies",
+      items: ["TechNova", "RetailHub", "FinTrust", "Global Logistics", "EduSmart", "HealthCare Plus"],
+      linkText: "View Enterprise Solutions →",
+      linkUrl: "#enterprise"
+    }
+  },
+  {
+    id: "testimonials",
+    name: "Testimonials",
+    icon: "⭐",
+    bootstrapIcon: "bi-star-fill",
+    title: "Customer Testimonials",
+    description: "See what our users say about their experience with CRM Platform.",
+    content: {
+      type: "testimonial",
+      quote: "“CRM Platform transformed our sales workflow and increased our conversion rate by 45%.”",
+      author: "Sarah Johnson, Sales Director",
+      stars: 5,
+      linkText: "More Testimonials →",
+      linkUrl: "#testimonials"
+    }
   },
   {
     id: "case-studies",
-    name: "Case Studies",
+    name: "Industry Case Studies",
+    icon: "📚",
+    bootstrapIcon: "bi-journal-text",
     title: "Industry Case Studies",
     description: "Deep dives into how specific sectors implement CRM solutions for maximum business impact.",
-    features: ["Retail CRM Implementation", "Healthcare Data Security", "Financial Services Workflows", "Manufacturing Supply Chain"],
-    linkText: "Read Case Studies →",
-    linkUrl: "#case-studies",
-    rightPanelTitle: "Common Use Cases",
-    rightPanelContent: ["Pipeline optimization", "Lead scoring models", "Automated marketing campaigns", "Support ticket resolution"]
+    content: {
+      type: "list",
+      header: "Case Studies by Industry",
+      items: [
+        { label: "Retail CRM Success Guide" },
+        { label: "Healthcare CRM Implementation" },
+        { label: "Financial Services Trust Metrics" },
+        { label: "Manufacturing & Supply Integration" },
+        { label: "Real Estate Property Funnels" }
+      ],
+      linkText: "Read Case Studies →",
+      linkUrl: "#case-studies"
+    }
+  },
+  {
+    id: "videos",
+    name: "Video Reviews",
+    icon: "🎥",
+    bootstrapIcon: "bi-play-btn-fill",
+    title: "Customer Video Reviews",
+    description: "Watch our customers share how they scaled operations and automated workflows with CRM Platform.",
+    content: {
+      type: "list",
+      header: "Video Library Highlights",
+      items: [
+        { label: "TechNova Interview", highlight: "5 mins video" },
+        { label: "RetailHub Journey", highlight: "3 mins video" },
+        { label: "FinTrust Deployment", highlight: "8 mins video" }
+      ],
+      linkText: "Watch Video Library →",
+      linkUrl: "#videos"
+    }
+  },
+  {
+    id: "partners",
+    name: "Partner Success",
+    icon: "🤝",
+    bootstrapIcon: "bi-handshake",
+    title: "Partner Success",
+    description: "Learn how our consulting and technology partners help customers deploy and succeed.",
+    content: {
+      type: "list",
+      header: "Partner Ecosystem",
+      items: [
+        { label: "Consulting Partners & integrators" },
+        { label: "App Exchange Developers" },
+        { label: "Managed Service Providers" }
+      ],
+      linkText: "Explore Partner Directory →",
+      linkUrl: "#partners"
+    }
   }
 ];
 
-export const learningData = [
+const learningData = [
   {
     id: "basics",
     name: "CRM Basics",
+    icon: "📚",
+    bootstrapIcon: "bi-book-fill",
     title: "CRM Fundamentals",
     description: "Learn the core concepts of Customer Relationship Management and how it helps align teams and build relationships.",
-    features: ["What is a CRM system?", "Key components of CRM", "Benefits of centralizing customer data", "Getting started checklist"],
-    linkText: "Start Learning →",
-    linkUrl: "#learning-basics",
-    rightPanelTitle: "Supported Topics",
-    rightPanelContent: ["Contact Management", "Deal Pipelines", "Task Tracking", "Basic Reporting", "User Permissions"]
+    modules: ["What is a CRM system?", "Key components of CRM", "Benefits of centralizing customer data", "Getting started checklist"]
   },
   {
     id: "academy",
     name: "AI CRM Academy",
+    icon: "🤖",
+    bootstrapIcon: "bi-cpu-fill",
     title: "AI Workflow Automation",
     description: "Master artificial intelligence in CRM, from automated replies to smart pipeline insights and predictions.",
-    features: ["AI-powered lead scoring", "Predictive sales forecasts", "Automating repetitive follow-ups", "AI chatbot configuration"],
-    linkText: "Explore AI Academy →",
-    linkUrl: "#learning-academy",
-    rightPanelTitle: "Benefits",
-    rightPanelContent: ["Reduce manual data entry", "Identify high-value leads", "Forecast revenue accurately", "Enhance customer engagement"]
+    modules: ["AI-powered lead scoring", "Predictive sales forecasts", "Automating repetitive follow-ups", "AI chatbot configuration"]
   },
   {
-    id: "certification",
-    name: "Certification",
-    title: "Professional Certifications",
-    description: "Validate your skills and earn badges by completing CRM Platform training modules and passing certification exams.",
-    features: ["Sales Professional Exam", "Administrator Certification", "Automation Specialist Exam", "Developer Certification"],
-    linkText: "View Certifications →",
-    linkUrl: "#learning-certification",
-    rightPanelTitle: "Recommended Paths",
-    rightPanelContent: ["For Sales Reps", "For CRM Administrators", "For IT Managers", "For Marketing Specialists", "For Developers"]
+    id: "videos",
+    name: "Video Tutorials",
+    icon: "🎥",
+    bootstrapIcon: "bi-play-circle-fill",
+    title: "Interactive Video Library",
+    description: "Step-by-step visual guides showing how to configure your sales pipeline and build custom automation workflows.",
+    modules: ["Vite deployment walkthrough (3 mins)", "Pipeline stage configuration (5 mins)", "Integrating email systems (4 mins)", "Running reports & dashboards (6 mins)"]
+  },
+  {
+    id: "blog",
+    name: "Blog & Articles",
+    icon: "📝",
+    bootstrapIcon: "bi-pencil-square",
+    title: "Sales Insights & Trends",
+    description: "Read the latest research, articles, and thought leadership pieces from CRM experts and industry leaders.",
+    modules: ["Sales forecasting best practices", "Reducing customer churn rates", "How AI is changing B2B sales", "Startups growth hacks"]
   },
   {
     id: "docs",
     name: "Documentation",
+    icon: "📖",
+    bootstrapIcon: "bi-file-earmark-text-fill",
     title: "Technical Documentation",
     description: "Detailed setup guides, server installation parameters, security protocols, and advanced admin settings.",
-    features: ["Installation guidelines", "Database synchronization", "User role permissions", "Security & data privacy protocols"],
-    linkText: "Read Documentation →",
-    linkUrl: "#learning-docs",
-    rightPanelTitle: "Key Areas",
-    rightPanelContent: ["API Reference", "SDK Guides", "Authentication", "Webhooks", "Data Migration"]
-  }
-];
-
-export const supportData = [
-  {
-    id: "help",
-    name: "Help Center",
-    title: "Knowledge Base",
-    description: "Search thousands of helpful guides, tips, and step-by-step documentation articles for CRM Platform.",
-    features: ["Setting Up Your CRM", "Importing Customer Data", "Managing Sales Pipelines", "AI Automation Setup"],
-    linkText: "Visit Help Center →",
-    linkUrl: "#support-help",
-    rightPanelTitle: "Popular Categories",
-    rightPanelContent: ["Getting Started", "Account & Billing", "Integrations", "Troubleshooting", "Best Practices"]
+    modules: ["Installation guidelines", "Database synchronization", "User role permissions", "Security & data privacy protocols"]
   },
   {
-    id: "contact",
-    name: "Contact Support",
-    title: "Get in Touch",
-    description: "Reach out to our dedicated support team for technical assistance, billing inquiries, or strategic advice.",
-    features: ["24/7 Global Support", "Live Chat Assistance", "Priority Phone Routing", "Dedicated Success Managers"],
-    linkText: "Contact Us →",
-    linkUrl: "#support-contact",
-    rightPanelTitle: "Support Channels",
-    rightPanelContent: ["Live Chat (Instant)", "Email (Under 2 hours)", "Phone (Toll-Free)", "Community Forum", "Submit a Ticket"]
+    id: "practices",
+    name: "Best Practices",
+    icon: "💡",
+    bootstrapIcon: "bi-lightbulb-fill",
+    title: "CRM Best Practices",
+    description: "Proven tips and strategies to increase CRM adoption rates, clean customer data, and boost sales efficiency.",
+    modules: ["CRM data cleanup checklists", "Increasing rep adoption rates", "Designing clear deal pipelines", "Optimizing contact profiles"]
+  },
+  {
+    id: "guides",
+    name: "Product Guides",
+    icon: "🚀",
+    bootstrapIcon: "bi-rocket-takeoff-fill",
+    title: "Interactive Product Guides",
+    description: "Deep dives into specific features of CRM Platform, including contact management, email tracking, and AI insights.",
+    modules: ["Lead management workbook", "Email tracking setups", "AI Sales Assistant configuration", "Custom dashboard guides"]
+  },
+  {
+    id: "certification",
+    name: "CRM Certification",
+    icon: "🏅",
+    bootstrapIcon: "bi-award-fill",
+    title: "Professional Certifications",
+    description: "Validate your skills and earn badges by completing CRM Platform training modules and passing certification exams.",
+    modules: ["Sales Professional Exam", "Administrator Certification", "Automation Specialist Exam", "Developer Certification"]
+  },
+  {
+    id: "api",
+    name: "Developer API Guides",
+    icon: "👨💻",
+    bootstrapIcon: "bi-terminal-fill",
+    title: "REST APIs & Developer Tools",
+    description: "Connect external software, synchronize databases, and build custom applications on top of CRM Platform API.",
+    modules: ["API Authentication setup", "Webhook listener endpoints", "Syncing contact databases", "Rate limiting policies"]
   },
   {
     id: "community",
     name: "Community Forum",
-    title: "User Community",
+    icon: "💬",
+    bootstrapIcon: "bi-chat-left-text-fill",
+    title: "Join the CRM Forum",
     description: "Connect with thousands of users, developers, and administrators to share ideas, ask questions, and collaborate.",
-    features: ["Developer discussion groups", "Sales rep community chats", "Feature request portal", "Local user groups"],
-    linkText: "Join the Community →",
-    linkUrl: "#support-community",
-    rightPanelTitle: "Trending Topics",
-    rightPanelContent: ["Customizing Dashboards", "Advanced Automation Rules", "Third-party Integrations", "New Feature Announcements"]
+    modules: ["Developer discussion groups", "Sales rep community chats", "Feature request portal", "Local user groups"]
   }
 ];
 
-export const companyData = [
+const supportData = [
+  {
+    id: "help",
+    name: "Help Center",
+    icon: "🆘",
+    bootstrapIcon: "bi-question-circle-fill",
+    title: "Browse Knowledge Base",
+    description: "Search thousands of helpful guides, tips, and step-by-step documentation articles for CRM Platform.",
+    topics: ["Setting Up Your CRM", "Importing Customer Data", "Managing Sales Pipelines", "AI Automation Setup"]
+  },
+  {
+    id: "docs",
+    name: "Documentation",
+    icon: "📖",
+    bootstrapIcon: "bi-file-earmark-text-fill",
+    title: "Technical Documentation",
+    description: "Read detailed integration references, configuration settings, user roles, and security policies.",
+    topics: ["User Roles & Permissions", "API Integration Guide", "Database synchronization", "Security & data privacy"]
+  },
+  {
+    id: "chat",
+    name: "Live Chat Support",
+    icon: "💬",
+    bootstrapIcon: "bi-chat-dots-fill",
+    title: "Chat with an Agent 24/7",
+    description: "Start a real-time conversation with our support specialists. Average response time is under 15 minutes.",
+    topics: ["Real-time troubleshooting", "Billing & plan questions", "Feature walkthrough requests", "API debugging support"]
+  },
+  {
+    id: "ticket",
+    name: "Submit a Support Ticket",
+    icon: "🎫",
+    bootstrapIcon: "bi-ticket-detailed-fill",
+    title: "Create Support Case",
+    description: "Open a support ticket with our engineering team for complex queries or technical issues.",
+    topics: ["Track existing tickets", "Urgent bug reports", "Feature request submissions", "Account access recovery"]
+  },
+  {
+    id: "tutorials",
+    name: "Video Tutorials",
+    icon: "📺",
+    bootstrapIcon: "bi-tv-fill",
+    title: "Video Learning Library",
+    description: "Watch short screencasts and interactive video guides demonstrating how to configure automation workflows.",
+    topics: ["Workflow automation setup", "Custom deal stages guide", "Configuring lead ingestion", "Email client integration"]
+  },
+  {
+    id: "trouble",
+    name: "Troubleshooting Guides",
+    icon: "🔧",
+    bootstrapIcon: "bi-tools",
+    title: "Self-Service Troubleshooting",
+    description: "Find instant solutions for common configuration challenges, syncing issues, or permission mismatches.",
+    topics: ["SMTP email sync problems", "CSV import error codes", "API rate limiting fixes", "UI dashboard loading lags"]
+  },
+  {
+    id: "status",
+    name: "System Status",
+    icon: "⚙️",
+    bootstrapIcon: "bi-activity",
+    title: "All Systems Operational",
+    description: "Check the current operational status of the CRM platform, cloud databases, and API integrations.",
+    topics: ["Platform uptime history", "Scheduled maintenance alerts", "API performance metrics", "Database response speeds"]
+  },
+  {
+    id: "contact",
+    name: "Contact Support",
+    icon: "📞",
+    bootstrapIcon: "bi-telephone-fill",
+    title: "Get in Touch Directly",
+    description: "Contact our dedicated support helpdesk by phone or direct email address for immediate assistance.",
+    topics: ["Toll-free hotline numbers", "Direct email support links", "Enterprise support manager contacts", "Local office addresses"]
+  },
+  {
+    id: "dev",
+    name: "Developer Support",
+    icon: "👨💻",
+    bootstrapIcon: "bi-terminal-fill",
+    title: "Developer Help Center",
+    description: "Developer resources, SDK documentation, code samples, webhook setups, and API keys help.",
+    topics: ["REST API endpoint specs", "Webhook debugger tools", "Client SDK libraries", "Sandbox environment setups"]
+  },
+  {
+    id: "enterprise",
+    name: "Enterprise Support",
+    icon: "🏢",
+    bootstrapIcon: "bi-building-fill",
+    title: "Priority Enterprise Desk",
+    description: "Exclusive priority support channels for our Enterprise customers including dedicated customer managers.",
+    topics: ["Dedicated account managers", "SLA policy definitions", "Custom onboarding services", "On-premise deployment help"]
+  }
+];
+
+const companyData = [
   {
     id: "about",
-    name: "About Us",
-    title: "Our Mission",
-    description: "We are building the future of customer relationship management, focusing on simplicity, automation, and AI-driven insights.",
-    features: ["Our Founding Story", "Core Values & Culture", "Leadership Team", "Global Offices"],
-    linkText: "Learn About Us →",
-    linkUrl: "#company-about",
-    rightPanelTitle: "Company Highlights",
-    rightPanelContent: ["Over 10,000 customers globally", "Recognized as an industry leader", "Commitment to data privacy", "Continuous innovation"]
+    name: "About CRM Platform",
+    icon: "🏢",
+    bootstrapIcon: "bi-info-square-fill",
+    title: "About Our Company",
+    description: "CRM Platform helps businesses automate sales, strengthen customer relationships, and accelerate growth through intelligent CRM technology. Trusted by thousands of growing companies worldwide.",
+    links: ["Meet Our Team", "Explore Careers", "Read Company Blog", "Partner With Us"]
+  },
+  {
+    id: "mission",
+    name: "Our Mission & Vision",
+    icon: "🌟",
+    bootstrapIcon: "bi-bullseye",
+    title: "Our Mission & Vision",
+    description: "To connect businesses with their customers in a whole new way using artificial intelligence, making customer relationships more human and automated at the same time.",
+    links: ["Read our story", "AI Ethics statement", "Product roadmap", "Executive letters"]
+  },
+  {
+    id: "values",
+    name: "Our Values",
+    icon: "💙",
+    bootstrapIcon: "bi-heart-fill",
+    title: "Trust, Innovation & Success",
+    description: "We are guided by four core values: Trust, Customer Success, Continuous Innovation, and Equality for all stakeholders.",
+    links: ["Our values booklet", "Customer success stories", "Diversity & inclusion", "Community outreach"]
+  },
+  {
+    id: "team",
+    name: "Leadership Team",
+    icon: "👥",
+    bootstrapIcon: "bi-people-fill",
+    title: "Our Executive Leadership",
+    description: "Meet the visionary leaders and experts guiding CRM Platform's strategy and technological innovation.",
+    links: ["Board of Directors", "Advisory council", "Our founders", "Executive bios"]
   },
   {
     id: "careers",
     name: "Careers",
-    title: "Join Our Team",
-    description: "Explore opportunities to work with a passionate team dedicated to solving complex problems and empowering businesses.",
-    features: ["Engineering & Product", "Sales & Marketing", "Customer Success", "Operations & Finance"],
-    linkText: "View Open Roles →",
-    linkUrl: "#company-careers",
-    rightPanelTitle: "Benefits & Perks",
-    rightPanelContent: ["Comprehensive Health Coverage", "Flexible Remote Work", "Continuous Learning Stipend", "Equity Options", "Generous PTO"]
+    icon: "💼",
+    bootstrapIcon: "bi-briefcase-fill",
+    title: "Join Our Global Team",
+    description: "Build the future of CRM with us. We are always looking for passionate engineers, designers, sales reps, and customer success heroes.",
+    links: ["Open positions", "Life at CRM Platform", "Benefits & perks", "Internship programs"]
   },
   {
     id: "news",
-    name: "Newsroom",
-    title: "Latest Updates",
-    description: "Stay up to date with the latest company announcements, product releases, and industry insights.",
-    features: ["Press Releases", "Media Mentions", "Brand Assets", "Upcoming Events"],
-    linkText: "Visit Newsroom →",
-    linkUrl: "#company-news",
-    rightPanelTitle: "Recent Announcements",
-    rightPanelContent: ["Launch of AI Copilot", "Expansion into European Markets", "New Enterprise Security Features", "Annual Partner Summit"]
-  }
-];
-
-export const crmData = [
-  {
-    id: "overview",
-    name: "CRM Overview",
-    title: "What is CRM?",
-    description: "Customer Relationship Management software helps businesses manage interactions, track sales, and improve relationships.",
-    features: ["Centralized Customer Database", "Sales Pipeline Management", "Automated Workflows", "Performance Analytics"],
-    linkText: "Explore CRM Benefits →",
-    linkUrl: "#crm-overview",
-    rightPanelTitle: "Core Capabilities",
-    rightPanelContent: ["Lead Tracking", "Contact Management", "Deal Forecasting", "Email Integration", "Task Management"]
+    name: "News & Press",
+    icon: "📰",
+    bootstrapIcon: "bi-newspaper",
+    title: "Press Releases & News room",
+    description: "Stay up to date with CRM Platform product launches, corporate announcements, feature reports, and press coverage.",
+    links: ["Press kit downloads", "Media contacts", "News archive", "Award certifications"]
   },
   {
-    id: "sales",
-    name: "Sales Hub",
-    title: "Accelerate Sales",
-    description: "Empower your sales team with tools to close deals faster, from prospecting to signing contracts.",
-    features: ["Lead Scoring", "Email Tracking", "Quote Generation", "Sales Forecasting"],
-    linkText: "Explore Sales Hub →",
-    linkUrl: "#crm-sales",
-    rightPanelTitle: "Common Use Cases",
-    rightPanelContent: ["B2B Sales Cycles", "Account-Based Marketing", "Field Sales Tracking", "Inside Sales Workflows"]
+    id: "partners",
+    name: "Partners & Affiliates",
+    icon: "🤝",
+    bootstrapIcon: "bi-handshake",
+    title: "Partner Ecosystem",
+    description: "Collaborate, integrate, and grow with CRM Platform. Join our global affiliate network or consulting integrations desk.",
+    links: ["Consulting integrations", "Developer portal", "Affiliate sign up", "Directory listings"]
   },
   {
-    id: "service",
-    name: "Service Hub",
-    title: "Elevate Support",
-    description: "Provide exceptional customer service with a unified help desk, ticketing system, and knowledge base.",
-    features: ["Ticketing System", "Live Chat", "Customer Feedback", "Knowledge Base Builder"],
-    linkText: "Explore Service Hub →",
-    linkUrl: "#crm-service",
-    rightPanelTitle: "Benefits",
-    rightPanelContent: ["Decrease response times", "Improve customer satisfaction", "Automate ticket routing", "Self-service empowerment"]
+    id: "sustain",
+    name: "Sustainability & Impact",
+    icon: "🌍",
+    bootstrapIcon: "bi-globe",
+    title: "Sustainability & Social Impact",
+    description: "We are committed to building a sustainable future. We donate 1% of equity, product, and employee time to non-profits.",
+    links: ["Net-zero carbon pledge", "Community donations", "Volunteer highlights", "Annual impact report"]
+  },
+  {
+    id: "legal",
+    name: "Legal & Compliance",
+    icon: "⚖️",
+    bootstrapIcon: "bi-shield-check",
+    title: "Trust & Security Center",
+    description: "Review our service terms, privacy policies, GDPR compliance declarations, and security certifications.",
+    links: ["GDPR & CCPA policies", "Terms of service", "Data processing agreement", "Security compliance"]
+  },
+  {
+    id: "contact",
+    name: "Contact Us",
+    icon: "📞",
+    bootstrapIcon: "bi-envelope-fill",
+    title: "Get In Touch",
+    description: "Reach out to our offices, sales departments, or media relations division for custom inquiries and assistance.",
+    links: ["Sales inquiries", "Media relations", "Global office locations", "Support hotline"]
   }
 ];
-
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [crmDropdownOpen, setCrmDropdownOpen] = useState(false);
-    const [activeCrmTab, setActiveCrmTab] = useState("overview");
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const [activeIndustryId, setActiveIndustryId] = useState("automotive");
   const [customersDropdownOpen, setCustomersDropdownOpen] = useState(false);
@@ -300,7 +581,6 @@ function Navbar() {
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [activeSupportTab, setActiveSupportTab] = useState("help");
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
-    const [activeCompanyTab, setActiveCompanyTab] = useState("about");
   const handleTourClick = (e) => {
     e.preventDefault();
     window.dispatchEvent(new Event("open-product-tour"));
@@ -966,1846 +1246,207 @@ function Navbar() {
   }
 }
 
-/* Industries Mega Menu Specifics */
-.industries-mega {
-  width: 960px;
-  left: -210px !important;
-  transform: none !important;
-  animation: megaFadeInIndustries 150ms ease-out both !important;
-}
-
-.industries-mega .mega-dropdown-arrow {
-  left: 245px !important;
-  transform: rotate(45deg) !important;
-}
-
-@keyframes megaFadeInIndustries {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.industries-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.industries-mega-inner {
-  display: grid;
-  grid-template-columns: 240px 1.1fr 1fr;
-  height: 480px;
-}
-
-/* Sidebar List */
-.industries-sidebar {
-  background: #F8FAFC;
-  border-right: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.industry-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 11px 20px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-  border-left: 3px solid transparent;
-}
-
-.industry-btn:hover {
-  background: #EDF2F7;
-  color: #0176D3;
-}
-
-.industry-btn.active {
-  background: #EFF6FF;
-  color: #0176D3;
-  border-left-color: #0176D3;
-  padding-left: 17px;
-}
-
-.industry-btn-icon {
-  margin-right: 10px;
-  font-size: 16px;
-}
-
-.industry-btn-name {
-  flex: 1;
-}
-
-.industry-btn-arrow {
-  color: #A0AEC0;
-  font-size: 16px;
-}
-
-.industry-btn.active .industry-btn-arrow {
-  color: #0176D3;
-}
-
-/* Middle Details Panel */
-.industries-middle-panel {
-  padding: 28px;
-  border-right: 1px solid #E2E8F0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
+/* Standardized Mega Menu Styles */
+.mega-dropdown-card {
   background: #FFFFFF;
-}
-
-.industry-details {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.industry-details h3 {
-  font-size: 18px;
-  font-weight: 800;
-  color: #032D60;
-  margin: 0;
-}
-
-.industry-desc {
-  font-size: 13px;
-  color: #4A5568;
-  line-height: 1.6;
-  margin: 0;
-}
-
-.industry-solutions-list {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.industry-solutions-list h4 {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.05em;
-}
-
-.industry-solutions-list ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.industry-solutions-list li {
-  font-size: 13px;
-  color: #2D3748;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.industry-solutions-list li::before {
-  content: "•";
-  color: #0176D3;
-  font-weight: bold;
-}
-
-.industry-cta-link {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0176D3;
-  text-decoration: none;
-  margin-top: 8px;
-  transition: color 150ms ease;
-}
-
-.industry-cta-link:hover {
-  color: #032D60;
-  text-decoration: underline;
-}
-
-/* Right Preview Panel */
-.industries-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-.industry-preview {
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  height: 100%;
-}
-
-.preview-visualization {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
   border-radius: 8px;
-  padding: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.02);
-  transition: transform 300ms ease;
-}
-
-.preview-visualization:hover {
-  transform: scale(1.02);
-}
-
-.visualization-header {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  border-bottom: 1px solid #F3F4F6;
-  padding-bottom: 10px;
-}
-
-.viz-dot {
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: #CBD5E0;
-}
-
-.viz-title {
-  font-size: 10px;
-  font-weight: 700;
-  color: #718096;
-  margin-left: 6px;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.visualization-body {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.viz-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  font-size: 12.5px;
-  color: #4A5568;
-  font-weight: 500;
-}
-
-.viz-checkbox {
-  color: #10B981;
-  font-weight: bold;
-}
-
-/* Metrics Section */
-.preview-metrics {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 8px;
-}
-
-.metric-box {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  background: #FFFFFF;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.12);
   border: 1px solid #E2E8F0;
-  border-radius: 6px;
-  padding: 8px 4px;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.01);
-}
-
-.metric-value {
-  font-size: 13.5px;
-  font-weight: 800;
-  color: #0176D3;
-}
-
-.metric-label {
-  font-size: 8.5px;
-  color: #718096;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-top: 2px;
-  line-height: 1.2;
-}
-
-/* Action Buttons */
-.preview-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: auto;
-}
-
-.preview-btn-primary {
-  background: #0176D3;
-  color: #FFFFFF !important;
-  text-align: center;
-  padding: 9px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: background 150ms ease;
-}
-
-.preview-btn-primary:hover {
-  background: #014486;
-}
-
-.preview-btn-secondary {
-  border: 1.5px solid #CBD5E0;
-  color: #4A5568 !important;
-  text-align: center;
-  padding: 8px;
-  border-radius: 4px;
-  font-size: 13px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 150ms ease;
-  background: #FFFFFF;
-}
-
-.preview-btn-secondary:hover {
-  background: #EDF2F7;
-  border-color: #A0AEC0;
-}
-
-/* Animations */
-.animate-fade-in {
-  animation: megaPanelFade 200ms ease-out both;
-}
-
-@keyframes megaPanelFade {
-  from {
-    opacity: 0;
-    transform: translateY(4px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Customers Mega Menu Specifics */
-.customers-mega {
-  width: 960px;
-  left: -320px !important;
-  transform: none !important;
-  animation: megaFadeInCustomers 150ms ease-out both !important;
-}
-
-.customers-mega .mega-dropdown-arrow {
-  left: 345px !important; /* Aligns directly with Customers link center */
-  transform: rotate(45deg) !important;
-}
-
-.customers-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.customers-mega-inner {
-  display: grid;
-  grid-template-columns: 240px 1.1fr 1fr;
-  height: 480px;
-}
-
-/* Left Sidebar tabs */
-.customers-sidebar {
-  background: #F8FAFC;
-  border-right: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.customer-tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 11px 20px;
-  border: none;
-  background: transparent;
   width: 100%;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-  border-left: 3px solid transparent;
+  position: relative;
+  display: flex;
+  flex-direction: column;
 }
 
-.customer-tab-btn:hover {
-  background: #EDF2F7;
-  color: #0176D3;
-}
-
-.customer-tab-btn.active {
-  background: #EFF6FF;
-  color: #0176D3;
-  border-left-color: #0176D3;
-  padding-left: 17px;
-}
-
-.customer-tab-arrow {
-  color: #0176D3;
-  font-size: 16px;
-}
-
-.customer-tab-link {
+/* Top Horizontal Tabs */
+.mega-top-tabs {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 11px 20px;
-  text-decoration: none;
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-}
-
-.customer-tab-link:hover {
-  background: #EDF2F7;
-  color: #0176D3;
-}
-
-.customer-tab-link .ext-icon {
-  color: #A0AEC0;
-  margin-top: 2px;
-}
-
-.customer-tab-link:hover .ext-icon {
-  color: #0176D3;
-}
-
-/* Middle success banner panel */
-.customers-middle-panel {
-  display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-  overflow: hidden;
-  border-right: 1px solid #E2E8F0;
-}
-
-.customer-tab-icon {
-  display: inline-block;
-  font-size: 16px;
-}
-
-.customer-tab-name {
-  display: flex;
-  align-items: center;
-}
-
-/* Middle details override */
-.customer-details-wrapper {
-  padding: 28px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.customer-details-wrapper h3 {
-  font-size: 18px;
-  font-weight: 800;
-  color: #032D60;
-  margin: 0 0 4px 0;
-}
-
-.customer-details-desc {
-  font-size: 13px;
-  color: #4A5568;
-  line-height: 1.5;
-  margin: 0 0 16px 0;
-}
-
-.customer-tab-content-block {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  flex: 1;
-}
-
-.customer-tab-content-block h4 {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.05em;
-}
-
-.customer-stories-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.customer-stories-ul li {
-  font-size: 13px;
-  color: #2D3748;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.customer-stories-ul li::before {
-  content: "•";
-  color: #0176D3;
-  font-weight: bold;
-}
-
-.story-company {
-  font-weight: 700;
-  color: #032D60;
-}
-
-.story-stat {
-  color: #4A5568;
-}
-
-.enterprise-logos-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-}
-
-.enterprise-logo-box {
+  border-bottom: 1px solid #E2E8F0;
+  padding: 0 32px;
   background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  padding: 12px 6px;
-  text-align: center;
-  border-radius: 6px;
-  font-size: 12px;
-  font-weight: 700;
-  color: #4A5568;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.01);
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
 }
 
-.testimonial-card {
-  background: #F8FAFC;
-  border: 1px solid #E2E8F0;
-  padding: 16px;
-  border-radius: 8px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.testimonial-quote {
-  font-size: 13px;
-  font-style: italic;
-  color: #2D3748;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.testimonial-author {
-  font-size: 11px;
-  color: #718096;
-  font-weight: 700;
-}
-
-.testimonial-stars {
-  color: #FBBF24;
+.mega-tab-btn {
+  background: transparent;
+  border: none;
+  padding: 16px 24px;
   font-size: 14px;
-  display: flex;
-  gap: 2px;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.2s ease;
+  flex: 1;
+  text-align: center;
 }
 
-.star-icon {
-  margin: 0;
-}
-
-.customer-details-cta {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #0176D3;
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: 12px;
-  transition: color 150ms ease;
-}
-
-.customer-details-cta:hover {
+.mega-tab-btn:hover {
   color: #032D60;
+}
+
+.mega-tab-btn.active {
+  color: #0056D2;
+}
+
+.mega-tab-btn::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: #0056D2;
+  transform: scaleX(0);
+  transition: transform 0.2s ease;
+}
+
+.mega-tab-btn.active::after {
+  transform: scaleX(1);
+}
+
+/* 3-Column Content Layout */
+.mega-content-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr;
+  padding: 32px;
+  gap: 48px;
+}
+
+/* Column 1: Description & CTA */
+.mega-col-1 h3 {
+  font-size: 22px;
+  font-weight: 700;
+  color: #032D60;
+  margin-bottom: 12px;
+}
+
+.mega-desc {
+  font-size: 15px;
+  color: #475569;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+
+.mega-cta-link {
+  display: inline-flex;
+  align-items: center;
+  color: #0056D2;
+  font-weight: 600;
+  text-decoration: none;
+  font-size: 15px;
+  transition: color 0.2s ease;
+}
+
+.mega-cta-link:hover {
+  color: #0043A8;
   text-decoration: underline;
 }
 
-/* Right Panel Overrides */
-.customers-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-}
-
-.customers-right-header {
-  display: flex;
-  justify-content: flex-end;
-}
-
-.know-more-link {
-  color: #0176D3 !important;
-  font-size: 12.5px;
+/* Column 2 & 3 Titles */
+.mega-col-title {
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748B;
+  margin-bottom: 20px;
   font-weight: 700;
-  text-decoration: none;
 }
 
-.featured-customer-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 20px;
+/* Features List (Checkmarks) */
+.mega-feature-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-  margin-top: auto;
-  margin-bottom: auto;
 }
 
-.featured-card-header {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.featured-card-eyebrow {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.featured-card-header h4 {
-  font-size: 14.5px;
-  font-weight: 800;
-  color: #032D60;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.featured-card-checklist {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.check-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: #4A5568;
-  font-weight: 600;
-}
-
-.check-bullet {
-  color: #10B981;
-  font-weight: bold;
-}
-
-.featured-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Bottom Metric Footer */
-.customers-mega-footer {
-  grid-column: span 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
-  padding: 16px 28px;
-}
-
-.footer-metric {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  flex: 1;
-}
-
-.metric-num {
-  font-size: 16px;
-  font-weight: 800;
-  color: #032D60;
-}
-
-.metric-lbl {
-  font-size: 10px;
-  color: #718096;
-  font-weight: 700;
-  text-transform: uppercase;
-  margin-top: 2px;
-  letter-spacing: 0.05em;
-}
-
-.footer-metric-divider {
-  width: 1px;
-  height: 28px;
-  background: #E2E8F0;
-}
-
-@keyframes megaFadeInCustomers {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Resources Mega Menu Specifics */
-.resources-mega {
-  width: 960px;
-  left: -430px !important;
-  transform: none !important;
-  animation: megaFadeInResources 150ms ease-out both !important;
-}
-
-.resources-mega .mega-dropdown-arrow {
-  left: 455px !important; /* Aligns directly with Resources link center */
-  transform: rotate(45deg) !important;
-}
-
-.resources-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.resources-mega-inner {
-  display: grid;
-  grid-template-columns: 1.65fr 1fr;
-  height: 480px;
-}
-
-/* Left Panel - Grid of 10 links */
-.resources-left-panel {
-  padding: 28px;
-  background: #FFFFFF;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-}
-
-.resources-left-panel h3 {
-  font-size: 16px;
-  font-weight: 800;
-  color: #032D60;
-  margin: 0;
-}
-
-.resources-links-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 16px 24px;
-}
-
-.resource-link-item {
+.mega-feature-list li {
   display: flex;
   align-items: flex-start;
-  gap: 12px;
-  text-decoration: none;
-  transition: all 150ms ease;
-  padding: 8px;
-  border-radius: 8px;
-}
-
-.resource-link-item:hover {
-  background: #EFF6FF;
-}
-
-.resource-link-icon {
-  font-size: 20px;
-  margin-top: 2px;
-  display: inline-block;
-}
-
-.resource-link-text {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.resource-link-text h5 {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #032D60;
-  margin: 0;
-  transition: color 150ms ease;
-}
-
-.resource-link-text p {
-  font-size: 11.5px;
-  color: #718096;
-  margin: 0;
-  line-height: 1.45;
-}
-
-.resource-link-item:hover h5 {
-  color: #0176D3;
-}
-
-/* Right Panel - Featured guide card */
-.resources-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  border-left: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.featured-guide-card {
-  background: #FFFFFF;
-  border: 1px solid #E2E8F0;
-  border-radius: 12px;
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.02);
-}
-
-.guide-eyebrow {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: #0176D3;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.featured-guide-card h4 {
-  font-size: 16px;
-  font-weight: 800;
-  color: #032D60;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.guide-desc {
-  font-size: 12.5px;
-  color: #4A5568;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.guide-highlights {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.guide-hl-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: #4A5568;
-  font-weight: 600;
-}
-
-.guide-hl-icon {
-  font-size: 14px;
-}
-
-.guide-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-top: 4px;
-}
-
-@keyframes megaFadeInResources {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Hide default scrollbars in all mega dropdown panels for a clean, natural look */
-.mega-dropdown-inner,
-.industries-sidebar,
-.industries-middle-panel,
-.industries-right-panel,
-.customers-sidebar,
-.customers-middle-panel,
-.customers-right-panel,
-.resources-left-panel,
-.resources-right-panel,
-.learning-sidebar,
-.learning-middle-panel,
-.learning-right-panel,
-.support-sidebar,
-.support-middle-panel,
-.support-right-panel,
-.company-sidebar,
-.company-middle-panel,
-.company-right-panel {
-  -ms-overflow-style: none !important;  /* IE and Edge */
-  scrollbar-width: none !important;  /* Firefox */
-}
-
-.mega-dropdown-inner::-webkit-scrollbar,
-.industries-sidebar::-webkit-scrollbar,
-.industries-middle-panel::-webkit-scrollbar,
-.industries-right-panel::-webkit-scrollbar,
-.customers-sidebar::-webkit-scrollbar,
-.customers-middle-panel::-webkit-scrollbar,
-.customers-right-panel::-webkit-scrollbar,
-.resources-left-panel::-webkit-scrollbar,
-.resources-right-panel::-webkit-scrollbar,
-.learning-sidebar::-webkit-scrollbar,
-.learning-middle-panel::-webkit-scrollbar,
-.learning-right-panel::-webkit-scrollbar,
-.support-sidebar::-webkit-scrollbar,
-.support-middle-panel::-webkit-scrollbar,
-.support-right-panel::-webkit-scrollbar,
-.company-sidebar::-webkit-scrollbar,
-.company-middle-panel::-webkit-scrollbar,
-.company-right-panel::-webkit-scrollbar {
-  display: none !important; /* Chrome, Safari and Opera */
-}
-
-/* Learning Mega Menu Specifics */
-.learning-mega {
-  width: 960px;
-  left: -520px !important;
-  transform: none !important;
-  animation: megaFadeInLearning 150ms ease-out both !important;
-}
-
-.learning-mega .mega-dropdown-arrow {
-  left: 545px !important; /* Aligns directly with Learning link center */
-  transform: rotate(45deg) !important;
-}
-
-.learning-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.learning-mega-inner {
-  display: grid;
-  grid-template-columns: 240px 1.1fr 1fr;
-  height: 480px;
-}
-
-/* Left Sidebar tabs */
-.learning-sidebar {
-  background: #F8FAFC;
-  border-right: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.learning-tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-  border-left: 3px solid transparent;
-}
-
-.learning-tab-btn:hover {
-  background: #EDF2F7;
-  color: #2563EB;
-}
-
-.learning-tab-btn.active {
-  background: #EFF6FF;
-  color: #2563EB;
-  border-left-color: #2563EB;
-  padding-left: 17px;
-}
-
-.learning-tab-icon {
-  display: inline-block;
-  font-size: 15px;
-}
-
-.learning-tab-name {
-  display: flex;
-  align-items: center;
-}
-
-.learning-tab-arrow {
-  color: #A0AEC0;
-  font-size: 16px;
-}
-
-.learning-tab-btn.active .learning-tab-arrow {
-  color: #2563EB;
-}
-
-/* Middle Details Panel */
-.learning-middle-panel {
-  padding: 28px;
-  border-right: 1px solid #E2E8F0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-}
-
-.learning-details-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 100%;
-}
-
-.learning-details-wrapper h3 {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-}
-
-.learning-details-desc {
-  font-size: 13px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.learning-tab-content-block {
-  display: flex;
-  flex-direction: column;
   gap: 10px;
-  flex: 1;
+  font-size: 15px;
+  color: #334155;
+  font-weight: 500;
 }
 
-.learning-tab-content-block h4 {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.05em;
+.mega-feature-list i {
+  color: #0056D2;
+  font-size: 18px;
+  margin-top: -2px;
 }
 
-.learning-modules-ul {
+/* Resource List (Bullets) */
+.mega-resource-list {
   list-style: none;
   padding: 0;
   margin: 0;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-}
-
-.learning-modules-ul li {
-  font-size: 13px;
-  color: #334155;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.module-bullet {
-  color: #10B981;
-  font-weight: bold;
-}
-
-.learning-details-cta {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #2563EB;
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: 12px;
-  transition: color 150ms ease;
-}
-
-.learning-details-cta:hover {
-  color: #1D4ED8;
-  text-decoration: underline;
-}
-
-/* Right Featured Course Panel */
-.learning-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
   gap: 16px;
-  justify-content: center;
 }
 
-.featured-course-header {
+.mega-resource-list li {
   display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.course-eyebrow {
-  font-size: 10px;
-  text-transform: uppercase;
-  color: #2563EB;
-  font-weight: 700;
-  letter-spacing: 0.05em;
-}
-
-.featured-course-header h4 {
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.course-desc {
-  font-size: 12.5px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.course-card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.detail-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 12.5px;
-  color: #64748B;
-  font-weight: 600;
-}
-
-.detail-bullet {
-  font-size: 14px;
-}
-
-.course-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Bottom CTA Footer */
-.learning-mega-footer {
-  grid-column: span 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
-  padding: 16px 28px;
-}
-
-.footer-cta-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  text-align: left;
-}
-
-.footer-cta-text span {
-  font-size: 13.5px;
-  font-weight: 800;
-  color: #0F172A;
-}
-
-.footer-cta-text p {
-  font-size: 12px;
-  color: #64748B;
-  margin: 0;
-}
-
-.footer-cta-actions {
-  display: flex;
+  align-items: flex-start;
   gap: 10px;
-}
-
-.cta-btn {
-  padding: 8px 16px;
-  border-radius: 4px;
-  font-size: 12.5px;
-  font-weight: 700;
-  text-decoration: none;
-  transition: all 150ms ease;
-  display: inline-block;
-}
-
-.cta-btn-primary {
-  background: #2563EB;
-  color: #FFFFFF !important;
-}
-
-.cta-btn-primary:hover {
-  background: #1D4ED8;
-}
-
-.cta-btn-secondary {
-  border: 1.5px solid #E2E8F0;
-  color: #475569 !important;
-  background: #FFFFFF;
-}
-
-.cta-btn-secondary:hover {
-  background: #F1F5F9;
-  border-color: #CBD5E1;
-}
-
-@keyframes megaFadeInLearning {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Support Mega Menu Specifics */
-.support-mega {
-  width: 960px;
-  left: -630px !important;
-  transform: none !important;
-  animation: megaFadeInSupport 150ms ease-out both !important;
-}
-
-.support-mega .mega-dropdown-arrow {
-  left: 655px !important; /* Aligns directly with Support link center */
-  transform: rotate(45deg) !important;
-}
-
-.support-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.support-mega-inner {
-  display: grid;
-  grid-template-columns: 240px 1.1fr 1fr;
-  height: 480px;
-}
-
-/* Left Sidebar tabs */
-.support-sidebar {
-  background: #F8FAFC;
-  border-right: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.support-tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-  border-left: 3px solid transparent;
-}
-
-.support-tab-btn:hover {
-  background: #EDF2F7;
-  color: #2563EB;
-}
-
-.support-tab-btn.active {
-  background: #EFF6FF;
-  color: #2563EB;
-  border-left-color: #2563EB;
-  padding-left: 17px;
-}
-
-.support-tab-icon {
-  display: inline-block;
   font-size: 15px;
-}
-
-.support-tab-name {
-  display: flex;
-  align-items: center;
-}
-
-.support-tab-arrow {
-  color: #A0AEC0;
-  font-size: 16px;
-}
-
-.support-tab-btn.active .support-tab-arrow {
-  color: #2563EB;
-}
-
-/* Middle Details Panel */
-.support-middle-panel {
-  padding: 28px;
-  border-right: 1px solid #E2E8F0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-}
-
-.support-details-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 100%;
-}
-
-.support-details-wrapper h3 {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-}
-
-.support-details-desc {
-  font-size: 13px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.support-tab-content-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.support-tab-content-block h4 {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.05em;
-}
-
-.support-topics-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.support-topics-ul li {
-  font-size: 13px;
   color: #334155;
   font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
 }
 
-.topic-bullet {
-  color: #2563EB;
-  font-weight: bold;
-}
-
-.support-details-cta {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #2563EB;
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: 12px;
-  transition: color 150ms ease;
-}
-
-.support-details-cta:hover {
-  color: #1D4ED8;
-  text-decoration: underline;
-}
-
-/* Right Featured Support Panel */
-.support-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  justify-content: center;
-}
-
-.featured-support-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.featured-support-header h4 {
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.support-desc {
-  font-size: 12.5px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.support-card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.support-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Bottom Metrics Footer */
-.support-mega-footer {
-  grid-column: span 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
-  padding: 16px 28px;
-}
-
-@keyframes megaFadeInSupport {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Company Mega Menu Specifics */
-.company-mega {
-  width: 960px;
-  left: -740px !important;
-  transform: none !important;
-  animation: megaFadeInCompany 150ms ease-out both !important;
-}
-
-.company-mega .mega-dropdown-arrow {
-  left: 765px !important; /* Aligns directly with Company link center */
-  transform: rotate(45deg) !important;
-}
-
-.company-card {
-  padding: 0 !important;
-  overflow: hidden;
-}
-
-.company-mega-inner {
-  display: grid;
-  grid-template-columns: 240px 1.1fr 1fr;
-  height: 480px;
-}
-
-/* Left Sidebar tabs */
-.company-sidebar {
-  background: #F8FAFC;
-  border-right: 1px solid #E2E8F0;
-  display: flex;
-  flex-direction: column;
-  overflow-y: auto;
-  padding: 12px 0;
-}
-
-.company-tab-btn {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 10px 20px;
-  border: none;
-  background: transparent;
-  width: 100%;
-  cursor: pointer;
-  text-align: left;
-  font-size: 13px;
-  font-weight: 600;
-  color: #4A5568;
-  transition: all 150ms ease;
-  border-left: 3px solid transparent;
-}
-
-.company-tab-btn:hover {
-  background: #EDF2F7;
-  color: #2563EB;
-}
-
-.company-tab-btn.active {
-  background: #EFF6FF;
-  color: #2563EB;
-  border-left-color: #2563EB;
-  padding-left: 17px;
-}
-
-.company-tab-icon {
-  display: inline-block;
-  font-size: 15px;
-}
-
-.company-tab-name {
-  display: flex;
-  align-items: center;
-}
-
-.company-tab-arrow {
-  color: #A0AEC0;
+.bullet-dot {
+  color: #94A3B8;
   font-size: 16px;
+  line-height: 1;
 }
 
-.company-tab-btn.active .company-tab-arrow {
-  color: #2563EB;
+/* Shared Megamenu Positioning */
+.industries-mega,
+.customers-mega,
+.learning-mega,
+.support-mega,
+.company-mega,
+.what-is-crm-mega {
+  width: 900px;
 }
 
-/* Middle Details Panel */
-.company-middle-panel {
-  padding: 28px;
-  border-right: 1px solid #E2E8F0;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  background: #FFFFFF;
-}
+/* Adjust absolute positioning to center roughly */
+.industries-mega { left: -150px !important; }
+.customers-mega { left: -250px !important; }
+.learning-mega { left: -350px !important; }
+.support-mega { left: -450px !important; }
+.company-mega { left: -550px !important; }
+.what-is-crm-mega { left: -100px !important; }
 
-.company-details-wrapper {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  height: 100%;
-}
-
-.company-details-wrapper h3 {
-  font-size: 18px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-}
-
-.company-details-desc {
-  font-size: 13px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.company-tab-content-block {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  flex: 1;
-}
-
-.company-tab-content-block h4 {
-  font-size: 11px;
-  text-transform: uppercase;
-  color: #718096;
-  font-weight: 700;
-  margin: 0;
-  letter-spacing: 0.05em;
-}
-
-.company-links-ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.company-links-ul li {
-  font-size: 13px;
-  color: #334155;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.link-bullet {
-  color: #2563EB;
-  font-weight: bold;
-}
-
-.company-details-cta {
-  font-size: 13.5px;
-  font-weight: 700;
-  color: #2563EB;
-  text-decoration: none;
-  margin-top: auto;
-  padding-top: 12px;
-  transition: color 150ms ease;
-}
-
-.company-details-cta:hover {
-  color: #1D4ED8;
-  text-decoration: underline;
-}
-
-/* Right Featured Company Panel */
-.company-right-panel {
-  padding: 28px;
-  background: #F8FAFC;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  justify-content: center;
-}
-
-.featured-company-header {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.featured-company-header h4 {
-  font-size: 15.5px;
-  font-weight: 800;
-  color: #0F172A;
-  margin: 0;
-  line-height: 1.35;
-}
-
-.company-desc {
-  font-size: 12.5px;
-  color: #64748B;
-  line-height: 1.5;
-  margin: 0;
-}
-
-.company-card-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.company-card-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-/* Bottom Metrics Footer */
-.company-mega-footer {
-  grid-column: span 3;
-  display: flex;
-  align-items: center;
-  justify-content: space-around;
-  background: #F8FAFC;
-  border-top: 1px solid #E2E8F0;
-  padding: 16px 28px;
-}
-
-@keyframes megaFadeInCompany {
-  from {
-    opacity: 0;
-    transform: translateY(8px);
+/* Responsive adjustments */
+@media (max-width: 1024px) {
+  .mega-content-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
   }
-  to {
-    opacity: 1;
-    transform: translateY(0);
+  .mega-col-3 {
+    grid-column: span 2;
+    margin-top: 16px;
+    border-top: 1px solid #E2E8F0;
+    padding-top: 24px;
   }
 }
-
-/* Salesforce-Inspired Dropdown Sidebar Styles */
-.industry-btn,
-.customer-tab-btn,
-.learning-tab-btn,
-.support-tab-btn,
-.company-tab-btn {
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-  padding: 12px 20px !important;
-  border: none !important;
-  background: transparent !important;
-  width: 100% !important;
-  cursor: pointer !important;
-  text-align: left !important;
-  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1) !important;
-  border-left: 3px solid transparent !important;
-  text-decoration: none !important;
-}
-
-.industry-btn:hover,
-.customer-tab-btn:hover,
-.learning-tab-btn:hover,
-.support-tab-btn:hover,
-.company-tab-btn:hover,
-.industry-btn.active,
-.customer-tab-btn.active,
-.learning-tab-btn.active,
-.support-tab-btn.active,
-.company-tab-btn.active {
-  background: #EFF6FF !important;
-  color: #1E293B !important;
-  transform: translateX(4px);
-  border-left-color: #2563EB !important;
-}
-
-/* Icon Container */
-.industry-btn-icon-wrap,
-.customer-tab-icon-wrap,
-.learning-tab-icon-wrap,
-.support-tab-icon-wrap,
-.company-tab-icon-wrap {
-  width: 38px;
-  height: 38px;
-  border-radius: 10px;
-  background: #EFF6FF;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 16px;
-  color: #2563EB;
-  transition: all 250ms cubic-bezier(0.4, 0, 0.2, 1);
-  margin-right: 12px;
-  flex-shrink: 0;
-}
-
-.industry-btn:hover .industry-btn-icon-wrap,
-.industry-btn.active .industry-btn-icon-wrap,
-.customer-tab-btn:hover .customer-tab-icon-wrap,
-.customer-tab-btn.active .customer-tab-icon-wrap,
-.learning-tab-btn:hover .learning-tab-icon-wrap,
-.learning-tab-btn.active .learning-tab-icon-wrap,
-.support-tab-btn:hover .support-tab-icon-wrap,
-.support-tab-btn.active .support-tab-icon-wrap,
-.company-tab-btn:hover .company-tab-icon-wrap,
-.company-tab-btn.active .company-tab-icon-wrap {
-  background: #2563EB;
-  color: #ffffff;
-}
-
-/* Label text */
-.industry-btn-name,
-.customer-tab-name-flat,
-.learning-tab-name-flat,
-.support-tab-name-flat,
-.company-tab-name-flat {
-  font-size: 13.5px;
-  font-weight: 600;
-  color: #4A5568;
-  flex: 1;
-  text-align: left;
-}
-
-.industry-btn:hover .industry-btn-name,
-.industry-btn.active .industry-btn-name,
-.customer-tab-btn:hover .customer-tab-name-flat,
-.customer-tab-btn.active .customer-tab-name-flat,
-.learning-tab-btn:hover .learning-tab-name-flat,
-.learning-tab-btn.active .learning-tab-name-flat,
-.support-tab-btn:hover .support-tab-name-flat,
-.support-tab-btn.active .support-tab-name-flat,
-.company-tab-btn:hover .company-tab-name-flat,
-.company-tab-btn.active .company-tab-name-flat {
-  color: #1E293B !important;
-}
-
-/* Chevron icons */
-.industry-btn-chevron,
-.customer-tab-chevron,
-.learning-tab-chevron,
-.support-tab-chevron,
-.company-tab-chevron {
-  font-size: 11px;
-  color: #A0AEC0;
-  transition: all 250ms ease;
-}
-
-.industry-btn:hover .industry-btn-chevron,
-.industry-btn.active .industry-btn-chevron,
-.customer-tab-btn:hover .customer-tab-chevron,
-.customer-tab-btn.active .customer-tab-chevron,
-.learning-tab-btn:hover .learning-tab-chevron,
-.learning-tab-btn.active .learning-tab-chevron,
-.support-tab-btn:hover .support-tab-chevron,
-.support-tab-btn.active .support-tab-chevron,
-.company-tab-btn:hover .company-tab-chevron,
-.company-tab-btn.active .company-tab-chevron {
-  color: #2563EB;
-  transform: translateX(2px);
+@media (max-width: 768px) {
+  .mega-top-tabs {
+    flex-wrap: wrap;
+  }
+  .mega-tab-btn {
+    flex: 1 1 50%;
+  }
 }
 `}</style>
+
     <>
       <nav className={`navbar-wrapper ${scrolled ? "scrolled" : ""}`}>
       <div className="nav-top-row">
