@@ -1115,7 +1115,7 @@ function Navbar() {
   align-items: center;
   justify-content: space-between;
   border-bottom: 1px solid #E2E8F0;
-  padding: 0 32px;
+  padding: 0 16px;
   background: #F8FAFC;
   border-top-left-radius: 8px;
   border-top-right-radius: 8px;
@@ -1124,7 +1124,7 @@ function Navbar() {
 .mega-tab-btn {
   background: transparent;
   border: none;
-  padding: 16px 24px;
+  padding: 16px 12px;
   font-size: 14px;
   font-weight: 600;
   color: #475569;
@@ -1159,16 +1159,15 @@ function Navbar() {
   transform: scaleX(1);
 }
 
-/* 3-Column Content Layout */
-.mega-content-grid {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr;
-  padding: 32px;
-  gap: 48px;
+/* Single-Column Content Layout */
+.mega-content-simplified {
+  padding: 32px 32px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
 }
 
-/* Column 1: Description & CTA */
-.mega-col-1 h3 {
+.mega-col-single h3 {
   font-size: 22px;
   font-weight: 700;
   color: #032D60;
@@ -1197,66 +1196,6 @@ function Navbar() {
   text-decoration: underline;
 }
 
-/* Column 2 & 3 Titles */
-.mega-col-title {
-  font-size: 14px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #64748B;
-  margin-bottom: 20px;
-  font-weight: 700;
-}
-
-/* Features List (Checkmarks) */
-.mega-feature-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mega-feature-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  color: #334155;
-  font-weight: 500;
-}
-
-.mega-feature-list i {
-  color: #0056D2;
-  font-size: 18px;
-  margin-top: -2px;
-}
-
-/* Resource List (Bullets) */
-.mega-resource-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
-
-.mega-resource-list li {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 15px;
-  color: #334155;
-  font-weight: 500;
-}
-
-.bullet-dot {
-  color: #94A3B8;
-  font-size: 16px;
-  line-height: 1;
-}
-
 /* Shared Megamenu Positioning */
 .industries-mega,
 .customers-mega,
@@ -1264,30 +1203,18 @@ function Navbar() {
 .support-mega,
 .company-mega,
 .what-is-crm-mega {
-  width: 900px;
+  width: 600px; /* Reduced width */
 }
 
-/* Adjust absolute positioning to center roughly */
+/* Adjust absolute positioning to center under the nav items */
 .industries-mega { left: -150px !important; }
-.customers-mega { left: -250px !important; }
-.learning-mega { left: -350px !important; }
-.support-mega { left: -450px !important; }
-.company-mega { left: -550px !important; }
+.customers-mega { left: -200px !important; }
+.learning-mega { left: -250px !important; }
+.support-mega { left: -300px !important; }
+.company-mega { left: -350px !important; }
 .what-is-crm-mega { left: -100px !important; }
 
 /* Responsive adjustments */
-@media (max-width: 1024px) {
-  .mega-content-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 32px;
-  }
-  .mega-col-3 {
-    grid-column: span 2;
-    margin-top: 16px;
-    border-top: 1px solid #E2E8F0;
-    padding-top: 24px;
-  }
-}
 @media (max-width: 768px) {
   .mega-top-tabs {
     flex-wrap: wrap;
@@ -1295,8 +1222,18 @@ function Navbar() {
   .mega-tab-btn {
     flex: 1 1 50%;
   }
+  .industries-mega,
+  .customers-mega,
+  .learning-mega,
+  .support-mega,
+  .company-mega,
+  .what-is-crm-mega {
+    width: 100%;
+    left: 0 !important;
+  }
 }
-`}</style>
+
+  `}</style>
 
     <>
       <nav className={`navbar-wrapper ${scrolled ? "scrolled" : ""}`}>
@@ -1343,44 +1280,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
@@ -1420,44 +1331,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
@@ -1498,44 +1383,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
@@ -1574,44 +1433,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
@@ -1650,44 +1483,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
@@ -1768,44 +1575,18 @@ function Navbar() {
                       ))}
                     </div>
 
-                    {/* 3-Column Content Layout */}
-                    <div className="mega-content-grid">
+                    {/* Single-Column Content Layout */}
+                    <div className="mega-content-simplified">
                       {(() => {
                         const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
                         return (
-                          <>
-                            {/* Column 1: Title, Desc, CTA */}
-                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
-                              <h3>{activeItem.title}</h3>
-                              <p className="mega-desc">{activeItem.description}</p>
-                              <a href={activeItem.linkUrl} className="mega-cta-link">
-                                {activeItem.linkText}
-                              </a>
-                            </div>
-
-                            {/* Column 2: Features/Topics */}
-                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
-                              <h4 className="mega-col-title">Key Topics</h4>
-                              <ul className="mega-feature-list">
-                                {activeItem.features.map((feat, index) => (
-                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                ))}
-                              </ul>
-                            </div>
-
-                            {/* Column 3: Highlights/Resources */}
-                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
-                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-resource-list">
-                                {activeItem.rightPanelContent.map((item, idx) => (
-                                  <li key={idx}>
-                                    <span className="bullet-dot">•</span>
-                                    <span>{item}</span>
-                                  </li>
-                                ))}
-                              </ul>
-                            </div>
-                          </>
+                          <div className="mega-col-single animate-fade-in" key={`col-${activeItem.id}`}>
+                            <h3>{activeItem.title}</h3>
+                            <p className="mega-desc">{activeItem.description}</p>
+                            <a href={activeItem.linkUrl} className="mega-cta-link">
+                              {activeItem.linkText}
+                            </a>
+                          </div>
                         );
                       })()}
                     </div>
