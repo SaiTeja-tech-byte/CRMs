@@ -5,13 +5,14 @@ const {
   getAllFeedback,
   updateFeedbackStatus,
 } = require("../controllers/feedbackController");
-const { protect, adminOnly } = require("../middleware/authMiddleware");
+const requireAuth = require("../middleware/authMiddleware");
+const requireAdmin = require("../middleware/adminMiddleware");
 
 // Any authenticated user can submit feedback
-router.post("/", protect, submitFeedback);
+router.post("/", requireAuth, submitFeedback);
 
 // Only admins can view and manage feedback
-router.get("/", protect, adminOnly, getAllFeedback);
-router.patch("/:id/status", protect, adminOnly, updateFeedbackStatus);
+router.get("/", requireAuth, requireAdmin, getAllFeedback);
+router.patch("/:id/status", requireAuth, requireAdmin, updateFeedbackStatus);
 
 module.exports = router;
