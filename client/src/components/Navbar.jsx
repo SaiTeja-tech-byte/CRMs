@@ -2837,68 +2837,62 @@ function Navbar() {
                 <div className="mega-dropdown industries-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card industries-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {industriesData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeIndustryId === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveIndustryId(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {industriesData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeIndustryId === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveIndustryId(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
@@ -2920,68 +2914,62 @@ function Navbar() {
                 <div className="mega-dropdown customers-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card customers-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {customersData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeCustomerTab === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveCustomerTab(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {customersData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeCustomerTab === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveCustomerTab(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
@@ -3004,68 +2992,62 @@ function Navbar() {
                 <div className="mega-dropdown learning-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card learning-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {learningData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeLearningTab === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveLearningTab(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {learningData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeLearningTab === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveLearningTab(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
@@ -3086,68 +3068,62 @@ function Navbar() {
                 <div className="mega-dropdown support-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card support-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {supportData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeSupportTab === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveSupportTab(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {supportData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeSupportTab === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveSupportTab(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
@@ -3168,68 +3144,62 @@ function Navbar() {
                 <div className="mega-dropdown company-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card company-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {companyData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeCompanyTab === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveCompanyTab(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {companyData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeCompanyTab === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveCompanyTab(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
@@ -3292,68 +3262,62 @@ function Navbar() {
                 <div className="mega-dropdown what-is-crm-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card what-is-crm-card">
-                    <div className="mega-dropdown-inner-standard">
-                      
-                      {/* Left Sidebar */}
-                      <div className="mega-sidebar">
-                        {crmData.map((item) => (
-                          <button
-                            key={item.id}
-                            className={`mega-sidebar-btn ${activeCrmTab === item.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveCrmTab(item.id)}
-                          >
-                            <span className="mega-sidebar-btn-name">{item.name}</span>
-                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
-                          </button>
-                        ))}
-                      </div>
+                    
+                    {/* Top Horizontal Tabs */}
+                    <div className="mega-top-tabs">
+                      {crmData.map((item) => (
+                        <button
+                          key={item.id}
+                          className={`mega-tab-btn ${activeCrmTab === item.id ? "active" : ""}`}
+                          onMouseEnter={() => setActiveCrmTab(item.id)}
+                        >
+                          {item.name}
+                        </button>
+                      ))}
+                    </div>
 
-                      {/* Middle Details Panel */}
-                      <div className="mega-middle-panel">
-                        {(() => {
-                          const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
-                          return (
-                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                    {/* 3-Column Content Layout */}
+                    <div className="mega-content-grid">
+                      {(() => {
+                        const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
+                        return (
+                          <>
+                            {/* Column 1: Title, Desc, CTA */}
+                            <div className="mega-col-1 animate-fade-in" key={`col1-${activeItem.id}`}>
                               <h3>{activeItem.title}</h3>
                               <p className="mega-desc">{activeItem.description}</p>
-                              
-                              <div className="mega-features-list">
-                                <ul>
-                                  {activeItem.features.map((feat, index) => (
-                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
-                                  ))}
-                                </ul>
-                              </div>
-
                               <a href={activeItem.linkUrl} className="mega-cta-link">
                                 {activeItem.linkText}
                               </a>
                             </div>
-                          );
-                        })()}
-                      </div>
 
-                      {/* Right Panel */}
-                      <div className="mega-right-panel">
-                        {(() => {
-                          const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
-                          return (
-                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
-                              <h4>{activeItem.rightPanelTitle}</h4>
-                              <ul className="mega-right-list">
+                            {/* Column 2: Features/Topics */}
+                            <div className="mega-col-2 animate-fade-in" key={`col2-${activeItem.id}`}>
+                              <h4 className="mega-col-title">Key Topics</h4>
+                              <ul className="mega-feature-list">
+                                {activeItem.features.map((feat, index) => (
+                                  <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                ))}
+                              </ul>
+                            </div>
+
+                            {/* Column 3: Highlights/Resources */}
+                            <div className="mega-col-3 animate-fade-in" key={`col3-${activeItem.id}`}>
+                              <h4 className="mega-col-title">{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-resource-list">
                                 {activeItem.rightPanelContent.map((item, idx) => (
                                   <li key={idx}>
-                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span className="bullet-dot">•</span>
                                     <span>{item}</span>
                                   </li>
                                 ))}
                               </ul>
                             </div>
-                          );
-                        })()}
-                      </div>
-
+                          </>
+                        );
+                      })()}
                     </div>
+
                   </div>
                 </div>
               )}
