@@ -209,7 +209,7 @@
 
 .org-dept {
   font-size: 11px;
-  color: #3b82f6;
+  color: #1d4ed8;
   font-weight: 500;
   margin-top: 4px;
   background: rgba(59, 130, 246, 0.1);
@@ -331,7 +331,7 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: #3b82f6; /* brand blue */
+  color: #1d4ed8;
   z-index: 10;
   box-shadow: 0 2px 4px rgba(0,0,0,0.05);
   transition: all 0.2s ease;
