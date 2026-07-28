@@ -1219,7 +1219,7 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
           <div className="dashboard-card-flat" style={{ width: "500px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-calendar-plus"></i> New Event</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -1374,7 +1374,7 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
           <div className="dashboard-card-flat" style={{ width: "450px", maxWidth: "90%" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-info-circle"></i> Event Details</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -1467,7 +1467,7 @@ const CalendarPage = ({ events, onAddEvent, onUpdateEvent, onDeleteEvent, profil
           <div className="dashboard-card-flat" style={{ width: "500px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-pencil-square"></i> Edit Event</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -1968,7 +1968,7 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
           <div className="dashboard-card-flat" style={{ width: "500px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-plus-lg"></i> New Task</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -2111,7 +2111,7 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
           <div className="dashboard-card-flat" style={{ width: "500px", maxWidth: "90%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-pencil-square"></i> Edit Task</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -2266,7 +2266,7 @@ const TasksPage = ({ tasks, onAddTask, onUpdateTask, onDeleteTask, profile }) =>
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
               <h3 className="mb-0" style={{ fontSize: "13px", fontWeight: "800", color: "var(--crm-dark)", textTransform: "uppercase" }}>Task Details</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -2726,7 +2726,7 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
           <div className="dashboard-card-flat" style={{ width: "550px", maxWidth: "95%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-person-plus"></i> Add Team Member</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -2914,7 +2914,7 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
           <div className="dashboard-card-flat" style={{ width: "550px", maxWidth: "95%", maxHeight: "90vh", overflowY: "auto" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-pencil-square"></i> Edit Team Member</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -3109,7 +3109,7 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
             {/* Header */}
             <div className="d-flex justify-content-between align-items-center mb-4 border-bottom pb-2">
               <h3 className="mb-0" style={{ fontSize: "13px", fontWeight: "800", color: "var(--crm-dark)", textTransform: "uppercase" }}>Employee Profile</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -4005,7 +4005,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
           <div className="dashboard-card-flat" style={{ width: "500px", maxWidth: "95%" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-file-earmark-arrow-up"></i> Upload Document</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -4155,7 +4155,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
           <div className="dashboard-card-flat" style={{ width: "420px", maxWidth: "95%" }}>
             <div className="card-flat-title-bar">
               <h3><i className="bi bi-folder-plus"></i> Create Folder</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -4224,7 +4224,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
           <div className="dashboard-card-flat" style={{ width: "400px", maxWidth: "95%" }}>
             <div className="card-flat-title-bar">
               <h3>Rename Document</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -4279,7 +4279,7 @@ const DocumentsPage = ({ documents, onUpload, onCreateFolder, onDelete, onUpdate
           <div className="dashboard-card-flat" style={{ width: "400px", maxWidth: "95%" }}>
             <div className="card-flat-title-bar">
               <h3>Move Department</h3>
-              <button 
+              <button aria-label="Close" 
                 type="button" 
                 className="btn-close" 
                 style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
@@ -6612,7 +6612,7 @@ body {
         {/* 1. TOP NAVIGATION */}
         <header className="crm-top-navbar" style={{ height: "72px", borderBottom: "1px solid var(--crm-border)", boxShadow: "0 1px 3px rgba(15,23,42,0.05)", background: "var(--crm-card)" }}>
           <div className="brand-section" style={{ display: "flex", alignItems: "center", gap: "16px", paddingLeft: "24px" }}>
-            <button className="nav-hamburger-btn" style={{ background: "transparent", border: "none", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--crm-dark)", transition: "background 0.2s" }} onClick={() => { setSidebarCollapsed(!sidebarCollapsed); setMobileSidebarActive(!mobileSidebarActive); }}>
+            <button aria-label="Toggle sidebar" className="nav-hamburger-btn" style={{ background: "transparent", border: "none", width: "40px", height: "40px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: "var(--crm-dark)", transition: "background 0.2s" }} onClick={() => { setSidebarCollapsed(!sidebarCollapsed); setMobileSidebarActive(!mobileSidebarActive); }}>
               <i className={`bi ${sidebarCollapsed ? "bi-list" : "bi-x-lg"} d-none d-md-inline-block`} style={{ fontSize: "20px", lineHeight: 1 }}></i>
               <i className={`bi ${mobileSidebarActive ? "bi-x-lg" : "bi-list"} d-inline-block d-md-none`} style={{ fontSize: "20px", lineHeight: 1 }}></i>
             </button>
@@ -7335,7 +7335,7 @@ body {
                   <div className="dashboard-card-flat" style={{ width: "420px", maxWidth: "95%" }}>
                     <div className="card-flat-title-bar">
                       <h3>Request Leave</h3>
-                      <button
+                      <button aria-label="Close"
                         type="button"
                         className="btn-close"
                         style={{ fontSize: "11.5px", border: "none", background: "transparent" }}
