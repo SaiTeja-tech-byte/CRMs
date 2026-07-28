@@ -527,7 +527,7 @@ const PolicyDetail = ({ path }) => {
       {showCookiesModal && (
         <div className="privacy-modal-overlay" onClick={() => setShowCookiesModal(false)}>
           <div className="privacy-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setShowCookiesModal(false)}>
+            <button aria-label="Close" className="modal-close-btn" onClick={() => setShowCookiesModal(false)}>
               <X size={18} />
             </button>
             <div className="modal-header">
