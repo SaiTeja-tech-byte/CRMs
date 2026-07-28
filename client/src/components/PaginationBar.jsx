@@ -1,11 +1,5 @@
 import { ChevronLeft, ChevronRight, ArrowUp, ArrowDown, ArrowUpDown } from "lucide-react";
 
-// Page/limit control bar for any server-paginated list. Expects the
-// { page, limit, total, totalPages } shape returned by
-// server/utils/pagination.js's buildPaginationMeta().
-//
-// Usage:
-//   <PaginationBar pagination={pagination} onPageChange={(p) => setPage(p)} />
 export const PaginationBar = ({ pagination, onPageChange }) => {
   if (!pagination || pagination.totalPages <= 1) return null;
   const { page, totalPages, total, limit } = pagination;
@@ -27,7 +21,7 @@ export const PaginationBar = ({ pagination, onPageChange }) => {
         Showing {from}–{to} of {total}
       </div>
       <div className="d-flex align-items-center gap-1">
-        <button
+        <button aria-label="Previous page"
           type="button"
           className="btn btn-sm btn-outline-secondary d-flex align-items-center"
           disabled={page <= 1}
@@ -49,7 +43,7 @@ export const PaginationBar = ({ pagination, onPageChange }) => {
             </button>
           )
         )}
-        <button
+        <button aria-label="Next page"
           type="button"
           className="btn btn-sm btn-outline-secondary d-flex align-items-center"
           disabled={page >= totalPages}
@@ -62,13 +56,7 @@ export const PaginationBar = ({ pagination, onPageChange }) => {
   );
 };
 
-// Clickable <th> that toggles sort direction and shows the current sort
-// state. Lives in the same file since the two are almost always used
-// together, but can be imported independently.
-//
-// Usage:
-//   <SortableHeader label="Name" field="fullName" sort={sort} onSort={setSort} />
-// where `sort` is { sortBy, sortDir } and onSort receives the next { sortBy, sortDir }.
+
 export const SortableHeader = ({ label, field, sort, onSort, className = "", style = {} }) => {
   const isActive = sort?.sortBy === field;
   const nextDir = isActive && sort.sortDir === "asc" ? "desc" : "asc";
