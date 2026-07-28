@@ -5,7 +5,6 @@ import "../styles/dashboard-layout.css";
 
 import Sidebar from "../components/layout/Sidebar";
 import { PaginationBar, SortableHeader } from "../components/PaginationBar";
-import AdminFeedback from "./AdminFeedback";
 import { adminGetAllTasks, adminAssignTask, adminDeleteTask, adminGetEmployees } from '../services/taskService';
 import { getAdminStats, getAdminUsers, updateAdminUser } from '../services/adminService';
 import { getCompanySettings, updateCompanySettings } from '../services/companySettingsService';
@@ -552,7 +551,7 @@ const AdminProfile = () => {
               <div className="toast-body">
                 <i className="bi bi-info-circle me-2"></i>{toastMsg}
               </div>
-              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
             </div>
           </div>
         </div>
@@ -841,7 +840,7 @@ const AdminProfile = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-0 pb-0">
                   <h5 className="modal-title fw-bold text-danger"><i className="bi bi-exclamation-triangle me-2"></i>Delete Account</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
                 </div>
                 <div className="modal-body py-4">
                   <p className="mb-0 text-muted">Are you sure you want to permanently delete your administrator account? This action cannot be undone and you will lose access to the CRM immediately.</p>
@@ -982,7 +981,7 @@ const AdminCalendar = () => {
           <div className="toast show align-items-center text-white bg-primary border-0" role="alert">
             <div className="d-flex">
               <div className="toast-body"><i className="bi bi-info-circle me-2"></i>{toastMsg}</div>
-              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
             </div>
           </div>
         </div>
@@ -1091,7 +1090,7 @@ const AdminCalendar = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">Add Calendar Event</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
@@ -1202,7 +1201,7 @@ const AdminCalendar = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4" style={{ borderLeft: `5px solid ${selectedEvent.color || "#2563eb"}` }}>
                   <h5 className="modal-title fw-bold">{selectedEvent.title}</h5>
-                  <button type="button" className="btn-close" onClick={() => setSelectedEvent(null)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setSelectedEvent(null)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="mb-4">
@@ -1502,7 +1501,7 @@ const AdminTeam = () => {
                             </span>
                           </td>
                           <td className="py-3 px-4 text-end position-relative">
-                            <button className="btn btn-sm btn-light border p-1 rounded" onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === m.id ? null : m.id); setShowExportMenu(false); }}>
+                            <button aria-label="More actions" className="btn btn-sm btn-light border p-1 rounded" onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === m.id ? null : m.id); setShowExportMenu(false); }}>
                               <i className="bi bi-three-dots-vertical text-muted"></i>
                             </button>
                             {activeActionMenu === m.id && (
@@ -1539,7 +1538,7 @@ const AdminTeam = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">Add Team Member</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowAddModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
@@ -1608,7 +1607,7 @@ const AdminTeam = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">Import Team Members</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowImportModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowImportModal(false)}></button>
                 </div>
                 <div className="modal-body p-4 text-center">
                   <i className="bi bi-file-earmark-spreadsheet text-muted mb-3" style={{ fontSize: "40px" }}></i>
@@ -1834,7 +1833,7 @@ const AdminTasks = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">Assign New Task</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowCreateModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
@@ -2096,7 +2095,7 @@ const AdminDocuments = () => {
           <div className="toast show align-items-center text-white bg-primary border-0" role="alert">
             <div className="d-flex">
               <div className="toast-body"><i className="bi bi-info-circle me-2"></i>{toastMsg}</div>
-              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
             </div>
           </div>
         </div>
@@ -2220,7 +2219,7 @@ const AdminDocuments = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">Upload Document</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowUploadModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowUploadModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
@@ -2289,7 +2288,7 @@ const AdminDocuments = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-bold">{selectedDoc.name}</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowViewModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="d-flex justify-content-between mb-2"><span className="text-muted small">Category</span><span className="fw-semibold small">{selectedDoc.category}</span></div>
@@ -2319,7 +2318,7 @@ const AdminDocuments = () => {
               <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
                 <div className="modal-header border-0 pb-0">
                   <h5 className="modal-title fw-bold text-danger"><i className="bi bi-exclamation-triangle me-2"></i>Delete Document</h5>
-                  <button type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowDeleteModal(false)}></button>
                 </div>
                 <div className="modal-body py-4">
                   <p className="mb-0 text-muted">Are you sure you want to permanently delete <strong>{selectedDoc.name}</strong>?</p>
@@ -2534,7 +2533,7 @@ const AdminNotifications = () => {
           <div className="toast show align-items-center bg-white border shadow-sm" role="alert">
             <div className="d-flex">
               <div className="toast-body text-dark"><i className="bi bi-info-circle me-2"></i>{toastMsg}</div>
-              <button type="button" className="btn-close me-2 m-auto" onClick={() => setShowToast(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close me-2 m-auto" onClick={() => setShowToast(false)}></button>
             </div>
           </div>
         </div>
@@ -2655,7 +2654,7 @@ const AdminNotifications = () => {
               <div className="modal-content" style={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-semibold text-dark" style={{ fontSize: "16px" }}>Create Notification</h5>
-                  <button type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowCreateModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowCreateModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <div className="row g-3">
@@ -2755,7 +2754,7 @@ const AdminNotifications = () => {
               <div className="modal-content" style={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
                 <div className="modal-header border-bottom py-3 px-4">
                   <h5 className="modal-title fw-semibold text-dark" style={{ fontSize: "16px" }}>Notification Details</h5>
-                  <button type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowViewModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowViewModal(false)}></button>
                 </div>
                 <div className="modal-body p-4">
                   <h5 className="fw-semibold mb-2 text-dark" style={{ fontSize: "16px" }}>{selectedNotif.title || "Notification"}</h5>
@@ -2805,7 +2804,7 @@ const AdminNotifications = () => {
               <div className="modal-content" style={{ borderRadius: "8px", border: "1px solid #e2e8f0", boxShadow: "0 4px 6px rgba(0,0,0,0.1)" }}>
                 <div className="modal-header border-0 pb-0">
                   <h5 className="modal-title fw-semibold text-danger" style={{ fontSize: "16px" }}><i className="bi bi-exclamation-triangle me-2"></i>Delete Notification</h5>
-                  <button type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowDeleteModal(false)}></button>
+                  <button aria-label="Close" type="button" className="btn-close" style={{ fontSize: "12px" }} onClick={() => setShowDeleteModal(false)}></button>
                 </div>
                 <div className="modal-body py-4">
                   <p className="mb-0 text-secondary" style={{ fontSize: "14px" }}>Are you sure you want to permanently delete this notification?</p>
@@ -3170,7 +3169,7 @@ const AdminNews = () => {
           <div style={{ background: "#fff", borderRadius: "16px", padding: "0", maxWidth: "600px", width: "90%", boxShadow: "0 20px 60px rgba(0,0,0,0.2)", overflow: "hidden" }}>
             <div style={{ padding: "24px 28px", borderBottom: "1px solid #e2e8f0", display: "flex", justifyContent: "space-between", alignItems: "center", background: "#f8fafc" }}>
               <h5 style={{ margin: 0, fontSize: "14px", fontWeight: "800", color: "#0f172a" }}><i className="bi bi-megaphone-fill text-primary me-2"></i>Publish Company News</h5>
-              <button type="button" style={{ background: "transparent", border: "none", fontSize: "18px", color: "#94a3b8", cursor: "pointer" }} onClick={() => setShowCreateModal(false)}><i className="bi bi-x-lg"></i></button>
+              <button type="button" aria-label="Close" style={{ background: "transparent", border: "none", fontSize: "18px", color: "#94a3b8", cursor: "pointer" }} onClick={() => setShowCreateModal(false)}><i className="bi bi-x-lg"></i></button>
             </div>
             <div style={{ padding: "28px" }}>
               <div className="mb-3">
@@ -3281,9 +3280,6 @@ const AdminDashboard = () => {
       case "contact-queries":
         return <AdminContactQueries />;
 
-      case "feedback":
-        return <AdminFeedback />;
-
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;
     }
@@ -3321,7 +3317,7 @@ const AdminDashboard = () => {
               gap: "16px",
             }}
           >
-            <button
+            <button aria-label="Toggle sidebar"
               className="nav-hamburger-btn"
               style={{
                 background: "transparent",
