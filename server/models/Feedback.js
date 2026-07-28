@@ -34,6 +34,14 @@ const Feedback = sequelize.define(
       type: DataTypes.STRING,
       defaultValue: "New",
       allowNull: false,
+    },
+    rating: {
+      type: DataTypes.INTEGER,
+      allowNull: true,
+    },
+    conversationId: {
+      type: DataTypes.STRING,
+      allowNull: true,
     }
   },
   {

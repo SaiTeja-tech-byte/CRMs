@@ -24,6 +24,7 @@ import {
 import { connectSocket, onSocketEvent } from "../services/socketService";
 import { submitFeedback } from "../services/feedbackService";
 import DeleteChatFeedbackModal from "../components/DeleteChatFeedbackModal";
+import SendChatFeedbackModal from "../components/SendChatFeedbackModal";
 
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -94,6 +95,9 @@ const ChatPage = () => {
   const [showDeleteFeedbackModal, setShowDeleteFeedbackModal] = useState(false);
   const [feedbackTarget, setFeedbackTarget] = useState(null);
   const [deleteToast, setDeleteToast] = useState(null);
+
+  const [showSendFeedbackModal, setShowSendFeedbackModal] = useState(false);
+  const [sendFeedbackTarget, setSendFeedbackTarget] = useState(null);
 
   const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
 
@@ -752,6 +756,18 @@ const ChatPage = () => {
                                 {isUnread ? "Mark as Read" : "Mark as Unread"}
                               </button>
                               <button 
+                                className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
+                                style={{ fontSize: "12px" }}
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setOpenMenuId(null);
+                                  setSendFeedbackTarget({ type: 'individual', id: c.id, name: c.otherUser?.fullName });
+                                  setShowSendFeedbackModal(true);
+                                }}
+                              >
+                                Send Feedback
+                              </button>
+                              <button 
                                 className="btn btn-sm btn-light w-100 text-start text-danger border-0 rounded-0" 
                                 style={{ fontSize: "12px" }}
                                 onClick={(e) => {
@@ -852,6 +868,18 @@ const ChatPage = () => {
                               onClick={(e) => { setOpenMenuId(null); toggleReadStatus(e, g, true); }}
                             >
                               {isUnread ? "Mark as Read" : "Mark as Unread"}
+                            </button>
+                            <button 
+                              className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
+                              style={{ fontSize: "12px" }}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenMenuId(null);
+                                setSendFeedbackTarget({ type: 'group', id: g.id, name: g.name });
+                                setShowSendFeedbackModal(true);
+                              }}
+                            >
+                              Send Feedback
                             </button>
                           </div>
                         )}
@@ -1301,6 +1329,31 @@ const ChatPage = () => {
           </div>
         </div>
       )}
+
+        <SendChatFeedbackModal 
+          isOpen={showSendFeedbackModal}
+          onClose={() => setShowSendFeedbackModal(false)}
+          chatType={sendFeedbackTarget?.type}
+          conversationId={sendFeedbackTarget?.id}
+          onSubmit={async (feedbackData) => {
+            try {
+              const res = await submitFeedback(feedbackData);
+              if (res.success) {
+                setDeleteToast({ type: "success", message: "Feedback submitted successfully." });
+                setTimeout(() => setDeleteToast(null), 3000);
+                return true;
+              } else {
+                setDeleteToast({ type: "error", message: "Unable to submit feedback. Please try again." });
+                setTimeout(() => setDeleteToast(null), 3000);
+                return false;
+              }
+            } catch (err) {
+              setDeleteToast({ type: "error", message: "Unable to submit feedback. Please try again." });
+              setTimeout(() => setDeleteToast(null), 3000);
+              return false;
+            }
+          }}
+        />
 
       {/* Delete Group Confirmation Modal */}
       {showDeleteConfirm && (

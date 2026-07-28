@@ -197,9 +197,10 @@ const AdminFeedback = () => {
                 <thead className="bg-light">
                   <tr>
                     <th className="text-muted fw-semibold small py-3 px-4 border-0">EMPLOYEE</th>
-                    <th className="text-muted fw-semibold small py-3 border-0">TYPE</th>
-                    <th className="text-muted fw-semibold small py-3 border-0">REASON</th>
-                    <th className="text-muted fw-semibold small py-3 border-0">DATE</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">CATEGORY</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">CHAT TYPE</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">RATING</th>
+                    <th className="text-muted fw-semibold small py-3 border-0">SUBMITTED</th>
                     <th className="text-muted fw-semibold small py-3 border-0">STATUS</th>
                     <th className="text-muted fw-semibold small py-3 px-4 border-0 text-end">ACTIONS</th>
                   </tr>
@@ -224,11 +225,14 @@ const AdminFeedback = () => {
                       </td>
                       <td className="py-3">
                         <span className="badge bg-secondary bg-opacity-10 text-secondary border">
-                          {f.feedbackType.replace("_", " ")}
+                          {f.reason || f.feedbackType.replace("_", " ")}
                         </span>
                       </td>
-                      <td className="py-3 text-dark text-truncate" style={{ maxWidth: "200px", fontSize: "14px" }}>
-                        {f.reason || "--"}
+                      <td className="py-3 text-dark text-capitalize" style={{ fontSize: "14px" }}>
+                        {f.chatType || "--"}
+                      </td>
+                      <td className="py-3 text-dark text-nowrap" style={{ fontSize: "14px" }}>
+                        {f.rating ? `${f.rating}/5` : "--"}
                       </td>
                       <td className="py-3 text-muted" style={{ fontSize: "14px" }}>
                         {new Date(f.createdAt).toLocaleDateString()}
@@ -288,27 +292,36 @@ const AdminFeedback = () => {
               </div>
 
               <div className="mb-3">
-                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Type & Date</label>
-                <div>
-                  <span className="badge bg-secondary bg-opacity-10 text-secondary border me-2">
-                    {selectedFeedback.feedbackType.replace("_", " ")}
-                  </span>
-                  <span className="text-muted small">
-                    {new Date(selectedFeedback.createdAt).toLocaleString()}
-                  </span>
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Category</label>
+                <div className="text-dark fw-medium">
+                  {selectedFeedback.reason || selectedFeedback.feedbackType.replace("_", " ")}
                 </div>
               </div>
 
               <div className="mb-3">
-                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Reason</label>
-                <div className="bg-light p-3 rounded text-dark border">
-                  {selectedFeedback.reason || "No reason provided"}
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Chat Type</label>
+                <div className="text-dark text-capitalize fw-medium">
+                  {selectedFeedback.chatType || "--"}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Rating</label>
+                <div className="text-dark fw-medium">
+                  {selectedFeedback.rating ? `${selectedFeedback.rating} / 5` : "--"}
+                </div>
+              </div>
+
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Submitted</label>
+                <div className="text-dark">
+                  {new Date(selectedFeedback.createdAt).toLocaleString()}
                 </div>
               </div>
 
               {selectedFeedback.comments && (
                 <div className="mb-3">
-                  <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Additional Comments</label>
+                  <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Employee Feedback</label>
                   <div className="bg-light p-3 rounded text-dark border" style={{ whiteSpace: "pre-wrap" }}>
                     {selectedFeedback.comments}
                   </div>

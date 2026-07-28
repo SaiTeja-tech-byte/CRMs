@@ -5,7 +5,7 @@ const { Op } = require("sequelize");
 // Submit feedback (by any user, admin or employee)
 exports.submitFeedback = async (req, res) => {
   try {
-    const { feedbackType, chatType, reason, comments, deletedByRole } = req.body;
+    const { feedbackType, chatType, reason, comments, deletedByRole, rating, conversationId } = req.body;
     const submittedBy = req.user.id;
 
     if (!feedbackType) {
@@ -18,6 +18,8 @@ exports.submitFeedback = async (req, res) => {
       reason,
       comments,
       deletedByRole,
+      rating,
+      conversationId,
       submittedBy,
     });
 
