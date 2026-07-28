@@ -936,7 +936,7 @@ const LegalCenter = () => {
       {showRequestModal && (
         <div className="privacy-modal-overlay" onClick={() => setShowRequestModal(false)}>
           <div className="privacy-modal" onClick={(e) => e.stopPropagation()}>
-            <button className="modal-close-btn" onClick={() => setShowRequestModal(false)}>
+            <button aria-label="Close" className="modal-close-btn" onClick={() => setShowRequestModal(false)}>
               <i className="bi bi-x-lg" style={{ fontSize: "1.1rem" }}></i>
             </button>
             <div className="modal-header">
