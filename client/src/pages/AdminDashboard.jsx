@@ -20,6 +20,7 @@ import AdminOrganizationChart from './AdminOrganizationChart';
 import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
 import ChatPage from './ChatPage';
+import AdminFeedback from './AdminFeedback';
 // =========================
 // AdminHome
 // =========================
@@ -3279,6 +3280,9 @@ const AdminDashboard = () => {
 
       case "contact-queries":
         return <AdminContactQueries />;
+
+      case "feedback":
+        return <AdminFeedback />;
 
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;

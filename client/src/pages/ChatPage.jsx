@@ -80,7 +80,7 @@ const ChatPage = () => {
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showChatMenu, setShowChatMenu] = useState(false);
   const [showFeedbackModal, setShowFeedbackModal] = useState(false);
-  const [feedbackData, setFeedbackData] = useState({ category: "", rating: 0, comments: "" });
+  const [feedbackData, setFeedbackData] = useState({ satisfaction: 0, easyToUse: "", issues: "", improvements: "", comments: "" });
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
@@ -586,17 +586,24 @@ const ChatPage = () => {
 
   const handleFeedbackSubmit = async (e) => {
     e.preventDefault();
-    if (!feedbackData.category || feedbackData.rating === 0) {
-      alert("Please select a category and provide a rating.");
+    if (feedbackData.satisfaction === 0) {
+      alert("Please provide a satisfaction rating for question 1.");
       return;
     }
     
     try {
+      const compiledComments = [
+        `Q2 (Easy to use?): ${feedbackData.easyToUse || "N/A"}`,
+        `Q3 (Experienced issues?): ${feedbackData.issues || "N/A"}`,
+        `Q4 (Recommend improvements?): ${feedbackData.improvements || "N/A"}`,
+        `Additional Comments: ${feedbackData.comments || "None"}`
+      ].join("\n");
+
       const payload = {
-        feedbackType: feedbackData.category.replace(/\s+/g, "_"),
+        feedbackType: "Chat_Experience",
         chatType: activeConversation?.isGroup ? "Group" : "Individual",
-        comments: feedbackData.comments,
-        rating: feedbackData.rating,
+        comments: compiledComments,
+        rating: feedbackData.satisfaction,
         conversationId: activeConversation?.id?.toString() || ""
       };
       
@@ -609,7 +616,7 @@ const ChatPage = () => {
       if (!res.ok) throw new Error("Failed to submit feedback");
       
       setShowFeedbackModal(false);
-      setFeedbackData({ category: "", rating: 0, comments: "" });
+      setFeedbackData({ satisfaction: 0, easyToUse: "", issues: "", improvements: "", comments: "" });
       alert("Feedback submitted successfully. Thank you!");
     } catch (err) {
       console.error(err);
@@ -1654,44 +1661,85 @@ const ChatPage = () => {
               <button type="button" className="btn-close" onClick={() => setShowFeedbackModal(false)} aria-label="Close"></button>
             </div>
             <div className="p-4" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+              
               <div className="mb-4">
-                <label className="fw-bold small mb-2 d-block">What would you like to give feedback about?</label>
-                <div className="d-flex flex-column gap-2">
-                  {["Messaging experience", "Notifications", "Group chat", "Performance / speed", "UI / usability", "Report an issue", "Other"].map(cat => (
-                    <label key={cat} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                <label className="fw-bold small mb-2 d-block">1. How satisfied are you with the chat experience?</label>
+                <div className="d-flex gap-3">
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <label key={num} className="d-flex flex-column align-items-center gap-1" style={{ cursor: "pointer" }}>
                       <input 
                         type="radio" 
-                        name="feedbackCategory" 
-                        value={cat} 
-                        checked={feedbackData.category === cat}
-                        onChange={(e) => setFeedbackData({ ...feedbackData, category: e.target.value })}
+                        name="satisfaction" 
+                        value={num} 
+                        checked={feedbackData.satisfaction === num}
+                        onChange={(e) => setFeedbackData({ ...feedbackData, satisfaction: parseInt(e.target.value) })}
                         className="form-check-input mt-0"
                       />
-                      <span className="small">{cat}</span>
+                      <span className="small text-muted">{num}</span>
                     </label>
                   ))}
                 </div>
               </div>
 
               <div className="mb-4">
-                <label className="fw-bold small mb-2 d-block">How would you rate your experience?</label>
-                <div className="d-flex gap-2">
-                  {[1, 2, 3, 4, 5].map(num => (
-                    <button
-                      key={num}
-                      type="button"
-                      className={`btn btn-sm ${feedbackData.rating >= num ? "btn-warning text-white" : "btn-light border"}`}
-                      onClick={() => setFeedbackData({ ...feedbackData, rating: num })}
-                      style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
-                    >
-                      ★
-                    </button>
+                <label className="fw-bold small mb-2 d-block">2. Was the application easy to use?</label>
+                <div className="d-flex gap-3">
+                  {["Yes", "No", "Somewhat"].map(opt => (
+                    <label key={opt} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                      <input 
+                        type="radio" 
+                        name="easyToUse" 
+                        value={opt} 
+                        checked={feedbackData.easyToUse === opt}
+                        onChange={(e) => setFeedbackData({ ...feedbackData, easyToUse: e.target.value })}
+                        className="form-check-input mt-0"
+                      />
+                      <span className="small">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold small mb-2 d-block">3. Did you experience any issues?</label>
+                <div className="d-flex gap-3">
+                  {["Yes", "No"].map(opt => (
+                    <label key={opt} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                      <input 
+                        type="radio" 
+                        name="issues" 
+                        value={opt} 
+                        checked={feedbackData.issues === opt}
+                        onChange={(e) => setFeedbackData({ ...feedbackData, issues: e.target.value })}
+                        className="form-check-input mt-0"
+                      />
+                      <span className="small">{opt}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold small mb-2 d-block">4. Would you recommend improvements?</label>
+                <div className="d-flex gap-3">
+                  {["Yes", "No"].map(opt => (
+                    <label key={opt} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                      <input 
+                        type="radio" 
+                        name="improvements" 
+                        value={opt} 
+                        checked={feedbackData.improvements === opt}
+                        onChange={(e) => setFeedbackData({ ...feedbackData, improvements: e.target.value })}
+                        className="form-check-input mt-0"
+                      />
+                      <span className="small">{opt}</span>
+                    </label>
                   ))}
                 </div>
               </div>
 
               <div className="mb-2">
-                <label className="fw-bold small mb-2 d-block">Additional comments (Optional)</label>
+                <label className="fw-bold small mb-2 d-block">5. Additional comments (optional)</label>
                 <textarea
                   className="form-control"
                   rows="3"
@@ -1704,7 +1752,7 @@ const ChatPage = () => {
             
             <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
               <button type="button" className="btn btn-light border" onClick={() => setShowFeedbackModal(false)}>Cancel</button>
-              <button type="button" className="btn btn-brand" onClick={handleFeedbackSubmit} disabled={!feedbackData.category || feedbackData.rating === 0}>
+              <button type="button" className="btn btn-brand" onClick={handleFeedbackSubmit} disabled={feedbackData.satisfaction === 0}>
                 Submit Feedback
               </button>
             </div>
