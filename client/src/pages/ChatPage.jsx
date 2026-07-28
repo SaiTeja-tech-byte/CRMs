@@ -657,10 +657,10 @@ const ChatPage = () => {
                     <div key={r.id} className="d-flex align-items-center justify-content-between mb-2">
                       <span className="small">{r.sender?.fullName || "Someone"} wants to chat</span>
                       <div className="d-flex gap-1">
-                        <button className="btn btn-sm btn-success" onClick={() => handleAccept(r.id)}>
+                        <button aria-label="Accept chat request" className="btn btn-sm btn-success" onClick={() => handleAccept(r.id)}>
                           <Check size={12} />
                         </button>
-                        <button className="btn btn-sm btn-outline-danger" onClick={() => handleDecline(r.id)}>
+                        <button aria-label="Decline chat request" className="btn btn-sm btn-outline-danger" onClick={() => handleDecline(r.id)}>
                           <X size={12} />
                         </button>
                       </div>
@@ -711,7 +711,7 @@ const ChatPage = () => {
                           </div>
                         </div>
                         <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
-                          <button 
+                          <button aria-label="More options" 
                             className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
                             onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === c.id ? null : c.id); }}
                           >
@@ -801,7 +801,7 @@ const ChatPage = () => {
                       </div>
                       
                       <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
-                        <button 
+                        <button aria-label="More options" 
                           className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
                           onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === g.id ? null : g.id); }}
                         >
@@ -1040,7 +1040,7 @@ const ChatPage = () => {
                   <FileText size={16} />
                 )}
                 <span className="flex-fill text-truncate">{pendingAttachment.name}</span>
-                <button type="button" className="btn btn-sm btn-link text-danger p-0" onClick={() => setPendingAttachment(null)}>
+                <button aria-label="Remove attachment" type="button" className="btn btn-sm btn-link text-danger p-0" onClick={() => setPendingAttachment(null)}>
                   <X size={14} />
                 </button>
               </div>
@@ -1328,7 +1328,7 @@ const ChatPage = () => {
           <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "450px", maxHeight: "80vh" }} onClick={(e) => e.stopPropagation()}>
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h5 className="fw-bold m-0">Group Information</h5>
-              <button type="button" className="btn-close" onClick={() => setShowGroupInfoModal(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowGroupInfoModal(false)}></button>
             </div>
             
             <div className="flex-fill" style={{ overflowY: "auto" }}>
@@ -1395,7 +1395,7 @@ const ChatPage = () => {
           <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "450px" }} onClick={(e) => e.stopPropagation()}>
             <div className="d-flex justify-content-between align-items-center mb-4">
               <h5 className="fw-bold m-0">Edit Group</h5>
-              <button type="button" className="btn-close" onClick={() => setShowEditGroupModal(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowEditGroupModal(false)}></button>
             </div>
             
             <div className="mb-4">
@@ -1453,7 +1453,7 @@ const ChatPage = () => {
           <div className="bg-white rounded-3 shadow d-flex flex-column" style={{ width: "650px", maxHeight: "90vh", overflow: "hidden" }} onClick={(e) => e.stopPropagation()}>
             <div className="p-4 border-bottom d-flex justify-content-between align-items-center">
               <h5 className="fw-bold m-0">Manage Members</h5>
-              <button type="button" className="btn-close" onClick={() => setShowManageMembersModal(false)}></button>
+              <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowManageMembersModal(false)}></button>
             </div>
             
             <div className="d-flex flex-column flex-fill p-4" style={{ overflowY: "auto" }}>
