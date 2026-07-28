@@ -1,17 +1,12 @@
 import { lazy, Suspense } from "react";
 import { Routes, Route } from "react-router-dom";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 
 import ScrollToTop from "./components/ScrollToTop";
 import RequireAuth from "./components/RequireAuth";
 import RequireAdmin from "./components/RequireAdmin";
-
-// Dashboard stays eager: it's the primary authenticated route, and lazy-loading it
-// causes a Suspense-fallback-to-content swap that shows up as layout shift (CLS)
-// on the exact page Lighthouse measures.
 import Dashboard from "./pages/Dashboard";
 
-// Marketing / existing pages (all built by teammate)
-// Lazy-loaded so each route ships its own chunk instead of one giant bundle
 const Landing = lazy(() => import("./pages/Landing"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const LegalCenter = lazy(() => import("./pages/LegalCenter"));
@@ -28,7 +23,6 @@ const TrustCenter = lazy(() => import("./pages/TrustCenter"));
 const ChatPage = lazy(() => import("./pages/ChatPage"));
 const AdminContactQueries = lazy(() => import("./pages/AdminContactQueries"));
 
-// Auth pages
 const Register = lazy(() => import("./pages/auth/Register"));
 const Login = lazy(() => import("./pages/auth/Login"));
 const AdminLogin = lazy(() => import("./pages/auth/AdminLogin"));
@@ -36,6 +30,8 @@ const TwoFactor = lazy(() => import("./pages/auth/TwoFactor"));
 const ForgotPassword = lazy(() => import("./pages/auth/ForgotPassword"));
 const ResetPassword = lazy(() => import("./pages/auth/ResetPassword"));
 const AdminDashboard = lazy(() => import("./pages/AdminDashboard"));
+
+const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || "";
 
 function PageLoading() {
   return (
@@ -52,13 +48,20 @@ function PageLoading() {
   );
 }
 
+function GoogleAuthRoute({ children }) {
+  return (
+    <GoogleOAuthProvider clientId={googleClientId}>
+      {children}
+    </GoogleOAuthProvider>
+  );
+}
+
 function App() {
   return (
     <>
       <ScrollToTop />
       <Suspense fallback={<PageLoading />}>
         <Routes>
-          {/* Marketing site */}
           <Route path="/" element={<Landing />} />
           <Route path="/about" element={<About />} />
           <Route path="/pricing" element={<Pricing />} />
@@ -72,21 +75,39 @@ function App() {
           <Route path="/responsible-disclosure" element={<ResponsibleDisclosure />} />
           <Route path="/cookie-preferences" element={<CookiePreferences />} />
 
-          {/* Detail sub-pages, each keyed by its own path (same as before) */}
           <Route path="/cookie-policy" element={<PolicyDetail path="/cookie-policy" />} />
           <Route path="/accessibility" element={<PolicyDetail path="/accessibility" />} />
           <Route path="/acceptable-use" element={<PolicyDetail path="/acceptable-use" />} />
           <Route path="/data-processing-agreement" element={<PolicyDetail path="/data-processing-agreement" />} />
 
-          {/* Auth */}
-          <Route path="/register" element={<Register />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route
+            path="/register"
+            element={
+              <GoogleAuthRoute>
+                <Register />
+              </GoogleAuthRoute>
+            }
+          />
+          <Route
+            path="/login"
+            element={
+              <GoogleAuthRoute>
+                <Login />
+              </GoogleAuthRoute>
+            }
+          />
+          <Route
+            path="/admin/login"
+            element={
+              <GoogleAuthRoute>
+                <AdminLogin />
+              </GoogleAuthRoute>
+            }
+          />
           <Route path="/verify-otp" element={<TwoFactor />} />
           <Route path="/forgot-password" element={<ForgotPassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
 
-          {/* Dashboard - requires login */}
           <Route
             path="/dashboard"
             element={
@@ -96,7 +117,6 @@ function App() {
             }
           />
 
-          {/* Chat - requires login, available to both employees and admins */}
           <Route
             path="/chat"
             element={
@@ -106,7 +126,6 @@ function App() {
             }
           />
 
-          {/* Admin dashboard - requires login AND admin role */}
           <Route
             path="/admin/dashboard"
             element={
@@ -116,7 +135,6 @@ function App() {
             }
           />
 
-          {/* Customer contact queries - admin only */}
           <Route
             path="/admin/queries"
             element={
@@ -126,7 +144,6 @@ function App() {
             }
           />
 
-          {/* Anything unmatched falls back to the landing page */}
           <Route path="*" element={<Landing />} />
         </Routes>
       </Suspense>
