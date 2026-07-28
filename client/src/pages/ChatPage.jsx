@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown, Users, MoreVertical, ArrowLeft } from "lucide-react";
+import { Send, UserPlus, Check, CheckCheck, X, MessageCircle, Smile, Paperclip, FileText, Pencil, Trash2, Search, ChevronUp, ChevronDown, Users, MoreVertical } from "lucide-react";
 
 import {
   sendChatRequest,
@@ -22,9 +22,6 @@ import {
   deleteGroup as deleteGroupApi,
 } from "../services/chatService";
 import { connectSocket, onSocketEvent } from "../services/socketService";
-import { submitFeedback } from "../services/feedbackService";
-import DeleteChatFeedbackModal from "../components/DeleteChatFeedbackModal";
-import SendChatFeedbackModal from "../components/SendChatFeedbackModal";
 
 const currentUser = JSON.parse(localStorage.getItem("user") || "null");
 
@@ -72,11 +69,7 @@ const ChatPage = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
-    const closeMenu = () => {
-      setOpenMenuId(null);
-      setShowGroupMenu(false);
-      setShowIndividualMenu(false);
-    };
+    const closeMenu = () => setOpenMenuId(null);
     document.addEventListener("click", closeMenu);
     return () => document.removeEventListener("click", closeMenu);
   }, []);
@@ -86,7 +79,6 @@ const ChatPage = () => {
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showGroupMenu, setShowGroupMenu] = useState(false);
-  const [showIndividualMenu, setShowIndividualMenu] = useState(false);
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
@@ -96,21 +88,6 @@ const ChatPage = () => {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showClearChatConfirm, setShowClearChatConfirm] = useState(false);
   const [listSearch, setListSearch] = useState("");
-
-  const [showDeleteFeedbackModal, setShowDeleteFeedbackModal] = useState(false);
-  const [feedbackTarget, setFeedbackTarget] = useState(null);
-  const [deleteToast, setDeleteToast] = useState(null);
-
-  const [showSendFeedbackModal, setShowSendFeedbackModal] = useState(false);
-  const [sendFeedbackTarget, setSendFeedbackTarget] = useState(null);
-
-  const [isMobileView, setIsMobileView] = useState(window.innerWidth <= 768);
-
-  useEffect(() => {
-    const handleResize = () => setIsMobileView(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // "Search in this chat" — WhatsApp-style find + next/previous
   const [showSearchBar, setShowSearchBar] = useState(false);
@@ -607,19 +584,8 @@ const ChatPage = () => {
 
   return (
     <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
-      {deleteToast && (
-        <div style={{
-          position: "fixed", top: "20px", right: "20px", zIndex: 1100,
-          background: deleteToast.type === "success" ? "#10b981" : "#ef4444",
-          color: "white", padding: "12px 24px", borderRadius: "8px",
-          boxShadow: "0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)",
-          display: "flex", alignItems: "center", gap: "10px", fontWeight: "500", fontSize: "14px"
-        }}>
-          {deleteToast.message}
-        </div>
-      )}
       {/* Sidebar */}
-      <div className={`border-end d-flex flex-column chat-sidebar-panel ${isMobileView && activeConversation ? 'chat-sidebar-hidden' : ''}`} style={{ width: "320px" }}>
+      <div className="border-end d-flex flex-column" style={{ width: "320px" }}>
         <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
           <h6 className="fw-bold m-0">Chats</h6>
           {activeTab === "individual" ? (
@@ -744,7 +710,24 @@ const ChatPage = () => {
                             {senderName}{previewText}
                           </div>
                         </div>
-                        <div className="d-flex flex-column align-items-end justify-content-center h-100 ms-2 gap-2 position-relative">
+                        <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
+                          <button 
+                            className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
+                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === c.id ? null : c.id); }}
+                          >
+                            <MoreVertical size={14} />
+                          </button>
+                          {openMenuId === c.id && (
+                            <div className="position-absolute bg-white border rounded shadow py-1 z-3" style={{ right: 0, top: "20px", width: "130px" }}>
+                              <button 
+                                className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
+                                style={{ fontSize: "12px" }}
+                                onClick={(e) => { setOpenMenuId(null); toggleReadStatus(e, c, false); }}
+                              >
+                                {isUnread ? "Mark as Read" : "Mark as Unread"}
+                              </button>
+                            </div>
+                          )}
                           {isUnread && (
                             <span className="badge rounded-pill bg-primary d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "18px", height: "18px", padding: 0 }}>{c.unreadCount}</span>
                           )}
@@ -833,18 +816,6 @@ const ChatPage = () => {
                             >
                               {isUnread ? "Mark as Read" : "Mark as Unread"}
                             </button>
-                            <button 
-                              className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
-                              style={{ fontSize: "12px" }}
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setOpenMenuId(null);
-                                setSendFeedbackTarget({ type: 'group', id: g.id, name: g.name });
-                                setShowSendFeedbackModal(true);
-                              }}
-                            >
-                              Send Feedback
-                            </button>
                           </div>
                         )}
                         {isUnread && (
@@ -861,16 +832,11 @@ const ChatPage = () => {
       </div>
 
       {/* Conversation window */}
-      <div className={`flex-fill d-flex flex-column ${isMobileView && !activeConversation ? 'd-none' : ''}`}>
+      <div className="flex-fill d-flex flex-column">
         {activeConversation ? (
           <>
             <div className="p-3 border-bottom d-flex justify-content-between align-items-center">
               <div className="d-flex align-items-center gap-2">
-                {isMobileView && (
-                  <button className="btn btn-sm btn-light p-1 me-1 border-0" onClick={() => setActiveConversation(null)}>
-                    <ArrowLeft size={20} />
-                  </button>
-                )}
                 <span className="fw-bold">
                   {activeConversation.isGroup ? activeConversation.name : (activeConversation.otherUser?.fullName || "Chat")}
                 </span>
@@ -887,13 +853,13 @@ const ChatPage = () => {
                 >
                   <Search size={14} />
                 </button>
-                {activeConversation.isGroup ? (
+                {activeConversation.isGroup && (
                   <div className="position-relative">
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-secondary d-flex align-items-center"
                       title="Manage Group"
-                      onClick={(e) => { e.stopPropagation(); setShowGroupMenu(!showGroupMenu); }}
+                      onClick={() => setShowGroupMenu(!showGroupMenu)}
                     >
                       <MoreVertical size={14} />
                     </button>
@@ -920,41 +886,8 @@ const ChatPage = () => {
                         }}>Clear Chat</button>
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
                           setShowGroupMenu(false); 
-                          setFeedbackTarget({ type: 'group', id: activeConversation.id, name: activeConversation.name });
-                          setShowDeleteFeedbackModal(true);
+                          setShowDeleteConfirm(true);
                         }}>Delete Group</button>
-                      </div>
-                    )}
-                  </div>
-                ) : (
-                  <div className="position-relative">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                      title="Manage Conversation"
-                      onClick={(e) => { e.stopPropagation(); setShowIndividualMenu(!showIndividualMenu); }}
-                    >
-                      <MoreVertical size={14} />
-                    </button>
-                    {showIndividualMenu && (
-                      <div className="position-absolute bg-white border rounded shadow-sm py-2 mt-1 z-3" style={{ right: 0, width: "200px" }}>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setShowIndividualMenu(false); 
-                          // toggleReadStatus expects e, item, isGroup
-                          toggleReadStatus({ stopPropagation: () => {} }, activeConversation, false); 
-                        }}>
-                          {activeConversation.unreadCount > 0 ? "Mark as Read" : "Mark as Unread"}
-                        </button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setShowIndividualMenu(false); 
-                          setSendFeedbackTarget({ type: 'individual', id: activeConversation.id, name: activeConversation.otherUser?.fullName });
-                          setShowSendFeedbackModal(true);
-                        }}>Send Feedback</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
-                          setShowIndividualMenu(false); 
-                          setFeedbackTarget({ type: 'individual', id: activeConversation.id, name: activeConversation.otherUser?.fullName });
-                          setShowDeleteFeedbackModal(true);
-                        }}>Delete Conversation</button>
                       </div>
                     )}
                   </div>
@@ -1163,7 +1096,7 @@ const ChatPage = () => {
                 onChange={(e) => setDraft(e.target.value)}
                 onFocus={() => setShowEmojiPicker(false)}
               />
-              <button type="submit" className="btn btn-brand d-flex align-items-center">
+              <button type="submit" className="btn btn-brand d-flex align-items-center" aria-label="Send message">
                 <Send size={16} />
               </button>
             </form>
@@ -1325,31 +1258,6 @@ const ChatPage = () => {
           </div>
         </div>
       )}
-
-        <SendChatFeedbackModal 
-          isOpen={showSendFeedbackModal}
-          onClose={() => setShowSendFeedbackModal(false)}
-          chatType={sendFeedbackTarget?.type}
-          conversationId={sendFeedbackTarget?.id}
-          onSubmit={async (feedbackData) => {
-            try {
-              const res = await submitFeedback(feedbackData);
-              if (res.success) {
-                setDeleteToast({ type: "success", message: "Feedback submitted successfully." });
-                setTimeout(() => setDeleteToast(null), 3000);
-                return true;
-              } else {
-                setDeleteToast({ type: "error", message: "Unable to submit feedback. Please try again." });
-                setTimeout(() => setDeleteToast(null), 3000);
-                return false;
-              }
-            } catch (err) {
-              setDeleteToast({ type: "error", message: "Unable to submit feedback. Please try again." });
-              setTimeout(() => setDeleteToast(null), 3000);
-              return false;
-            }
-          }}
-        />
 
       {/* Delete Group Confirmation Modal */}
       {showDeleteConfirm && (
@@ -1671,100 +1579,6 @@ const ChatPage = () => {
             </div>
           </div>
         </div>
-      )}
-
-      {/* Reusable Delete Feedback Modal */}
-      {currentUser?.role?.toLowerCase() === "admin" ? (
-        showDeleteFeedbackModal && (
-          <div
-            className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
-            style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
-            onClick={() => setShowDeleteFeedbackModal(false)}
-          >
-            <div className="bg-white rounded-3 shadow p-4 d-flex flex-column" style={{ width: "400px" }} onClick={(e) => e.stopPropagation()}>
-              <h5 className="fw-bold mb-3">{feedbackTarget?.type === 'group' ? 'Delete group?' : 'Delete conversation?'}</h5>
-              <p className="mb-4">Are you sure you want to delete this {feedbackTarget?.type === 'group' ? 'group' : 'conversation'}? This action cannot be undone.</p>
-              <div className="d-flex justify-content-end gap-2 mt-auto">
-                <button type="button" className="btn btn-light border" onClick={() => setShowDeleteFeedbackModal(false)}>Cancel</button>
-                <button type="button" className="btn btn-danger" onClick={async (e) => {
-                  const targetId = feedbackTarget.id;
-                  const btn = e.target;
-                  btn.disabled = true;
-                  btn.textContent = 'Deleting...';
-                  try {
-                    if (feedbackTarget.type === 'group') {
-                      if (!targetId.toString().startsWith("dummy-")) {
-                        await deleteGroupApi(targetId);
-                      }
-                      setGroups(prev => prev.filter(g => g.id !== targetId));
-                      setDeleteToast({ message: "Group deleted successfully.", type: "success" });
-                    } else {
-                      setConversations(prev => prev.filter(c => c.id !== targetId));
-                      setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
-                    }
-                    
-                    if (activeConversation?.id === targetId) {
-                      setActiveConversation(null);
-                    }
-                    setTimeout(() => setDeleteToast(null), 3000);
-                  } catch (err) {
-                    console.error("Failed to delete:", err);
-                    setDeleteToast({ 
-                      message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
-                      type: "error" 
-                    });
-                    setTimeout(() => setDeleteToast(null), 3000);
-                  } finally {
-                    setShowDeleteFeedbackModal(false);
-                  }
-                }}>
-                  Delete
-                </button>
-              </div>
-            </div>
-          </div>
-        )
-      ) : (
-        <DeleteChatFeedbackModal 
-          isOpen={showDeleteFeedbackModal}
-          chatType={feedbackTarget?.type}
-          targetName={feedbackTarget?.name}
-          currentUser={currentUser}
-          onClose={() => setShowDeleteFeedbackModal(false)}
-          onConfirmDelete={async (feedbackData) => {
-            const targetId = feedbackTarget.id;
-            
-            try {
-              // Persist the feedback to the backend
-              await submitFeedback(feedbackData);
-              
-              if (feedbackTarget.type === 'group') {
-                if (!targetId.toString().startsWith("dummy-")) {
-                  await deleteGroupApi(targetId);
-                }
-                setGroups(prev => prev.filter(g => g.id !== targetId));
-                setDeleteToast({ message: "Group deleted successfully.", type: "success" });
-              } else {
-                setConversations(prev => prev.filter(c => c.id !== targetId));
-                setDeleteToast({ message: "Conversation deleted successfully.", type: "success" });
-              }
-              
-              if (activeConversation?.id === targetId) {
-                setActiveConversation(null);
-              }
-              setTimeout(() => setDeleteToast(null), 3000);
-              return true;
-            } catch (err) {
-              console.error("Failed to delete:", err);
-              setDeleteToast({ 
-                message: feedbackTarget.type === 'group' ? "Unable to delete the group. Please try again." : "Unable to delete the conversation. Please try again.",
-                type: "error" 
-              });
-              setTimeout(() => setDeleteToast(null), 3000);
-              return false;
-            }
-          }}
-        />
       )}
     </div>
   );
