@@ -7,8 +7,6 @@ export const PaginationBar = ({ pagination, onPageChange }) => {
   const from = total === 0 ? 0 : (page - 1) * limit + 1;
   const to = Math.min(page * limit, total);
 
-  // Compact page-number list: first, last, current +/-1, with ellipses —
-  // avoids rendering 50 page buttons for a large table.
   const pageNumbers = [];
   for (let p = 1; p <= totalPages; p++) {
     if (p === 1 || p === totalPages || Math.abs(p - page) <= 1) pageNumbers.push(p);
