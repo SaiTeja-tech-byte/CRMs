@@ -72,7 +72,11 @@ const ChatPage = () => {
   const [openMenuId, setOpenMenuId] = useState(null);
 
   useEffect(() => {
-    const closeMenu = () => setOpenMenuId(null);
+    const closeMenu = () => {
+      setOpenMenuId(null);
+      setShowGroupMenu(false);
+      setShowIndividualMenu(false);
+    };
     document.addEventListener("click", closeMenu);
     return () => document.removeEventListener("click", closeMenu);
   }, []);
@@ -82,6 +86,7 @@ const ChatPage = () => {
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
   const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const [showIndividualMenu, setShowIndividualMenu] = useState(false);
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
@@ -739,48 +744,7 @@ const ChatPage = () => {
                             {senderName}{previewText}
                           </div>
                         </div>
-                        <div className="d-flex flex-column align-items-end justify-content-between h-100 ms-2 gap-2 position-relative">
-                          <button 
-                            className="btn btn-sm btn-link text-muted p-0 m-0 border-0 opacity-50 hover-opacity-100" 
-                            onClick={(e) => { e.stopPropagation(); setOpenMenuId(openMenuId === c.id ? null : c.id); }}
-                          >
-                            <MoreVertical size={14} />
-                          </button>
-                          {openMenuId === c.id && (
-                            <div className="position-absolute bg-white border rounded shadow py-1 z-3" style={{ right: 0, top: "20px", width: "130px" }}>
-                              <button 
-                                className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
-                                style={{ fontSize: "12px" }}
-                                onClick={(e) => { setOpenMenuId(null); toggleReadStatus(e, c, false); }}
-                              >
-                                {isUnread ? "Mark as Read" : "Mark as Unread"}
-                              </button>
-                              <button 
-                                className="btn btn-sm btn-light w-100 text-start text-dark border-0 rounded-0" 
-                                style={{ fontSize: "12px" }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(null);
-                                  setSendFeedbackTarget({ type: 'individual', id: c.id, name: c.otherUser?.fullName });
-                                  setShowSendFeedbackModal(true);
-                                }}
-                              >
-                                Send Feedback
-                              </button>
-                              <button 
-                                className="btn btn-sm btn-light w-100 text-start text-danger border-0 rounded-0" 
-                                style={{ fontSize: "12px" }}
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setOpenMenuId(null);
-                                  setFeedbackTarget({ type: 'individual', id: c.id, name: c.otherUser?.fullName });
-                                  setShowDeleteFeedbackModal(true);
-                                }}
-                              >
-                                Delete Conversation
-                              </button>
-                            </div>
-                          )}
+                        <div className="d-flex flex-column align-items-end justify-content-center h-100 ms-2 gap-2 position-relative">
                           {isUnread && (
                             <span className="badge rounded-pill bg-primary d-flex align-items-center justify-content-center" style={{ fontSize: "10px", width: "18px", height: "18px", padding: 0 }}>{c.unreadCount}</span>
                           )}
@@ -923,13 +887,13 @@ const ChatPage = () => {
                 >
                   <Search size={14} />
                 </button>
-                {activeConversation.isGroup && (
+                {activeConversation.isGroup ? (
                   <div className="position-relative">
                     <button
                       type="button"
                       className="btn btn-sm btn-outline-secondary d-flex align-items-center"
                       title="Manage Group"
-                      onClick={() => setShowGroupMenu(!showGroupMenu)}
+                      onClick={(e) => { e.stopPropagation(); setShowGroupMenu(!showGroupMenu); }}
                     >
                       <MoreVertical size={14} />
                     </button>
@@ -959,6 +923,38 @@ const ChatPage = () => {
                           setFeedbackTarget({ type: 'group', id: activeConversation.id, name: activeConversation.name });
                           setShowDeleteFeedbackModal(true);
                         }}>Delete Group</button>
+                      </div>
+                    )}
+                  </div>
+                ) : (
+                  <div className="position-relative">
+                    <button
+                      type="button"
+                      className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                      title="Manage Conversation"
+                      onClick={(e) => { e.stopPropagation(); setShowIndividualMenu(!showIndividualMenu); }}
+                    >
+                      <MoreVertical size={14} />
+                    </button>
+                    {showIndividualMenu && (
+                      <div className="position-absolute bg-white border rounded shadow-sm py-2 mt-1 z-3" style={{ right: 0, width: "200px" }}>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setShowIndividualMenu(false); 
+                          // toggleReadStatus expects e, item, isGroup
+                          toggleReadStatus({ stopPropagation: () => {} }, activeConversation, false); 
+                        }}>
+                          {activeConversation.unreadCount > 0 ? "Mark as Read" : "Mark as Unread"}
+                        </button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                          setShowIndividualMenu(false); 
+                          setSendFeedbackTarget({ type: 'individual', id: activeConversation.id, name: activeConversation.otherUser?.fullName });
+                          setShowSendFeedbackModal(true);
+                        }}>Send Feedback</button>
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
+                          setShowIndividualMenu(false); 
+                          setFeedbackTarget({ type: 'individual', id: activeConversation.id, name: activeConversation.otherUser?.fullName });
+                          setShowDeleteFeedbackModal(true);
+                        }}>Delete Conversation</button>
                       </div>
                     )}
                   </div>
