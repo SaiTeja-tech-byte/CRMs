@@ -92,19 +92,36 @@ const AdminFeedback = () => {
     return ["All", ...Array.from(types)];
   }, [feedbacks]);
 
+  const [editNote, setEditNote] = useState("");
+  const [editStatus, setEditStatus] = useState("New");
+
   const handleView = (f) => {
     setSelectedFeedback(f);
+    setEditNote(f.adminNote || "");
+    setEditStatus(f.status || "New");
     setShowModal(true);
   };
 
-  const handleMarkReviewed = async () => {
+  const handleSaveChanges = async () => {
     if (!selectedFeedback) return;
     try {
-      const updated = await updateFeedbackStatus(selectedFeedback.id, "Reviewed");
+      const res = await fetch(`${(import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "")}/feedback/${selectedFeedback.id}/status`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
+        },
+        body: JSON.stringify({ status: editStatus, adminNote: editNote }),
+      });
+      if (!res.ok) throw new Error("Failed to update status");
+      const data = await res.json();
+      const updated = data.feedback;
       setFeedbacks(prev => prev.map(f => f.id === updated.id ? updated : f));
       setSelectedFeedback(updated);
+      setShowModal(false);
     } catch (err) {
-      alert("Failed to update status.");
+      console.error(err);
+      alert("Failed to save changes.");
     }
   };
 
@@ -328,14 +345,31 @@ const AdminFeedback = () => {
                 </div>
               )}
 
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Admin Note</label>
+                <textarea
+                  className="form-control text-dark"
+                  rows="3"
+                  placeholder="Add an internal note..."
+                  value={editNote}
+                  onChange={(e) => setEditNote(e.target.value)}
+                />
+              </div>
+
+              <div className="mb-3">
+                <label className="text-muted fw-bold small text-uppercase mb-1" style={{ letterSpacing: "0.5px" }}>Status</label>
+                <select className="form-select text-dark" value={editStatus} onChange={(e) => setEditStatus(e.target.value)}>
+                  <option value="New">New</option>
+                  <option value="Reviewed">Reviewed</option>
+                </select>
+              </div>
+
             </div>
             <div className="p-3 border-top d-flex justify-content-end gap-2 bg-light rounded-bottom">
               <button className="btn btn-outline-secondary px-4 fw-medium" onClick={closeModal}>Close</button>
-              {selectedFeedback.status === "New" && (
-                <button className="btn btn-primary px-4 fw-medium shadow-sm" onClick={handleMarkReviewed}>
-                  Mark as Reviewed
-                </button>
-              )}
+              <button className="btn btn-primary px-4 fw-medium shadow-sm" onClick={handleSaveChanges}>
+                Save Changes
+              </button>
             </div>
           </div>
         </div>

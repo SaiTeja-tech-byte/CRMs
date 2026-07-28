@@ -55,9 +55,9 @@ exports.getAllFeedback = async (req, res) => {
 exports.updateFeedbackStatus = async (req, res) => {
   try {
     const { id } = req.params;
-    const { status } = req.body;
+    const { status, adminNote } = req.body;
 
-    if (!["New", "Reviewed"].includes(status)) {
+    if (status && !["New", "Reviewed"].includes(status)) {
       return res.status(400).json({ success: false, message: "Invalid status" });
     }
 
@@ -66,7 +66,9 @@ exports.updateFeedbackStatus = async (req, res) => {
       return res.status(404).json({ success: false, message: "Feedback not found" });
     }
 
-    feedback.status = status;
+    if (status) feedback.status = status;
+    if (adminNote !== undefined) feedback.adminNote = adminNote;
+    
     await feedback.save();
 
     res.status(200).json({ success: true, feedback });

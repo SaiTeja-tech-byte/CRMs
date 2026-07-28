@@ -78,7 +78,9 @@ const ChatPage = () => {
   const [showCreateGroup, setShowCreateGroup] = useState(false);
   const [newGroupData, setNewGroupData] = useState({ name: "", description: "", members: [] });
   const [groupEmployeeSearch, setGroupEmployeeSearch] = useState("");
-  const [showGroupMenu, setShowGroupMenu] = useState(false);
+  const [showChatMenu, setShowChatMenu] = useState(false);
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false);
+  const [feedbackData, setFeedbackData] = useState({ category: "", rating: 0, comments: "" });
   const [showGroupInfoModal, setShowGroupInfoModal] = useState(false);
   const [showEditGroupModal, setShowEditGroupModal] = useState(false);
   const [editGroupData, setEditGroupData] = useState({ name: "", description: "" });
@@ -582,6 +584,39 @@ const ChatPage = () => {
     }
   };
 
+  const handleFeedbackSubmit = async (e) => {
+    e.preventDefault();
+    if (!feedbackData.category || feedbackData.rating === 0) {
+      alert("Please select a category and provide a rating.");
+      return;
+    }
+    
+    try {
+      const payload = {
+        feedbackType: feedbackData.category.replace(/\s+/g, "_"),
+        chatType: activeConversation?.isGroup ? "Group" : "Individual",
+        comments: feedbackData.comments,
+        rating: feedbackData.rating,
+        conversationId: activeConversation?.id?.toString() || ""
+      };
+      
+      const res = await fetch(`${API_BASE}/feedback`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+        body: JSON.stringify(payload)
+      });
+      
+      if (!res.ok) throw new Error("Failed to submit feedback");
+      
+      setShowFeedbackModal(false);
+      setFeedbackData({ category: "", rating: 0, comments: "" });
+      alert("Feedback submitted successfully. Thank you!");
+    } catch (err) {
+      console.error(err);
+      alert("Error submitting feedback. Please try again.");
+    }
+  };
+
   return (
     <div className="d-flex" style={{ height: "calc(100vh - 80px)" }}>
       {/* Sidebar */}
@@ -853,45 +888,68 @@ const ChatPage = () => {
                 >
                   <Search size={14} />
                 </button>
-                {activeConversation.isGroup && (
-                  <div className="position-relative">
-                    <button
-                      type="button"
-                      className="btn btn-sm btn-outline-secondary d-flex align-items-center"
-                      title="Manage Group"
-                      onClick={() => setShowGroupMenu(!showGroupMenu)}
-                    >
-                      <MoreVertical size={14} />
-                    </button>
-                    {showGroupMenu && (
-                      <div className="position-absolute bg-white border rounded shadow-sm py-2 mt-1 z-3" style={{ right: 0, width: "200px" }}>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setShowGroupMenu(false); 
-                          setShowGroupInfoModal(true); 
-                        }}>Group Information</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setEditGroupData({ name: activeConversation.name, description: activeConversation.description || "" });
-                          setShowGroupMenu(false); 
-                          setShowEditGroupModal(true); 
-                        }}>Edit Group</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setManageMembersData((activeConversation.members || []).map(m => m.userId));
-                          setManageMembersSearch("");
-                          setShowGroupMenu(false); 
-                          setShowManageMembersModal(true); 
-                        }}>Manage Members</button>
-                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
-                          setShowGroupMenu(false); 
-                          setShowClearChatConfirm(true);
-                        }}>Clear Chat</button>
+                <div className="position-relative">
+                  <button
+                    type="button"
+                    className="btn btn-sm btn-outline-secondary d-flex align-items-center"
+                    title="Menu"
+                    onClick={() => setShowChatMenu(!showChatMenu)}
+                  >
+                    <MoreVertical size={14} />
+                  </button>
+                  {showChatMenu && (
+                    <div className="position-absolute bg-white border rounded shadow-sm py-2 mt-1 z-3" style={{ right: 0, width: "200px" }}>
+                      {!activeConversation.isGroup && (
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => {
+                          setShowChatMenu(false);
+                          setConversations(prev => prev.map(c => c.id === activeConversation.id ? { ...c, unreadCount: 1 } : c));
+                        }}>Mark as Unread</button>
+                      )}
+                      {activeConversation.isGroup && (
+                        <>
+                          <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                            setShowChatMenu(false); 
+                            setShowGroupInfoModal(true); 
+                          }}>Group Information</button>
+                          <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                            setEditGroupData({ name: activeConversation.name, description: activeConversation.description || "" });
+                            setShowChatMenu(false); 
+                            setShowEditGroupModal(true); 
+                          }}>Edit Group</button>
+                          <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                            setManageMembersData((activeConversation.members || []).map(m => m.userId));
+                            setManageMembersSearch("");
+                            setShowChatMenu(false); 
+                            setShowManageMembersModal(true); 
+                          }}>Manage Members</button>
+                          <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark" onClick={() => { 
+                            setShowChatMenu(false); 
+                            setShowClearChatConfirm(true);
+                          }}>Clear Chat</button>
+                        </>
+                      )}
+                      
+                      <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-dark border-top" onClick={() => {
+                        setShowChatMenu(false);
+                        setShowFeedbackModal(true);
+                      }}>Send Feedback</button>
+
+                      {!activeConversation.isGroup && (
+                        <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => {
+                          setShowChatMenu(false);
+                          setConversations(prev => prev.filter(c => c.id !== activeConversation.id));
+                          setActiveConversation(null);
+                        }}>Delete Conversation</button>
+                      )}
+                      {activeConversation.isGroup && (
                         <button className="btn btn-sm btn-light w-100 text-start text-decoration-none px-3 py-2 border-0 rounded-0 text-danger" onClick={() => { 
-                          setShowGroupMenu(false); 
+                          setShowChatMenu(false); 
                           setShowDeleteConfirm(true);
                         }}>Delete Group</button>
-                      </div>
-                    )}
-                  </div>
-                )}
+                      )}
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -1576,6 +1634,79 @@ const ChatPage = () => {
                   alert("Failed to update members.");
                 }
               }}>Save Changes</button>
+            </div>
+          </div>
+        </div>
+      )}
+      {/* Feedback Modal */}
+      {showFeedbackModal && (
+        <div
+          className="position-fixed top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center"
+          style={{ background: "rgba(0,0,0,0.4)", zIndex: 1050 }}
+          onClick={() => setShowFeedbackModal(false)}
+        >
+          <div className="bg-white rounded-3 shadow d-flex flex-column" style={{ width: "450px" }} onClick={(e) => e.stopPropagation()}>
+            <div className="p-4 border-bottom d-flex justify-content-between align-items-start">
+              <div>
+                <h5 className="fw-bold mb-1">Send Feedback</h5>
+                <div className="text-muted small">Help us improve the chat experience.</div>
+              </div>
+              <button type="button" className="btn-close" onClick={() => setShowFeedbackModal(false)} aria-label="Close"></button>
+            </div>
+            <div className="p-4" style={{ overflowY: "auto", maxHeight: "60vh" }}>
+              <div className="mb-4">
+                <label className="fw-bold small mb-2 d-block">What would you like to give feedback about?</label>
+                <div className="d-flex flex-column gap-2">
+                  {["Messaging experience", "Notifications", "Group chat", "Performance / speed", "UI / usability", "Report an issue", "Other"].map(cat => (
+                    <label key={cat} className="d-flex align-items-center gap-2" style={{ cursor: "pointer" }}>
+                      <input 
+                        type="radio" 
+                        name="feedbackCategory" 
+                        value={cat} 
+                        checked={feedbackData.category === cat}
+                        onChange={(e) => setFeedbackData({ ...feedbackData, category: e.target.value })}
+                        className="form-check-input mt-0"
+                      />
+                      <span className="small">{cat}</span>
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-4">
+                <label className="fw-bold small mb-2 d-block">How would you rate your experience?</label>
+                <div className="d-flex gap-2">
+                  {[1, 2, 3, 4, 5].map(num => (
+                    <button
+                      key={num}
+                      type="button"
+                      className={`btn btn-sm ${feedbackData.rating >= num ? "btn-warning text-white" : "btn-light border"}`}
+                      onClick={() => setFeedbackData({ ...feedbackData, rating: num })}
+                      style={{ width: "36px", height: "36px", borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center" }}
+                    >
+                      ★
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="mb-2">
+                <label className="fw-bold small mb-2 d-block">Additional comments (Optional)</label>
+                <textarea
+                  className="form-control"
+                  rows="3"
+                  placeholder="Tell us more..."
+                  value={feedbackData.comments}
+                  onChange={(e) => setFeedbackData({ ...feedbackData, comments: e.target.value })}
+                ></textarea>
+              </div>
+            </div>
+            
+            <div className="p-4 border-top bg-light d-flex justify-content-end gap-2 mt-auto">
+              <button type="button" className="btn btn-light border" onClick={() => setShowFeedbackModal(false)}>Cancel</button>
+              <button type="button" className="btn btn-brand" onClick={handleFeedbackSubmit} disabled={!feedbackData.category || feedbackData.rating === 0}>
+                Submit Feedback
+              </button>
             </div>
           </div>
         </div>

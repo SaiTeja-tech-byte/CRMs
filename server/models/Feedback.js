@@ -42,6 +42,10 @@ const Feedback = sequelize.define(
     conversationId: {
       type: DataTypes.STRING,
       allowNull: true,
+    },
+    adminNote: {
+      type: DataTypes.TEXT,
+      allowNull: true,
     }
   },
   {
