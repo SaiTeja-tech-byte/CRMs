@@ -619,14 +619,19 @@ const ChatPage = () => {
         conversationId: activeConversation?.id?.toString() || ""
       };
       
+      console.log("Feedback Payload:", payload);
+      
       const res = await fetch(`${API_BASE}/feedback`, {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
         body: JSON.stringify(payload)
       });
       
+      console.log("Feedback API Response Status:", res.status);
+      
       if (!res.ok) {
         const errorData = await res.json().catch(() => ({}));
+        console.log("Feedback API Error Data:", errorData);
         throw new Error(errorData.message || "Failed to submit feedback");
       }
       
