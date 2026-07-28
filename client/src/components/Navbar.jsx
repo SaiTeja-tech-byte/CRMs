@@ -2,575 +2,294 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { ChevronDown, Cloud, ExternalLink, Facebook, Globe, Linkedin, Twitter, User } from "lucide-react";
 
-const industriesData = [
+export const industriesData = [
   {
     id: "automotive",
     name: "Automotive",
-    icon: "🚗",
-    bootstrapIcon: "bi-car-front-fill",
+    title: "Automotive Solutions",
     description: "Manage dealership leads, customer inquiries, test drives, and after-sales service from one CRM.",
-    solutions: ["Lead Management", "Test Drive Scheduling", "Service Reminders", "Customer History"],
-    preview: {
-      title: "Automotive Dashboard Preview",
-      items: ["Dealership pipeline", "Test drive bookings", "Service scheduler", "Inventory tracking"],
-      metrics: [
-        { value: "+32%", label: "Lead Conversion" },
-        { value: "8,400", label: "Test Drives Logged" },
-        { value: "97%", label: "Satisfaction" }
-      ]
-    }
+    features: ["Lead Management", "Test Drive Scheduling", "Service Reminders", "Customer History"],
+    linkText: "Explore Automotive CRM →",
+    linkUrl: "#industry-automotive",
+    rightPanelTitle: "Supported Features",
+    rightPanelContent: ["Dealership pipeline", "Test drive bookings", "Service scheduler", "Inventory tracking", "Sales analytics"]
   },
   {
     id: "healthcare",
     name: "Healthcare",
-    icon: "🏥",
-    bootstrapIcon: "bi-heart-pulse-fill",
+    title: "Healthcare CRM",
     description: "Improve patient engagement and streamline healthcare operations with intelligent CRM automation.",
-    solutions: ["Patient Appointment Management", "Electronic Medical Records", "Automated Follow-ups", "Doctor Scheduling", "AI Insights"],
-    preview: {
-      title: "Healthcare Dashboard Preview",
-      items: ["Doctor dashboard", "Patient analytics", "Appointment calendar", "KPI cards"],
-      metrics: [
-        { value: "+42%", label: "Engagement Growth" },
-        { value: "12,400", label: "Patients Managed" },
-        { value: "98%", label: "Patient Satisfaction" }
-      ]
-    }
+    features: ["Patient Appointment Management", "Electronic Medical Records", "Automated Follow-ups", "Doctor Scheduling"],
+    linkText: "Explore Healthcare CRM →",
+    linkUrl: "#industry-healthcare",
+    rightPanelTitle: "Common Use Cases",
+    rightPanelContent: ["Doctor dashboard", "Patient analytics", "Appointment calendar", "KPI tracking", "Compliance management"]
   },
   {
     id: "retail",
     name: "Retail & eCommerce",
-    icon: "🛍",
-    bootstrapIcon: "bi-cart3",
+    title: "Retail Solutions",
     description: "Track customers, purchases, loyalty programs, and personalized marketing campaigns.",
-    solutions: ["Customer Profiles", "Purchase History", "Loyalty Rewards", "Marketing Automation"],
-    preview: {
-      title: "Retail Dashboard Preview",
-      items: ["Sales analytics", "Customer segmentation", "Revenue chart", "Product insights"],
-      metrics: [
-        { value: "+54%", label: "Repeat Purchases" },
-        { value: "48,200", label: "Active Customers" },
-        { value: "95%", label: "CSAT Score" }
-      ]
-    }
+    features: ["Customer Profiles", "Purchase History", "Loyalty Rewards", "Marketing Automation"],
+    linkText: "Explore Retail CRM →",
+    linkUrl: "#industry-retail",
+    rightPanelTitle: "Benefits",
+    rightPanelContent: ["Increase repeat purchases", "Customer segmentation", "Revenue forecasting", "Product insights", "Campaign ROI"]
   },
   {
     id: "finance",
     name: "Financial Services",
-    icon: "💰",
-    bootstrapIcon: "bi-bank",
+    title: "Financial Services CRM",
     description: "Manage client relationships securely while automating onboarding and compliance.",
-    solutions: ["Client Management", "Loan Pipeline", "Compliance", "Investment Tracking"],
-    preview: {
-      title: "Financial Dashboard Preview",
-      items: ["Client dashboard", "Loan pipeline", "Investment chart", "Compliance status"],
-      metrics: [
-        { value: "+28%", label: "AUM Growth" },
-        { value: "3,150", label: "Clients Onboarded" },
-        { value: "99.4%", label: "Compliance Rate" }
-      ]
-    }
+    features: ["Client Management", "Loan Pipeline", "Compliance Tracking", "Investment Portfolios"],
+    linkText: "Explore Financial CRM →",
+    linkUrl: "#industry-finance",
+    rightPanelTitle: "Supported Features",
+    rightPanelContent: ["Client dashboard", "Loan pipeline stages", "Investment tracking", "Compliance status", "Secure messaging"]
   },
   {
     id: "realestate",
     name: "Real Estate",
-    icon: "🏠",
-    bootstrapIcon: "bi-buildings-fill",
+    title: "Real Estate Solutions",
     description: "Capture property inquiries and convert prospects into successful property sales.",
-    solutions: ["Property Listings", "Buyer Tracking", "Site Visit Scheduling", "Deal Pipeline"],
-    preview: {
-      title: "Real Estate Dashboard Preview",
-      items: ["Property CRM", "Buyer pipeline", "Lead funnel", "Deal stages"],
-      metrics: [
-        { value: "+39%", label: "Deal Velocity" },
-        { value: "1,850", label: "Properties Listed" },
-        { value: "96%", label: "Agent Productivity" }
-      ]
-    }
+    features: ["Property Listings", "Buyer Tracking", "Site Visit Scheduling", "Deal Pipeline"],
+    linkText: "Explore Real Estate CRM →",
+    linkUrl: "#industry-realestate",
+    rightPanelTitle: "Common Use Cases",
+    rightPanelContent: ["Property CRM", "Buyer pipeline management", "Lead funnel optimization", "Deal staging", "Agent productivity tracking"]
   },
   {
     id: "education",
     name: "Education",
-    icon: "🎓",
-    bootstrapIcon: "bi-mortarboard-fill",
-    description: "Manage student admissions, inquiries, alumni engagement, and communication.",
-    solutions: ["Student CRM", "Admission Pipeline", "Communication", "Reports"],
-    preview: {
-      title: "Education CRM Preview",
-      items: ["Student enrollment stats", "Application funnel", "Alumni engagement score", "Course analytics"],
-      metrics: [
-        { value: "+45%", label: "Enrollment Rate" },
-        { value: "15,600", label: "Students Managed" },
-        { value: "98.2%", label: "Retention Rate" }
-      ]
-    }
+    title: "Education CRM",
+    description: "Manage student admissions, inquiries, alumni engagement, and campus communication.",
+    features: ["Student Profiles", "Admission Pipeline", "Omnichannel Communication", "Custom Reports"],
+    linkText: "Explore Education CRM →",
+    linkUrl: "#industry-education",
+    rightPanelTitle: "Benefits",
+    rightPanelContent: ["Streamline enrollments", "Application funnel tracking", "Alumni engagement scoring", "Course analytics", "Automated reminders"]
   },
   {
     id: "manufacturing",
     name: "Manufacturing",
-    icon: "🏭",
-    bootstrapIcon: "bi-gear-fill",
+    title: "Manufacturing Solutions",
     description: "Track distributors, suppliers, quotations, and customer orders efficiently.",
-    solutions: ["Distributor CRM", "Inventory Requests", "Sales Orders", "Service Requests"],
-    preview: {
-      title: "Manufacturing Portal Preview",
-      items: ["Supply chain pipeline", "Order tracking", "Distributor metrics", "Quote funnel"],
-      metrics: [
-        { value: "+26%", label: "Order Accuracy" },
-        { value: "180+", label: "Distributors Managed" },
-        { value: "94.8%", label: "On-time Delivery" }
-      ]
-    }
+    features: ["Distributor CRM", "Inventory Requests", "Sales Orders", "Service Requests"],
+    linkText: "Explore Manufacturing CRM →",
+    linkUrl: "#industry-manufacturing",
+    rightPanelTitle: "Supported Features",
+    rightPanelContent: ["Supply chain pipeline", "Order tracking systems", "Distributor metrics", "Quote funnel", "Delivery optimization"]
   },
   {
     id: "saas",
     name: "SaaS & Technology",
-    icon: "💻",
-    bootstrapIcon: "bi-cpu-fill",
+    title: "SaaS CRM",
     description: "Manage trial users, subscriptions, onboarding, and customer success.",
-    solutions: ["Trial Management", "Customer Success", "Subscription Tracking", "Support Tickets"],
-    preview: {
-      title: "SaaS Console Preview",
-      items: ["Subscription MRR chart", "Churn stats", "Trial conversion funnel", "Support volume"],
-      metrics: [
-        { value: "+62%", label: "MRR Growth" },
-        { value: "98.5%", label: "NPS Score" },
-        { value: "3.2%", label: "Net Churn Rate" }
-      ]
-    }
-  },
-  {
-    id: "telecom",
-    name: "Telecommunications",
-    icon: "📞",
-    bootstrapIcon: "bi-broadcast-pin",
-    description: "Manage subscribers, support tickets, and customer lifecycle with AI automation.",
-    solutions: ["Customer Accounts", "Service Requests", "Billing Support", "Renewals"],
-    preview: {
-      title: "Telecom Analytics Preview",
-      items: ["Billing alerts", "Subscriber lifecycle", "Customer support ticket stats", "Plan renewal forecast"],
-      metrics: [
-        { value: "-18%", label: "Churn Reduction" },
-        { value: "320,000", label: "Subscribers" },
-        { value: "92%", label: "First-contact Resolution" }
-      ]
-    }
-  },
-  {
-    id: "travel",
-    name: "Travel & Hospitality",
-    icon: "🌍",
-    bootstrapIcon: "bi-airplane-fill",
-    description: "Deliver personalized booking experiences and manage guest relationships.",
-    solutions: ["Booking CRM", "Guest Profiles", "Promotions", "Loyalty Programs"],
-    preview: {
-      title: "Hospitality Dashboard Preview",
-      items: ["Booking analytics", "Guest loyalty segmentation", "Campaign ROI", "Room availability chart"],
-      metrics: [
-        { value: "+34%", label: "Direct Bookings" },
-        { value: "14,800", label: "Loyalty Members" },
-        { value: "97.5%", label: "Guest Rating" }
-      ]
-    }
+    features: ["Trial Management", "Customer Success", "Subscription Tracking", "Support Tickets"],
+    linkText: "Explore SaaS CRM →",
+    linkUrl: "#industry-saas",
+    rightPanelTitle: "Common Use Cases",
+    rightPanelContent: ["Subscription MRR tracking", "Churn analytics", "Trial conversion funnel", "Support volume metrics", "Onboarding automation"]
   }
 ];
 
-const customersData = [
+export const customersData = [
   {
     id: "stories",
-    name: "Customer Success Stories",
-    icon: "📈",
-    bootstrapIcon: "bi-bar-chart-line-fill",
+    name: "Success Stories",
     title: "Customer Success Stories",
     description: "Discover how businesses use CRM Platform to automate sales, improve customer relationships, and accelerate revenue growth.",
-    content: {
-      type: "list",
-      header: "Featured Stories",
-      items: [
-        { label: "TechNova Solutions", highlight: "Increased sales by 42%" },
-        { label: "RetailHub", highlight: "Reduced response time by 60%" },
-        { label: "HealthCare Plus", highlight: "Managed 50,000+ patient interactions" },
-        { label: "FinTrust Bank", highlight: "Improved customer retention by 35%" }
-      ],
-      linkText: "Explore All Success Stories →",
-      linkUrl: "#stories"
-    }
+    features: ["Read detailed case studies", "Watch customer interviews", "Explore ROI metrics", "Learn implementation strategies"],
+    linkText: "Explore Success Stories →",
+    linkUrl: "#stories",
+    rightPanelTitle: "Featured Outcomes",
+    rightPanelContent: ["Increased sales velocity", "Reduced response times", "Improved customer retention", "Streamlined global operations"]
   },
   {
     id: "enterprise",
     name: "Enterprise Customers",
-    icon: "🏢",
-    bootstrapIcon: "bi-building-fill",
-    title: "Enterprise Customers",
-    description: "Trusted by growing enterprises to manage millions of customer interactions every month.",
-    content: {
-      type: "grid",
-      header: "Featured Companies",
-      items: ["TechNova", "RetailHub", "FinTrust", "Global Logistics", "EduSmart", "HealthCare Plus"],
-      linkText: "View Enterprise Solutions →",
-      linkUrl: "#enterprise"
-    }
-  },
-  {
-    id: "testimonials",
-    name: "Testimonials",
-    icon: "⭐",
-    bootstrapIcon: "bi-star-fill",
-    title: "Customer Testimonials",
-    description: "See what our users say about their experience with CRM Platform.",
-    content: {
-      type: "testimonial",
-      quote: "“CRM Platform transformed our sales workflow and increased our conversion rate by 45%.”",
-      author: "Sarah Johnson, Sales Director",
-      stars: 5,
-      linkText: "More Testimonials →",
-      linkUrl: "#testimonials"
-    }
+    title: "Enterprise Solutions",
+    description: "Trusted by growing enterprises to manage millions of customer interactions every month securely.",
+    features: ["Dedicated account management", "Custom deployment options", "Advanced security protocols", "SLA guarantees"],
+    linkText: "View Enterprise Solutions →",
+    linkUrl: "#enterprise",
+    rightPanelTitle: "Recommended Modules",
+    rightPanelContent: ["Advanced Analytics", "Custom Workflows", "API Integrations", "Role-based Access Control", "Audit Logging"]
   },
   {
     id: "case-studies",
-    name: "Industry Case Studies",
-    icon: "📚",
-    bootstrapIcon: "bi-journal-text",
+    name: "Case Studies",
     title: "Industry Case Studies",
     description: "Deep dives into how specific sectors implement CRM solutions for maximum business impact.",
-    content: {
-      type: "list",
-      header: "Case Studies by Industry",
-      items: [
-        { label: "Retail CRM Success Guide" },
-        { label: "Healthcare CRM Implementation" },
-        { label: "Financial Services Trust Metrics" },
-        { label: "Manufacturing & Supply Integration" },
-        { label: "Real Estate Property Funnels" }
-      ],
-      linkText: "Read Case Studies →",
-      linkUrl: "#case-studies"
-    }
-  },
-  {
-    id: "videos",
-    name: "Video Reviews",
-    icon: "🎥",
-    bootstrapIcon: "bi-play-btn-fill",
-    title: "Customer Video Reviews",
-    description: "Watch our customers share how they scaled operations and automated workflows with CRM Platform.",
-    content: {
-      type: "list",
-      header: "Video Library Highlights",
-      items: [
-        { label: "TechNova Interview", highlight: "5 mins video" },
-        { label: "RetailHub Journey", highlight: "3 mins video" },
-        { label: "FinTrust Deployment", highlight: "8 mins video" }
-      ],
-      linkText: "Watch Video Library →",
-      linkUrl: "#videos"
-    }
-  },
-  {
-    id: "partners",
-    name: "Partner Success",
-    icon: "🤝",
-    bootstrapIcon: "bi-handshake",
-    title: "Partner Success",
-    description: "Learn how our consulting and technology partners help customers deploy and succeed.",
-    content: {
-      type: "list",
-      header: "Partner Ecosystem",
-      items: [
-        { label: "Consulting Partners & integrators" },
-        { label: "App Exchange Developers" },
-        { label: "Managed Service Providers" }
-      ],
-      linkText: "Explore Partner Directory →",
-      linkUrl: "#partners"
-    }
+    features: ["Retail CRM Implementation", "Healthcare Data Security", "Financial Services Workflows", "Manufacturing Supply Chain"],
+    linkText: "Read Case Studies →",
+    linkUrl: "#case-studies",
+    rightPanelTitle: "Common Use Cases",
+    rightPanelContent: ["Pipeline optimization", "Lead scoring models", "Automated marketing campaigns", "Support ticket resolution"]
   }
 ];
 
-const learningData = [
+export const learningData = [
   {
     id: "basics",
     name: "CRM Basics",
-    icon: "📚",
-    bootstrapIcon: "bi-book-fill",
     title: "CRM Fundamentals",
     description: "Learn the core concepts of Customer Relationship Management and how it helps align teams and build relationships.",
-    modules: ["What is a CRM system?", "Key components of CRM", "Benefits of centralizing customer data", "Getting started checklist"]
+    features: ["What is a CRM system?", "Key components of CRM", "Benefits of centralizing customer data", "Getting started checklist"],
+    linkText: "Start Learning →",
+    linkUrl: "#learning-basics",
+    rightPanelTitle: "Supported Topics",
+    rightPanelContent: ["Contact Management", "Deal Pipelines", "Task Tracking", "Basic Reporting", "User Permissions"]
   },
   {
     id: "academy",
     name: "AI CRM Academy",
-    icon: "🤖",
-    bootstrapIcon: "bi-cpu-fill",
     title: "AI Workflow Automation",
     description: "Master artificial intelligence in CRM, from automated replies to smart pipeline insights and predictions.",
-    modules: ["AI-powered lead scoring", "Predictive sales forecasts", "Automating repetitive follow-ups", "AI chatbot configuration"]
-  },
-  {
-    id: "videos",
-    name: "Video Tutorials",
-    icon: "🎥",
-    bootstrapIcon: "bi-play-circle-fill",
-    title: "Interactive Video Library",
-    description: "Step-by-step visual guides showing how to configure your sales pipeline and build custom automation workflows.",
-    modules: ["Vite deployment walkthrough (3 mins)", "Pipeline stage configuration (5 mins)", "Integrating email systems (4 mins)", "Running reports & dashboards (6 mins)"]
-  },
-  {
-    id: "blog",
-    name: "Blog & Articles",
-    icon: "📝",
-    bootstrapIcon: "bi-pencil-square",
-    title: "Sales Insights & Trends",
-    description: "Read the latest research, articles, and thought leadership pieces from CRM experts and industry leaders.",
-    modules: ["Sales forecasting best practices", "Reducing customer churn rates", "How AI is changing B2B sales", "Startups growth hacks"]
-  },
-  {
-    id: "docs",
-    name: "Documentation",
-    icon: "📖",
-    bootstrapIcon: "bi-file-earmark-text-fill",
-    title: "Technical Documentation",
-    description: "Detailed setup guides, server installation parameters, security protocols, and advanced admin settings.",
-    modules: ["Installation guidelines", "Database synchronization", "User role permissions", "Security & data privacy protocols"]
-  },
-  {
-    id: "practices",
-    name: "Best Practices",
-    icon: "💡",
-    bootstrapIcon: "bi-lightbulb-fill",
-    title: "CRM Best Practices",
-    description: "Proven tips and strategies to increase CRM adoption rates, clean customer data, and boost sales efficiency.",
-    modules: ["CRM data cleanup checklists", "Increasing rep adoption rates", "Designing clear deal pipelines", "Optimizing contact profiles"]
-  },
-  {
-    id: "guides",
-    name: "Product Guides",
-    icon: "🚀",
-    bootstrapIcon: "bi-rocket-takeoff-fill",
-    title: "Interactive Product Guides",
-    description: "Deep dives into specific features of CRM Platform, including contact management, email tracking, and AI insights.",
-    modules: ["Lead management workbook", "Email tracking setups", "AI Sales Assistant configuration", "Custom dashboard guides"]
+    features: ["AI-powered lead scoring", "Predictive sales forecasts", "Automating repetitive follow-ups", "AI chatbot configuration"],
+    linkText: "Explore AI Academy →",
+    linkUrl: "#learning-academy",
+    rightPanelTitle: "Benefits",
+    rightPanelContent: ["Reduce manual data entry", "Identify high-value leads", "Forecast revenue accurately", "Enhance customer engagement"]
   },
   {
     id: "certification",
-    name: "CRM Certification",
-    icon: "🏅",
-    bootstrapIcon: "bi-award-fill",
+    name: "Certification",
     title: "Professional Certifications",
     description: "Validate your skills and earn badges by completing CRM Platform training modules and passing certification exams.",
-    modules: ["Sales Professional Exam", "Administrator Certification", "Automation Specialist Exam", "Developer Certification"]
-  },
-  {
-    id: "api",
-    name: "Developer API Guides",
-    icon: "👨💻",
-    bootstrapIcon: "bi-terminal-fill",
-    title: "REST APIs & Developer Tools",
-    description: "Connect external software, synchronize databases, and build custom applications on top of CRM Platform API.",
-    modules: ["API Authentication setup", "Webhook listener endpoints", "Syncing contact databases", "Rate limiting policies"]
-  },
-  {
-    id: "community",
-    name: "Community Forum",
-    icon: "💬",
-    bootstrapIcon: "bi-chat-left-text-fill",
-    title: "Join the CRM Forum",
-    description: "Connect with thousands of users, developers, and administrators to share ideas, ask questions, and collaborate.",
-    modules: ["Developer discussion groups", "Sales rep community chats", "Feature request portal", "Local user groups"]
-  }
-];
-
-const supportData = [
-  {
-    id: "help",
-    name: "Help Center",
-    icon: "🆘",
-    bootstrapIcon: "bi-question-circle-fill",
-    title: "Browse Knowledge Base",
-    description: "Search thousands of helpful guides, tips, and step-by-step documentation articles for CRM Platform.",
-    topics: ["Setting Up Your CRM", "Importing Customer Data", "Managing Sales Pipelines", "AI Automation Setup"]
+    features: ["Sales Professional Exam", "Administrator Certification", "Automation Specialist Exam", "Developer Certification"],
+    linkText: "View Certifications →",
+    linkUrl: "#learning-certification",
+    rightPanelTitle: "Recommended Paths",
+    rightPanelContent: ["For Sales Reps", "For CRM Administrators", "For IT Managers", "For Marketing Specialists", "For Developers"]
   },
   {
     id: "docs",
     name: "Documentation",
-    icon: "📖",
-    bootstrapIcon: "bi-file-earmark-text-fill",
     title: "Technical Documentation",
-    description: "Read detailed integration references, configuration settings, user roles, and security policies.",
-    topics: ["User Roles & Permissions", "API Integration Guide", "Database synchronization", "Security & data privacy"]
-  },
+    description: "Detailed setup guides, server installation parameters, security protocols, and advanced admin settings.",
+    features: ["Installation guidelines", "Database synchronization", "User role permissions", "Security & data privacy protocols"],
+    linkText: "Read Documentation →",
+    linkUrl: "#learning-docs",
+    rightPanelTitle: "Key Areas",
+    rightPanelContent: ["API Reference", "SDK Guides", "Authentication", "Webhooks", "Data Migration"]
+  }
+];
+
+export const supportData = [
   {
-    id: "chat",
-    name: "Live Chat Support",
-    icon: "💬",
-    bootstrapIcon: "bi-chat-dots-fill",
-    title: "Chat with an Agent 24/7",
-    description: "Start a real-time conversation with our support specialists. Average response time is under 15 minutes.",
-    topics: ["Real-time troubleshooting", "Billing & plan questions", "Feature walkthrough requests", "API debugging support"]
-  },
-  {
-    id: "ticket",
-    name: "Submit a Support Ticket",
-    icon: "🎫",
-    bootstrapIcon: "bi-ticket-detailed-fill",
-    title: "Create Support Case",
-    description: "Open a support ticket with our engineering team for complex queries or technical issues.",
-    topics: ["Track existing tickets", "Urgent bug reports", "Feature request submissions", "Account access recovery"]
-  },
-  {
-    id: "tutorials",
-    name: "Video Tutorials",
-    icon: "📺",
-    bootstrapIcon: "bi-tv-fill",
-    title: "Video Learning Library",
-    description: "Watch short screencasts and interactive video guides demonstrating how to configure automation workflows.",
-    topics: ["Workflow automation setup", "Custom deal stages guide", "Configuring lead ingestion", "Email client integration"]
-  },
-  {
-    id: "trouble",
-    name: "Troubleshooting Guides",
-    icon: "🔧",
-    bootstrapIcon: "bi-tools",
-    title: "Self-Service Troubleshooting",
-    description: "Find instant solutions for common configuration challenges, syncing issues, or permission mismatches.",
-    topics: ["SMTP email sync problems", "CSV import error codes", "API rate limiting fixes", "UI dashboard loading lags"]
-  },
-  {
-    id: "status",
-    name: "System Status",
-    icon: "⚙️",
-    bootstrapIcon: "bi-activity",
-    title: "All Systems Operational",
-    description: "Check the current operational status of the CRM platform, cloud databases, and API integrations.",
-    topics: ["Platform uptime history", "Scheduled maintenance alerts", "API performance metrics", "Database response speeds"]
+    id: "help",
+    name: "Help Center",
+    title: "Knowledge Base",
+    description: "Search thousands of helpful guides, tips, and step-by-step documentation articles for CRM Platform.",
+    features: ["Setting Up Your CRM", "Importing Customer Data", "Managing Sales Pipelines", "AI Automation Setup"],
+    linkText: "Visit Help Center →",
+    linkUrl: "#support-help",
+    rightPanelTitle: "Popular Categories",
+    rightPanelContent: ["Getting Started", "Account & Billing", "Integrations", "Troubleshooting", "Best Practices"]
   },
   {
     id: "contact",
     name: "Contact Support",
-    icon: "📞",
-    bootstrapIcon: "bi-telephone-fill",
-    title: "Get in Touch Directly",
-    description: "Contact our dedicated support helpdesk by phone or direct email address for immediate assistance.",
-    topics: ["Toll-free hotline numbers", "Direct email support links", "Enterprise support manager contacts", "Local office addresses"]
+    title: "Get in Touch",
+    description: "Reach out to our dedicated support team for technical assistance, billing inquiries, or strategic advice.",
+    features: ["24/7 Global Support", "Live Chat Assistance", "Priority Phone Routing", "Dedicated Success Managers"],
+    linkText: "Contact Us →",
+    linkUrl: "#support-contact",
+    rightPanelTitle: "Support Channels",
+    rightPanelContent: ["Live Chat (Instant)", "Email (Under 2 hours)", "Phone (Toll-Free)", "Community Forum", "Submit a Ticket"]
   },
   {
-    id: "dev",
-    name: "Developer Support",
-    icon: "👨💻",
-    bootstrapIcon: "bi-terminal-fill",
-    title: "Developer Help Center",
-    description: "Developer resources, SDK documentation, code samples, webhook setups, and API keys help.",
-    topics: ["REST API endpoint specs", "Webhook debugger tools", "Client SDK libraries", "Sandbox environment setups"]
-  },
-  {
-    id: "enterprise",
-    name: "Enterprise Support",
-    icon: "🏢",
-    bootstrapIcon: "bi-building-fill",
-    title: "Priority Enterprise Desk",
-    description: "Exclusive priority support channels for our Enterprise customers including dedicated customer managers.",
-    topics: ["Dedicated account managers", "SLA policy definitions", "Custom onboarding services", "On-premise deployment help"]
+    id: "community",
+    name: "Community Forum",
+    title: "User Community",
+    description: "Connect with thousands of users, developers, and administrators to share ideas, ask questions, and collaborate.",
+    features: ["Developer discussion groups", "Sales rep community chats", "Feature request portal", "Local user groups"],
+    linkText: "Join the Community →",
+    linkUrl: "#support-community",
+    rightPanelTitle: "Trending Topics",
+    rightPanelContent: ["Customizing Dashboards", "Advanced Automation Rules", "Third-party Integrations", "New Feature Announcements"]
   }
 ];
 
-const companyData = [
+export const companyData = [
   {
     id: "about",
-    name: "About CRM Platform",
-    icon: "🏢",
-    bootstrapIcon: "bi-info-square-fill",
-    title: "About Our Company",
-    description: "CRM Platform helps businesses automate sales, strengthen customer relationships, and accelerate growth through intelligent CRM technology. Trusted by thousands of growing companies worldwide.",
-    links: ["Meet Our Team", "Explore Careers", "Read Company Blog", "Partner With Us"]
-  },
-  {
-    id: "mission",
-    name: "Our Mission & Vision",
-    icon: "🌟",
-    bootstrapIcon: "bi-bullseye",
-    title: "Our Mission & Vision",
-    description: "To connect businesses with their customers in a whole new way using artificial intelligence, making customer relationships more human and automated at the same time.",
-    links: ["Read our story", "AI Ethics statement", "Product roadmap", "Executive letters"]
-  },
-  {
-    id: "values",
-    name: "Our Values",
-    icon: "💙",
-    bootstrapIcon: "bi-heart-fill",
-    title: "Trust, Innovation & Success",
-    description: "We are guided by four core values: Trust, Customer Success, Continuous Innovation, and Equality for all stakeholders.",
-    links: ["Our values booklet", "Customer success stories", "Diversity & inclusion", "Community outreach"]
-  },
-  {
-    id: "team",
-    name: "Leadership Team",
-    icon: "👥",
-    bootstrapIcon: "bi-people-fill",
-    title: "Our Executive Leadership",
-    description: "Meet the visionary leaders and experts guiding CRM Platform's strategy and technological innovation.",
-    links: ["Board of Directors", "Advisory council", "Our founders", "Executive bios"]
+    name: "About Us",
+    title: "Our Mission",
+    description: "We are building the future of customer relationship management, focusing on simplicity, automation, and AI-driven insights.",
+    features: ["Our Founding Story", "Core Values & Culture", "Leadership Team", "Global Offices"],
+    linkText: "Learn About Us →",
+    linkUrl: "#company-about",
+    rightPanelTitle: "Company Highlights",
+    rightPanelContent: ["Over 10,000 customers globally", "Recognized as an industry leader", "Commitment to data privacy", "Continuous innovation"]
   },
   {
     id: "careers",
     name: "Careers",
-    icon: "💼",
-    bootstrapIcon: "bi-briefcase-fill",
-    title: "Join Our Global Team",
-    description: "Build the future of CRM with us. We are always looking for passionate engineers, designers, sales reps, and customer success heroes.",
-    links: ["Open positions", "Life at CRM Platform", "Benefits & perks", "Internship programs"]
+    title: "Join Our Team",
+    description: "Explore opportunities to work with a passionate team dedicated to solving complex problems and empowering businesses.",
+    features: ["Engineering & Product", "Sales & Marketing", "Customer Success", "Operations & Finance"],
+    linkText: "View Open Roles →",
+    linkUrl: "#company-careers",
+    rightPanelTitle: "Benefits & Perks",
+    rightPanelContent: ["Comprehensive Health Coverage", "Flexible Remote Work", "Continuous Learning Stipend", "Equity Options", "Generous PTO"]
   },
   {
     id: "news",
-    name: "News & Press",
-    icon: "📰",
-    bootstrapIcon: "bi-newspaper",
-    title: "Press Releases & News room",
-    description: "Stay up to date with CRM Platform product launches, corporate announcements, feature reports, and press coverage.",
-    links: ["Press kit downloads", "Media contacts", "News archive", "Award certifications"]
-  },
-  {
-    id: "partners",
-    name: "Partners & Affiliates",
-    icon: "🤝",
-    bootstrapIcon: "bi-handshake",
-    title: "Partner Ecosystem",
-    description: "Collaborate, integrate, and grow with CRM Platform. Join our global affiliate network or consulting integrations desk.",
-    links: ["Consulting integrations", "Developer portal", "Affiliate sign up", "Directory listings"]
-  },
-  {
-    id: "sustain",
-    name: "Sustainability & Impact",
-    icon: "🌍",
-    bootstrapIcon: "bi-globe",
-    title: "Sustainability & Social Impact",
-    description: "We are committed to building a sustainable future. We donate 1% of equity, product, and employee time to non-profits.",
-    links: ["Net-zero carbon pledge", "Community donations", "Volunteer highlights", "Annual impact report"]
-  },
-  {
-    id: "legal",
-    name: "Legal & Compliance",
-    icon: "⚖️",
-    bootstrapIcon: "bi-shield-check",
-    title: "Trust & Security Center",
-    description: "Review our service terms, privacy policies, GDPR compliance declarations, and security certifications.",
-    links: ["GDPR & CCPA policies", "Terms of service", "Data processing agreement", "Security compliance"]
-  },
-  {
-    id: "contact",
-    name: "Contact Us",
-    icon: "📞",
-    bootstrapIcon: "bi-envelope-fill",
-    title: "Get In Touch",
-    description: "Reach out to our offices, sales departments, or media relations division for custom inquiries and assistance.",
-    links: ["Sales inquiries", "Media relations", "Global office locations", "Support hotline"]
+    name: "Newsroom",
+    title: "Latest Updates",
+    description: "Stay up to date with the latest company announcements, product releases, and industry insights.",
+    features: ["Press Releases", "Media Mentions", "Brand Assets", "Upcoming Events"],
+    linkText: "Visit Newsroom →",
+    linkUrl: "#company-news",
+    rightPanelTitle: "Recent Announcements",
+    rightPanelContent: ["Launch of AI Copilot", "Expansion into European Markets", "New Enterprise Security Features", "Annual Partner Summit"]
   }
 ];
+
+export const crmData = [
+  {
+    id: "overview",
+    name: "CRM Overview",
+    title: "What is CRM?",
+    description: "Customer Relationship Management software helps businesses manage interactions, track sales, and improve relationships.",
+    features: ["Centralized Customer Database", "Sales Pipeline Management", "Automated Workflows", "Performance Analytics"],
+    linkText: "Explore CRM Benefits →",
+    linkUrl: "#crm-overview",
+    rightPanelTitle: "Core Capabilities",
+    rightPanelContent: ["Lead Tracking", "Contact Management", "Deal Forecasting", "Email Integration", "Task Management"]
+  },
+  {
+    id: "sales",
+    name: "Sales Hub",
+    title: "Accelerate Sales",
+    description: "Empower your sales team with tools to close deals faster, from prospecting to signing contracts.",
+    features: ["Lead Scoring", "Email Tracking", "Quote Generation", "Sales Forecasting"],
+    linkText: "Explore Sales Hub →",
+    linkUrl: "#crm-sales",
+    rightPanelTitle: "Common Use Cases",
+    rightPanelContent: ["B2B Sales Cycles", "Account-Based Marketing", "Field Sales Tracking", "Inside Sales Workflows"]
+  },
+  {
+    id: "service",
+    name: "Service Hub",
+    title: "Elevate Support",
+    description: "Provide exceptional customer service with a unified help desk, ticketing system, and knowledge base.",
+    features: ["Ticketing System", "Live Chat", "Customer Feedback", "Knowledge Base Builder"],
+    linkText: "Explore Service Hub →",
+    linkUrl: "#crm-service",
+    rightPanelTitle: "Benefits",
+    rightPanelContent: ["Decrease response times", "Improve customer satisfaction", "Automate ticket routing", "Self-service empowerment"]
+  }
+];
+
 
 function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [crmDropdownOpen, setCrmDropdownOpen] = useState(false);
+    const [activeCrmTab, setActiveCrmTab] = useState("overview");
   const [industriesDropdownOpen, setIndustriesDropdownOpen] = useState(false);
   const [activeIndustryId, setActiveIndustryId] = useState("automotive");
   const [customersDropdownOpen, setCustomersDropdownOpen] = useState(false);
@@ -581,6 +300,7 @@ function Navbar() {
   const [supportDropdownOpen, setSupportDropdownOpen] = useState(false);
   const [activeSupportTab, setActiveSupportTab] = useState("help");
   const [companyDropdownOpen, setCompanyDropdownOpen] = useState(false);
+    const [activeCompanyTab, setActiveCompanyTab] = useState("about");
   const handleTourClick = (e) => {
     e.preventDefault();
     window.dispatchEvent(new Event("open-product-tour"));
@@ -3117,89 +2837,62 @@ function Navbar() {
                 <div className="mega-dropdown industries-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card industries-card">
-                    <div className="industries-mega-inner">
+                    <div className="mega-dropdown-inner-standard">
                       
                       {/* Left Sidebar */}
-                      <div className="industries-sidebar">
-                        {industriesData.map((ind) => (
+                      <div className="mega-sidebar">
+                        {industriesData.map((item) => (
                           <button
-                            key={ind.id}
-                            className={`industry-btn ${activeIndustryId === ind.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveIndustryId(ind.id)}
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeIndustryId === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveIndustryId(item.id)}
                           >
-                            <span className="industry-btn-icon-wrap">
-                              <i className={`bi ${ind.bootstrapIcon}`}></i>
-                            </span>
-                            <span className="industry-btn-name">{ind.name}</span>
-                            <i className="bi bi-chevron-right industry-btn-chevron"></i>
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
                           </button>
                         ))}
                       </div>
 
                       {/* Middle Details Panel */}
-                      <div className="industries-middle-panel">
+                      <div className="mega-middle-panel">
                         {(() => {
-                          const activeInd = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
+                          const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
                           return (
-                            <div className="industry-details animate-fade-in" key={activeInd.id}>
-                              <h3>{activeInd.name} Solutions</h3>
-                              <p className="industry-desc">{activeInd.description}</p>
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
                               
-                              <div className="industry-solutions-list">
-                                <h4>Key Capabilities</h4>
+                              <div className="mega-features-list">
                                 <ul>
-                                  {activeInd.solutions.map((sol, index) => (
-                                    <li key={index}>{sol}</li>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
                                   ))}
                                 </ul>
                               </div>
 
-                              <a href={`#industry-${activeInd.id}`} className="industry-cta-link">
-                                Explore {activeInd.name} CRM →
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
                               </a>
                             </div>
                           );
                         })()}
                       </div>
 
-                      {/* Right Preview Panel */}
-                      <div className="industries-right-panel">
+                      {/* Right Panel */}
+                      <div className="mega-right-panel">
                         {(() => {
-                          const activeInd = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
+                          const activeItem = industriesData.find(i => i.id === activeIndustryId) || industriesData[0];
                           return (
-                            <div className="industry-preview animate-fade-in" key={activeInd.id}>
-                              <div className="preview-visualization">
-                                <div className="visualization-header">
-                                  <span className="viz-dot"></span>
-                                  <span className="viz-dot"></span>
-                                  <span className="viz-dot"></span>
-                                  <span className="viz-title">{activeInd.name} Overview</span>
-                                </div>
-                                <div className="visualization-body">
-                                  {activeInd.preview.items.map((item, idx) => (
-                                    <div key={idx} className="viz-item">
-                                      <span className="viz-checkbox">✓</span>
-                                      <span>{item}</span>
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-
-                              {/* Metrics */}
-                              <div className="preview-metrics">
-                                {activeInd.preview.metrics.map((m, idx) => (
-                                  <div key={idx} className="metric-box">
-                                    <span className="metric-value">{m.value}</span>
-                                    <span className="metric-label">{m.label}</span>
-                                  </div>
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
                                 ))}
-                              </div>
-
-                              {/* Actions */}
-                              <div className="preview-actions">
-                                <a href="#contact" className="preview-btn-primary">Explore Solutions</a>
-                                <a href="#contact" className="preview-btn-secondary">Book Demo</a>
-                              </div>
+                              </ul>
                             </div>
                           );
                         })()}
@@ -3209,7 +2902,7 @@ function Navbar() {
                   </div>
                 </div>
               )}
-            </div>
+              </div>
 
             {/* Customers Dropdown Trigger */}
             <div 
@@ -3227,77 +2920,41 @@ function Navbar() {
                 <div className="mega-dropdown customers-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card customers-card">
-                    <div className="customers-mega-inner">
+                    <div className="mega-dropdown-inner-standard">
                       
                       {/* Left Sidebar */}
-                      <div className="customers-sidebar">
-                        {customersData.map((tab) => (
+                      <div className="mega-sidebar">
+                        {customersData.map((item) => (
                           <button
-                            key={tab.id}
-                            className={`customer-tab-btn ${activeCustomerTab === tab.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveCustomerTab(tab.id)}
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeCustomerTab === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveCustomerTab(item.id)}
                           >
-                            <span className="customer-tab-icon-wrap">
-                              <i className={`bi ${tab.bootstrapIcon}`}></i>
-                            </span>
-                            <span className="customer-tab-name-flat">{tab.name}</span>
-                            <i className="bi bi-chevron-right customer-tab-chevron"></i>
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
                           </button>
                         ))}
                       </div>
 
-                      {/* Middle Panel */}
-                      <div className="customers-middle-panel">
+                      {/* Middle Details Panel */}
+                      <div className="mega-middle-panel">
                         {(() => {
-                          const activeTab = customersData.find(t => t.id === activeCustomerTab) || customersData[0];
+                          const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
                           return (
-                            <div className="customer-details-wrapper animate-fade-in" key={activeTab.id}>
-                              <h3>{activeTab.title}</h3>
-                              <p className="customer-details-desc">{activeTab.description}</p>
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
                               
-                              <div className="customer-tab-content-block">
-                                {activeTab.content.type === "list" && (
-                                  <>
-                                    <h4>{activeTab.content.header}</h4>
-                                    <ul className="customer-stories-ul">
-                                      {activeTab.content.items.map((item, idx) => (
-                                        <li key={idx}>
-                                          <span className="story-company">{item.label}</span>
-                                          {item.highlight && <span className="story-stat"> – {item.highlight}</span>}
-                                        </li>
-                                      ))}
-                                    </ul>
-                                  </>
-                                )}
-
-                                {activeTab.content.type === "grid" && (
-                                  <>
-                                    <h4>{activeTab.content.header}</h4>
-                                    <div className="enterprise-logos-grid">
-                                      {activeTab.content.items.map((company, idx) => (
-                                        <div key={idx} className="enterprise-logo-box">
-                                          <span>{company}</span>
-                                        </div>
-                                      ))}
-                                    </div>
-                                  </>
-                                )}
-
-                                {activeTab.content.type === "testimonial" && (
-                                  <div className="testimonial-card">
-                                    <p className="testimonial-quote">{activeTab.content.quote}</p>
-                                    <span className="testimonial-author">{activeTab.content.author}</span>
-                                    <div className="testimonial-stars">
-                                      {Array.from({ length: activeTab.content.stars }).map((_, i) => (
-                                        <span key={i} className="star-icon">★</span>
-                                      ))}
-                                    </div>
-                                  </div>
-                                )}
+                              <div className="mega-features-list">
+                                <ul>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                  ))}
+                                </ul>
                               </div>
 
-                              <a href={activeTab.content.linkUrl} className="customer-details-cta">
-                                {activeTab.content.linkText}
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
                               </a>
                             </div>
                           );
@@ -3305,68 +2962,30 @@ function Navbar() {
                       </div>
 
                       {/* Right Panel */}
-                      <div className="customers-right-panel">
-                        <div className="customers-right-header">
-                          <span className="know-more-link" style={{ textDecoration: "none" }}>Featured Story</span>
-                        </div>
-
-                        <div className="featured-customer-card">
-                          <div className="featured-card-header">
-                            <span className="featured-card-eyebrow">TechNova Solutions</span>
-                            <h4>AI-powered Sales Transformation</h4>
-                          </div>
-                          
-                          <div className="featured-card-checklist">
-                            <div className="check-item">
-                              <span className="check-bullet">✔</span>
-                              <span>42% Increase in Sales</span>
+                      <div className="mega-right-panel">
+                        {(() => {
+                          const activeItem = customersData.find(i => i.id === activeCustomerTab) || customersData[0];
+                          return (
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
                             </div>
-                            <div className="check-item">
-                              <span className="check-bullet">✔</span>
-                              <span>60% Faster Lead Response</span>
-                            </div>
-                            <div className="check-item">
-                              <span className="check-bullet">✔</span>
-                              <span>98% Customer Satisfaction</span>
-                            </div>
-                          </div>
-
-                          <div className="featured-card-actions">
-                            <a href="#case-study" className="preview-btn-primary">Read Case Study</a>
-                            <a href="#video-story" className="preview-btn-secondary">Watch Customer Story</a>
-                          </div>
-                        </div>
+                          );
+                        })()}
                       </div>
 
                     </div>
-
-                    {/* Bottom Statistics Bar */}
-                    <div className="customers-mega-footer">
-                      <div className="footer-metric">
-                        <span className="metric-num">10,000+</span>
-                        <span className="metric-lbl">Businesses</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">1M+</span>
-                        <span className="metric-lbl">Customers Managed</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">99.99%</span>
-                        <span className="metric-lbl">Platform Uptime</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">4.9/5</span>
-                        <span className="metric-lbl">Customer Rating</span>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               )}
-            </div>
+              </div>
             {/* Resources Dropdown Trigger */}
             <a href="#resources">Resources</a>
             {/* Learning Dropdown Trigger */}
@@ -3385,103 +3004,72 @@ function Navbar() {
                 <div className="mega-dropdown learning-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card learning-card">
-                    <div className="learning-mega-inner">
+                    <div className="mega-dropdown-inner-standard">
                       
                       {/* Left Sidebar */}
-                      <div className="learning-sidebar">
-                        {learningData.map((tab) => (
+                      <div className="mega-sidebar">
+                        {learningData.map((item) => (
                           <button
-                            key={tab.id}
-                            className={`learning-tab-btn ${activeLearningTab === tab.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveLearningTab(tab.id)}
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeLearningTab === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveLearningTab(item.id)}
                           >
-                            <span className="learning-tab-icon-wrap">
-                              <i className={`bi ${tab.bootstrapIcon}`}></i>
-                            </span>
-                            <span className="learning-tab-name-flat">{tab.name}</span>
-                            <i className="bi bi-chevron-right learning-tab-chevron"></i>
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
                           </button>
                         ))}
                       </div>
 
-                      <div className="learning-middle-panel">
+                      {/* Middle Details Panel */}
+                      <div className="mega-middle-panel">
                         {(() => {
-                          const activeTab = learningData.find(t => t.id === activeLearningTab) || learningData[0];
+                          const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
                           return (
-                            <div className="learning-details-wrapper animate-fade-in" key={activeTab.id}>
-                              <h3>{activeTab.title}</h3>
-                              <p className="learning-details-desc">{activeTab.description}</p>
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
                               
-                              <div className="learning-tab-content-block">
-                                <h4>Course Modules</h4>
-                                <ul className="learning-modules-ul">
-                                  {activeTab.modules.map((mod, idx) => (
-                                    <li key={idx}>
-                                      <span className="module-bullet">✔</span>
-                                      <span className="module-text">{mod}</span>
-                                    </li>
+                              <div className="mega-features-list">
+                                <ul>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
                                   ))}
                                 </ul>
                               </div>
 
-                              <a href={`#learning-${activeTab.id}`} className="learning-details-cta">
-                                Start Learning Course →
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
                               </a>
                             </div>
                           );
                         })()}
                       </div>
 
-                      <div className="learning-right-panel">
-                        <div className="featured-course-header">
-                          <span className="course-eyebrow">Featured Course</span>
-                          <h4>Master AI-Powered CRM in 30 Minutes</h4>
-                          <p className="course-desc">Learn how to automate lead management, improve customer engagement, create intelligent workflows, and increase sales using AI-powered CRM.</p>
-                        </div>
-                        
-                        <div className="course-card-details">
-                          <div className="detail-row">
-                            <span className="detail-bullet">📖</span>
-                            <span>Beginner Friendly</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">⏱</span>
-                            <span>30 Minutes</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">🎥</span>
-                            <span>12 Video Lessons</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">🏆</span>
-                            <span>Certificate of Completion</span>
-                          </div>
-                        </div>
-
-                        <div className="course-card-actions">
-                          <a href="#start-learning" className="preview-btn-primary">Start Learning →</a>
-                          <a href="#all-courses" className="preview-btn-secondary">Browse All Courses</a>
-                        </div>
+                      {/* Right Panel */}
+                      <div className="mega-right-panel">
+                        {(() => {
+                          const activeItem = learningData.find(i => i.id === activeLearningTab) || learningData[0];
+                          return (
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                     </div>
-
-                    {/* Bottom CTA Bar */}
-                    <div className="learning-mega-footer">
-                      <div className="footer-cta-text">
-                        <span>Need help getting started?</span>
-                        <p>Our CRM experts are ready to guide you.</p>
-                      </div>
-                      <div className="footer-cta-actions">
-                        <a href="#contact" className="cta-btn cta-btn-primary">Contact an Expert</a>
-                        <a href="#live-training" className="cta-btn cta-btn-secondary">Schedule Live Training</a>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               )}
-            </div>
+              </div>
             {/* Support Dropdown Trigger */}
             <div 
               className="nav-dropdown-trigger"
@@ -3498,114 +3086,72 @@ function Navbar() {
                 <div className="mega-dropdown support-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card support-card">
-                    <div className="support-mega-inner">
+                    <div className="mega-dropdown-inner-standard">
                       
                       {/* Left Sidebar */}
-                      <div className="support-sidebar">
-                        {supportData.map((tab) => (
+                      <div className="mega-sidebar">
+                        {supportData.map((item) => (
                           <button
-                            key={tab.id}
-                            className={`support-tab-btn ${activeSupportTab === tab.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveSupportTab(tab.id)}
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeSupportTab === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveSupportTab(item.id)}
                           >
-                            <span className="support-tab-icon-wrap">
-                              <i className={`bi ${tab.bootstrapIcon}`}></i>
-                            </span>
-                            <span className="support-tab-name-flat">{tab.name}</span>
-                            <i className="bi bi-chevron-right support-tab-chevron"></i>
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
                           </button>
                         ))}
                       </div>
 
-                      <div className="support-middle-panel">
+                      {/* Middle Details Panel */}
+                      <div className="mega-middle-panel">
                         {(() => {
-                          const activeTab = supportData.find(t => t.id === activeSupportTab) || supportData[0];
+                          const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
                           return (
-                            <div className="support-details-wrapper animate-fade-in" key={activeTab.id}>
-                              <h3>{activeTab.title}</h3>
-                              <p className="support-details-desc">{activeTab.description}</p>
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
                               
-                              <div className="support-tab-content-block">
-                                <h4>Popular Help Topics</h4>
-                                <ul className="support-topics-ul">
-                                  {activeTab.topics.map((topic, idx) => (
-                                    <li key={idx}>
-                                      <span className="topic-bullet">✔</span>
-                                      <span className="topic-text">{topic}</span>
-                                    </li>
+                              <div className="mega-features-list">
+                                <ul>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
                                   ))}
                                 </ul>
                               </div>
 
-                              <a href={`#support-${activeTab.id}`} className="support-details-cta">
-                                Launch Support Service →
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
                               </a>
                             </div>
                           );
                         })()}
                       </div>
 
-                      <div className="support-right-panel">
-                        <div className="featured-support-header">
-                          <span className="support-eyebrow">Featured Help</span>
-                          <h4>Need Help? We're Here 24/7</h4>
-                          <p className="support-desc">Get expert assistance whenever you need it. Browse documentation, chat with our support team, track service status, or submit a ticket—all in one place.</p>
-                        </div>
-                        
-                        <div className="support-card-details">
-                          <div className="detail-row">
-                            <span className="detail-bullet">💬</span>
-                            <span>Live Chat Available 24/7</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">📖</span>
-                            <span>500+ Help Articles</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">⚡</span>
-                            <span>Average Response Time: 15 Mins</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">⭐</span>
-                            <span>98% Customer Satisfaction</span>
-                          </div>
-                        </div>
-
-                        <div className="support-card-actions">
-                          <a href="#live-chat" className="preview-btn-primary">Start Live Chat</a>
-                          <a href="#help-center" className="preview-btn-secondary">Browse Help Center</a>
-                        </div>
+                      {/* Right Panel */}
+                      <div className="mega-right-panel">
+                        {(() => {
+                          const activeItem = supportData.find(i => i.id === activeSupportTab) || supportData[0];
+                          return (
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                     </div>
-
-                    {/* Bottom Statistics KPI Bar */}
-                    <div className="support-mega-footer">
-                      <div className="footer-metric">
-                        <span className="metric-num">24/7</span>
-                        <span className="metric-lbl">Customer Support</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">15 min</span>
-                        <span className="metric-lbl">Response Time</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">500+</span>
-                        <span className="metric-lbl">Knowledge Articles</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">98%</span>
-                        <span className="metric-lbl">Satisfaction Rate</span>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               )}
-            </div>
+              </div>
             {/* Company Dropdown Trigger */}
             <div 
               className="nav-dropdown-trigger"
@@ -3622,114 +3168,72 @@ function Navbar() {
                 <div className="mega-dropdown company-mega">
                   <div className="mega-dropdown-arrow"></div>
                   <div className="mega-dropdown-card company-card">
-                    <div className="company-mega-inner">
+                    <div className="mega-dropdown-inner-standard">
                       
                       {/* Left Sidebar */}
-                      <div className="company-sidebar">
-                        {companyData.map((tab) => (
+                      <div className="mega-sidebar">
+                        {companyData.map((item) => (
                           <button
-                            key={tab.id}
-                            className={`company-tab-btn ${activeCompanyTab === tab.id ? "active" : ""}`}
-                            onMouseEnter={() => setActiveCompanyTab(tab.id)}
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeCompanyTab === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveCompanyTab(item.id)}
                           >
-                            <span className="company-tab-icon-wrap">
-                              <i className={`bi ${tab.bootstrapIcon}`}></i>
-                            </span>
-                            <span className="company-tab-name-flat">{tab.name}</span>
-                            <i className="bi bi-chevron-right company-tab-chevron"></i>
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
                           </button>
                         ))}
                       </div>
 
-                      <div className="company-middle-panel">
+                      {/* Middle Details Panel */}
+                      <div className="mega-middle-panel">
                         {(() => {
-                          const activeTab = companyData.find(t => t.id === activeCompanyTab) || companyData[0];
+                          const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
                           return (
-                            <div className="company-details-wrapper animate-fade-in" key={activeTab.id}>
-                              <h3>{activeTab.title}</h3>
-                              <p className="company-details-desc">{activeTab.description}</p>
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
                               
-                              <div className="company-tab-content-block">
-                                <h4>Quick Links</h4>
-                                <ul className="company-links-ul">
-                                  {activeTab.links.map((linkText, idx) => (
-                                    <li key={idx}>
-                                      <span className="link-bullet">✔</span>
-                                      <span className="link-text">{linkText}</span>
-                                    </li>
+                              <div className="mega-features-list">
+                                <ul>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
                                   ))}
                                 </ul>
                               </div>
 
-                              <a href={`#company-${activeTab.id}`} className="company-details-cta">
-                                Visit {activeTab.name} →
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
                               </a>
                             </div>
                           );
                         })()}
                       </div>
 
-                      <div className="company-right-panel">
-                        <div className="featured-company-header">
-                          <span className="company-eyebrow">Featured Company</span>
-                          <h4>Building the Future of Customer Relationships</h4>
-                          <p className="company-desc">CRM Platform helps businesses automate sales, strengthen customer relationships, and accelerate growth through intelligent CRM technology. Trusted by thousands of growing companies worldwide.</p>
-                        </div>
-                        
-                        <div className="company-card-details">
-                          <div className="detail-row">
-                            <span className="detail-bullet">🏢</span>
-                            <span>Founded in 2026</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">🌍</span>
-                            <span>Serving Customers Worldwide</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">🚀</span>
-                            <span>AI-Driven CRM Platform</span>
-                          </div>
-                          <div className="detail-row">
-                            <span className="detail-bullet">🏆</span>
-                            <span>99.99% Platform Uptime</span>
-                          </div>
-                        </div>
-
-                        <div className="company-card-actions">
-                          <a href="#about-us" className="preview-btn-primary">Learn About Us</a>
-                          <a href="#careers" className="preview-btn-secondary">View Careers</a>
-                        </div>
+                      {/* Right Panel */}
+                      <div className="mega-right-panel">
+                        {(() => {
+                          const activeItem = companyData.find(i => i.id === activeCompanyTab) || companyData[0];
+                          return (
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
                       </div>
 
                     </div>
-
-                    {/* Bottom Statistics KPI Bar */}
-                    <div className="company-mega-footer">
-                      <div className="footer-metric">
-                        <span className="metric-num">10K+</span>
-                        <span className="metric-lbl">Businesses Served</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">50+</span>
-                        <span className="metric-lbl">Countries</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">99.99%</span>
-                        <span className="metric-lbl">Platform Uptime</span>
-                      </div>
-                      <div className="footer-metric-divider"></div>
-                      <div className="footer-metric">
-                        <span className="metric-num">4.9★</span>
-                        <span className="metric-lbl">Satisfaction Rating</span>
-                      </div>
-                    </div>
-
                   </div>
                 </div>
               )}
-            </div>
+              </div>
           </div>
         </div>
 
@@ -3785,34 +3289,74 @@ function Navbar() {
                 
                 {/* Mega Dropdown Menu */}
                 {crmDropdownOpen && (
-                  <div className="mega-dropdown what-is-crm-mega">
-                    <div className="mega-dropdown-arrow"></div>
-                    <div className="mega-dropdown-card">
-                      <div className="mega-dropdown-inner">
-                        {/* Column 1 */}
-                        <div className="mega-column mega-column-left">
-                          <span className="mega-subtitle">Get started here</span>
-                          <a href="#what-is-crm" className="mega-bold-link">What is CRM?</a>
-                          <p className="mega-desc">
-                            Build and grow relationships by uniting your teams around a single view of your customer data.
-                          </p>
-                        </div>
-                        {/* Column 2 */}
-                        <div className="mega-column mega-column-middle">
-                          <a href="#software" className="mega-link-bold">CRM Software</a>
-                          <a href="#implementation" className="mega-link-bold">CRM Implementation</a>
-                          <a href="#features" className="mega-link-bold">CRM Features</a>
-                        </div>
-                        {/* Column 3 */}
-                        <div className="mega-column mega-column-right">
-                          <a href="#best-practices" className="mega-link-bold">Best Practices</a>
-                          <a href="#benefits" className="mega-link-bold">Benefits of CRM</a>
-                          <a href="#examples" className="mega-link-bold">CRM Examples</a>
-                        </div>
+                <div className="mega-dropdown what-is-crm-mega">
+                  <div className="mega-dropdown-arrow"></div>
+                  <div className="mega-dropdown-card what-is-crm-card">
+                    <div className="mega-dropdown-inner-standard">
+                      
+                      {/* Left Sidebar */}
+                      <div className="mega-sidebar">
+                        {crmData.map((item) => (
+                          <button
+                            key={item.id}
+                            className={`mega-sidebar-btn ${activeCrmTab === item.id ? "active" : ""}`}
+                            onMouseEnter={() => setActiveCrmTab(item.id)}
+                          >
+                            <span className="mega-sidebar-btn-name">{item.name}</span>
+                            <i className="bi bi-chevron-right mega-sidebar-btn-chevron"></i>
+                          </button>
+                        ))}
                       </div>
+
+                      {/* Middle Details Panel */}
+                      <div className="mega-middle-panel">
+                        {(() => {
+                          const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
+                          return (
+                            <div className="mega-details animate-fade-in" key={activeItem.id}>
+                              <h3>{activeItem.title}</h3>
+                              <p className="mega-desc">{activeItem.description}</p>
+                              
+                              <div className="mega-features-list">
+                                <ul>
+                                  {activeItem.features.map((feat, index) => (
+                                    <li key={index}><i className="bi bi-check2"></i> {feat}</li>
+                                  ))}
+                                </ul>
+                              </div>
+
+                              <a href={activeItem.linkUrl} className="mega-cta-link">
+                                {activeItem.linkText}
+                              </a>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
+                      {/* Right Panel */}
+                      <div className="mega-right-panel">
+                        {(() => {
+                          const activeItem = crmData.find(i => i.id === activeCrmTab) || crmData[0];
+                          return (
+                            <div className="mega-right-content animate-fade-in" key={activeItem.id}>
+                              <h4>{activeItem.rightPanelTitle}</h4>
+                              <ul className="mega-right-list">
+                                {activeItem.rightPanelContent.map((item, idx) => (
+                                  <li key={idx}>
+                                    <div className="mega-right-icon"><i className="bi bi-record-circle"></i></div>
+                                    <span>{item}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          );
+                        })()}
+                      </div>
+
                     </div>
                   </div>
-                )}
+                </div>
+              )}
               </div>
               <a href="#solutions" className="has-dropdown">
                 <span>Solutions</span>
