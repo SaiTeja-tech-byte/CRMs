@@ -119,14 +119,11 @@ const ExpensesPage = () => {
           { label: "Pending", value: pending, icon: "bi-hourglass-split", color: "text-warning" },
           { label: "Approved", value: approved, icon: "bi-check-circle", color: "text-success" },
           { label: "Rejected", value: rejected, icon: "bi-x-circle", color: "text-danger" },
-          { label: "Reimbursed", value: `$${reimbursedAmt.toFixed(2)}`, icon: "bi-cash-coin", color: "text-info" },
+          { label: "Reimbursed", value: `₹${reimbursedAmt.toFixed(2)}`, icon: "bi-cash-coin", color: "text-info" },
         ].map((stat, idx) => (
           <div className="col-12 col-sm-6 col-md-4 col-lg" key={idx}>
             <div className="card border-0 shadow-sm rounded-2 h-100">
-              <div className="card-body p-3 d-flex align-items-center">
-                <div className={`me-3 fs-3 ${stat.color}`}>
-                  <i className={stat.icon}></i>
-                </div>
+              <div className="card-body p-3">
                 <div>
                   <div className="text-muted small fw-medium">{stat.label}</div>
                   <div className="fs-5 fw-bold text-dark">{stat.value}</div>
@@ -209,7 +206,7 @@ const ExpensesPage = () => {
                     <td className="ps-3 fw-medium text-dark">{exp.title}</td>
                     <td><span className="text-muted small">{exp.category}</span></td>
                     <td><span className="text-muted small">{exp.date}</span></td>
-                    <td className="fw-bold text-dark">${parseFloat(exp.amount).toFixed(2)}</td>
+                    <td className="fw-bold text-dark">₹{parseFloat(exp.amount).toFixed(2)}</td>
                     <td>
                       {exp.receipts && exp.receipts.length > 0 ? (
                         <span className="text-primary small"><i className="bi-paperclip me-1"></i>{exp.receipts.length}</span>
@@ -264,7 +261,7 @@ const ExpensesPage = () => {
                     <div className="col-md-4">
                       <label className="form-label small fw-medium">Amount <span className="text-danger">*</span></label>
                       <div className="input-group input-group-sm">
-                        <span className="input-group-text bg-light text-muted border-end-0">$</span>
+                        <span className="input-group-text bg-light text-muted border-end-0">₹</span>
                         <input type="number" step="0.01" className="form-control border-start-0 ps-0" required placeholder="0.00" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} />
                       </div>
                     </div>
@@ -366,7 +363,7 @@ const ExpensesPage = () => {
                         </div>
                         <div className="col-6">
                           <p className="small text-muted mb-1">Amount</p>
-                          <p className="fw-bold text-dark mb-0 fs-5">${parseFloat(selectedExpense.amount).toFixed(2)}</p>
+                          <p className="fw-bold text-dark mb-0 fs-5">₹{parseFloat(selectedExpense.amount).toFixed(2)}</p>
                         </div>
                         <div className="col-6">
                           <p className="small text-muted mb-1">Expense Date</p>
