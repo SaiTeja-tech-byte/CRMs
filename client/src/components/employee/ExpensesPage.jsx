@@ -1,7 +1,31 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
+import expenseService from "../../services/expenseService";
+import { onSocketEvent } from "../../services/socketService";
 
 const ExpensesPage = () => {
   const [expenses, setExpenses] = useState([]); // Start empty
+  
+  useEffect(() => {
+    fetchExpenses();
+    const unsubNew = onSocketEvent("expense:new", handleSocketEvent);
+    const unsubUpdate = onSocketEvent("expense:updated", handleSocketEvent);
+    return () => {
+      unsubNew();
+      unsubUpdate();
+    };
+  }, []);
+
+  const fetchExpenses = async () => {
+    try {
+      const res = await expenseService.getMyExpenses();
+      if (res.success) setExpenses(res.expenses);
+    } catch (error) {
+      console.error("Error fetching expenses:", error);
+    }
+  };
+
+  const handleSocketEvent = () => fetchExpenses();
+
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
@@ -40,26 +64,46 @@ const ExpensesPage = () => {
     .reduce((sum, e) => sum + parseFloat(e.amount), 0);
 
   // File Upload Handlers
-  const handleFileChange = (e) => {
+  const handleFileChange = async (e) => {
     if (e.target.files && e.target.files.length > 0) {
-      const newFiles = Array.from(e.target.files).map(f => ({
-        name: f.name,
-        size: (f.size / 1024).toFixed(1) + " KB",
-        progress: 100 // Mock upload progress
-      }));
+      const filePromises = Array.from(e.target.files).map(f => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            resolve({
+              name: f.name,
+              size: (f.size / 1024).toFixed(1) + " KB",
+              fileUrl: event.target.result,
+              progress: 100
+            });
+          };
+          reader.readAsDataURL(f);
+        });
+      });
+      const newFiles = await Promise.all(filePromises);
       setFiles([...files, ...newFiles]);
     }
   };
 
   const handleDragOver = (e) => e.preventDefault();
-  const handleDrop = (e) => {
+  const handleDrop = async (e) => {
     e.preventDefault();
     if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-      const newFiles = Array.from(e.dataTransfer.files).map(f => ({
-        name: f.name,
-        size: (f.size / 1024).toFixed(1) + " KB",
-        progress: 100
-      }));
+      const filePromises = Array.from(e.dataTransfer.files).map(f => {
+        return new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (event) => {
+            resolve({
+              name: f.name,
+              size: (f.size / 1024).toFixed(1) + " KB",
+              fileUrl: event.target.result,
+              progress: 100
+            });
+          };
+          reader.readAsDataURL(f);
+        });
+      });
+      const newFiles = await Promise.all(filePromises);
       setFiles([...files, ...newFiles]);
     }
   };
@@ -70,19 +114,23 @@ const ExpensesPage = () => {
     setFiles(updated);
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    const newExpense = {
-      id: "EXP-" + Math.floor(1000 + Math.random() * 9000),
-      ...formData,
-      status: "Pending",
-      receipts: files,
-      submittedDate: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' })
-    };
-    setExpenses([newExpense, ...expenses]);
-    setShowSubmitModal(false);
-    setFormData({ title: "", category: "", date: "", amount: "", paymentMethod: "", description: "" });
-    setFiles([]);
+    try {
+      const payload = {
+        ...formData,
+        receipts: files
+      };
+      await expenseService.createExpense(payload);
+      setShowSubmitModal(false);
+      setFormData({ title: "", category: "", date: "", amount: "", paymentMethod: "", description: "" });
+      setFiles([]);
+      fetchExpenses();
+      setToastMessage("Expense request submitted successfully.");
+      setTimeout(() => setToastMessage(""), 3000);
+    } catch (error) {
+      console.error("Error submitting expense:", error);
+    }
   };
 
   const openDetails = (expense) => {
@@ -90,15 +138,17 @@ const ExpensesPage = () => {
     setShowDetailsModal(true);
   };
 
-  const handleWithdrawRequest = () => {
-    const updatedExpenses = expenses.map(e => 
-      e.id === selectedExpense.id ? { ...e, status: "Withdrawn" } : e
-    );
-    setExpenses(updatedExpenses);
-    setSelectedExpense({ ...selectedExpense, status: "Withdrawn" });
-    setShowWithdrawConfirm(false);
-    setToastMessage("Expense request withdrawn successfully.");
-    setTimeout(() => setToastMessage(""), 3000);
+  const handleWithdrawRequest = async () => {
+    try {
+      await expenseService.updateExpenseStatus(selectedExpense.id, "Withdrawn");
+      fetchExpenses();
+      setSelectedExpense({ ...selectedExpense, status: "Withdrawn" });
+      setShowWithdrawConfirm(false);
+      setToastMessage("Expense request withdrawn successfully.");
+      setTimeout(() => setToastMessage(""), 3000);
+    } catch (error) {
+      console.error("Error withdrawing expense:", error);
+    }
   };
 
   // Render Helpers

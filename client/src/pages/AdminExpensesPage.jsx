@@ -1,8 +1,31 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import expenseService from "../services/expenseService";
+import { onSocketEvent } from "../services/socketService";
 
 const AdminExpensesPage = () => {
   // Empty state by default
   const [expenses, setExpenses] = useState([]);
+  
+  useEffect(() => {
+    fetchExpenses();
+    const unsubNew = onSocketEvent("expense:new", handleSocketEvent);
+    const unsubUpdate = onSocketEvent("expense:updated", handleSocketEvent);
+    return () => {
+      unsubNew();
+      unsubUpdate();
+    };
+  }, []);
+
+  const fetchExpenses = async () => {
+    try {
+      const res = await expenseService.getAllExpenses();
+      if (res.success) setExpenses(res.expenses);
+    } catch (error) {
+      console.error("Error fetching admin expenses:", error);
+    }
+  };
+
+  const handleSocketEvent = () => fetchExpenses();
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showApproveConfirm, setShowApproveConfirm] = useState(false);
   const [showRejectConfirm, setShowRejectConfirm] = useState(false);
@@ -21,30 +44,34 @@ const AdminExpensesPage = () => {
     setShowDetailsModal(true);
   };
 
-  const handleApprove = () => {
-    const updatedExpenses = expenses.map(e => 
-      e.id === selectedExpense.id ? { ...e, status: "Approved" } : e
-    );
-    setExpenses(updatedExpenses);
-    setSelectedExpense({ ...selectedExpense, status: "Approved" });
-    setShowApproveConfirm(false);
-    setToastMessage("Expense request approved successfully.");
-    setTimeout(() => setToastMessage(""), 3000);
+  const handleApprove = async () => {
+    try {
+      await expenseService.updateExpenseStatus(selectedExpense.id, "Approved");
+      fetchExpenses();
+      setSelectedExpense({ ...selectedExpense, status: "Approved" });
+      setShowApproveConfirm(false);
+      setToastMessage("Expense request approved successfully.");
+      setTimeout(() => setToastMessage(""), 3000);
+    } catch (error) {
+      console.error("Error approving expense:", error);
+    }
   };
 
-  const handleReject = (e) => {
+  const handleReject = async (e) => {
     e.preventDefault();
     if (!rejectReason.trim()) return;
 
-    const updatedExpenses = expenses.map(e => 
-      e.id === selectedExpense.id ? { ...e, status: "Rejected", rejectReason } : e
-    );
-    setExpenses(updatedExpenses);
-    setSelectedExpense({ ...selectedExpense, status: "Rejected", rejectReason });
-    setShowRejectConfirm(false);
-    setRejectReason("");
-    setToastMessage("Expense request rejected.");
-    setTimeout(() => setToastMessage(""), 3000);
+    try {
+      await expenseService.updateExpenseStatus(selectedExpense.id, "Rejected", rejectReason);
+      fetchExpenses();
+      setSelectedExpense({ ...selectedExpense, status: "Rejected", rejectReason });
+      setShowRejectConfirm(false);
+      setRejectReason("");
+      setToastMessage("Expense request rejected.");
+      setTimeout(() => setToastMessage(""), 3000);
+    } catch (error) {
+      console.error("Error rejecting expense:", error);
+    }
   };
 
   const getBadgeClass = (status) => {
