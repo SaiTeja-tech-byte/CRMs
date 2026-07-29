@@ -352,137 +352,120 @@ const ExpensesPage = () => {
         <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.5)', overflowY: 'auto' }}>
           <div className="modal-dialog modal-dialog-centered modal-lg">
             <div className="modal-content border-0 rounded-3 shadow-lg">
-              <div className="modal-header bg-light border-bottom py-3 px-4">
-                <div>
-                  <h5 className="modal-title fw-bold text-dark mb-1">{selectedExpense.title}</h5>
-                  <div className="d-flex align-items-center gap-3 small">
-                    <span className="text-muted">ID: {selectedExpense.id}</span>
-                    <span className="text-muted"><i className="bi-calendar me-1"></i>{selectedExpense.submittedDate}</span>
-                  </div>
+              <div className="modal-header border-bottom py-3 px-4 d-flex align-items-center">
+                <div className="d-flex align-items-center flex-wrap gap-3 w-100 me-2">
+                  <h5 className="modal-title fw-bold text-dark mb-0">{selectedExpense.title}</h5>
+                  <span className="text-muted small">ID: {selectedExpense.id}</span>
+                  <span className="text-muted small">{selectedExpense.date}</span>
+                  <span className={`badge rounded-pill fw-medium ${getBadgeClass(selectedExpense.status)}`}>{selectedExpense.status}</span>
                 </div>
-                <div className="d-flex align-items-center gap-3">
-                  <span className={`badge px-3 py-2 rounded-pill fw-medium ${getBadgeClass(selectedExpense.status)}`}>{selectedExpense.status}</span>
-                  <button type="button" className="btn-close ms-2" onClick={() => setShowDetailsModal(false)}></button>
-                </div>
+                <button type="button" className="btn-close" onClick={() => setShowDetailsModal(false)}></button>
               </div>
               <div className="modal-body p-4 bg-white">
-                <div className="row mb-2">
-                  <div className="col-md-8 mb-4 mb-md-0">
-                    <h6 className="fw-bold mb-3 small text-muted text-uppercase" style={{ letterSpacing: '0.5px' }}>Expense Details</h6>
-                    <div className="card border-0 bg-light rounded-3 p-4 mb-4">
-                      <div className="row g-4">
-                        <div className="col-6">
-                          <p className="small text-muted mb-1">Category</p>
-                          <p className="fw-medium text-dark mb-0">{selectedExpense.category}</p>
-                        </div>
-                        <div className="col-6">
-                          <p className="small text-muted mb-1">Amount</p>
-                          <p className="fw-bold text-dark mb-0 fs-5">₹{parseFloat(selectedExpense.amount).toFixed(2)}</p>
-                        </div>
-                        <div className="col-6">
-                          <p className="small text-muted mb-1">Expense Date</p>
-                          <p className="fw-medium text-dark mb-0">{selectedExpense.date}</p>
-                        </div>
-                        <div className="col-6">
-                          <p className="small text-muted mb-1">Payment Method</p>
-                          <p className="fw-medium text-dark mb-0">{selectedExpense.paymentMethod}</p>
-                        </div>
-                        <div className="col-12">
-                          <p className="small text-muted mb-1">Description</p>
-                          <p className="fw-medium text-dark mb-0">{selectedExpense.description || 'No description provided.'}</p>
-                        </div>
+                <div className="row mb-4">
+                  <div className="col-md-7 mb-4 mb-md-0">
+                    <h6 className="fw-bold mb-3 small text-muted text-uppercase tracking-wide" style={{ letterSpacing: '0.5px' }}>Expense Details</h6>
+                    <div className="d-flex flex-column gap-3">
+                      <div className="d-flex">
+                        <div className="text-muted small" style={{ width: '140px' }}>Category</div>
+                        <div className="fw-medium text-dark small">{selectedExpense.category}</div>
+                      </div>
+                      <div className="d-flex">
+                        <div className="text-muted small" style={{ width: '140px' }}>Amount</div>
+                        <div className="fw-medium text-dark small">₹{parseFloat(selectedExpense.amount).toFixed(2)}</div>
+                      </div>
+                      <div className="d-flex">
+                        <div className="text-muted small" style={{ width: '140px' }}>Expense Date</div>
+                        <div className="fw-medium text-dark small">{selectedExpense.date}</div>
+                      </div>
+                      <div className="d-flex">
+                        <div className="text-muted small" style={{ width: '140px' }}>Payment Method</div>
+                        <div className="fw-medium text-dark small">{selectedExpense.paymentMethod}</div>
+                      </div>
+                      <div className="d-flex">
+                        <div className="text-muted small" style={{ width: '140px' }}>Description</div>
+                        <div className="fw-medium text-dark small">{selectedExpense.description || 'No description provided.'}</div>
                       </div>
                     </div>
-
-                    <h6 className="fw-bold mb-3 small text-muted text-uppercase" style={{ letterSpacing: '0.5px' }}>Uploaded Receipts</h6>
-                    {selectedExpense.receipts && selectedExpense.receipts.length > 0 ? (
-                      <div className="row g-3">
-                        {selectedExpense.receipts.map((file, idx) => (
-                          <div className="col-sm-6" key={idx}>
-                            <div className="border rounded-2 p-2 d-flex align-items-center justify-content-between bg-white shadow-sm">
-                              <div className="d-flex align-items-center overflow-hidden">
-                                <i className="bi-file-earmark-image text-primary me-2 fs-5 ms-1"></i>
-                                <div className="text-truncate">
-                                  <div className="small fw-medium text-dark text-truncate" style={{ maxWidth: '120px' }}>{file.name}</div>
-                                </div>
-                              </div>
-                              <div className="d-flex gap-1 ms-2">
-                                <button className="btn btn-sm btn-light p-1 border" title="Preview"><i className="bi-eye text-secondary"></i></button>
-                                <button className="btn btn-sm btn-light p-1 border" title="Download"><i className="bi-download text-primary"></i></button>
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    ) : (
-                      <div className="p-3 bg-light rounded-2 text-center">
-                        <p className="text-muted small mb-0">No receipts uploaded.</p>
-                      </div>
-                    )}
                   </div>
 
-                  <div className="col-md-4">
-                    <h6 className="fw-bold mb-3 small text-muted text-uppercase" style={{ letterSpacing: '0.5px' }}>Status Timeline</h6>
-                    <div className="position-relative ms-2 ps-3 pb-2" style={{ borderLeft: '2px solid #dee2e6' }}>
-                      <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#0d6efd', top: '0' }}></div>
-                      <div className="mb-4">
-                        <p className="mb-0 fw-bold text-dark small">Submitted</p>
-                        <p className="text-muted small mb-0">{selectedExpense.submittedDate}</p>
+                  <div className="col-md-5">
+                    <h6 className="fw-bold mb-3 small text-muted text-uppercase tracking-wide" style={{ letterSpacing: '0.5px' }}>Status</h6>
+                    <div className="position-relative ms-2 ps-3 pb-2" style={{ borderLeft: '1px solid #dee2e6' }}>
+                      <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#0d6efd', top: '0' }}></div>
+                      <div className="mb-3">
+                        <p className="mb-0 fw-medium text-dark small">Submitted</p>
+                        <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>{selectedExpense.submittedDate}</p>
                       </div>
 
-                      <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedExpense.status !== 'Pending' ? '#198754' : '#ffc107', top: '55px' }}></div>
-                      <div className="mb-4">
-                        <p className="mb-0 fw-bold text-dark small">Pending Review</p>
-                        <p className="text-muted small mb-0">Finance Team</p>
+                      <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: selectedExpense.status !== 'Pending' ? '#198754' : '#ffc107', top: '45px' }}></div>
+                      <div className="mb-3">
+                        <p className="mb-0 fw-medium text-dark small">Pending Review</p>
+                        <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>Finance Team</p>
                       </div>
 
                       {(selectedExpense.status === 'Approved' || selectedExpense.status === 'Reimbursed') && (
                         <>
-                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: selectedExpense.status === 'Reimbursed' ? '#198754' : '#ffc107', top: '110px' }}></div>
-                          <div className="mb-4">
-                            <p className="mb-0 fw-bold text-dark small">Approved</p>
-                            <p className="text-muted small mb-0">Manager</p>
+                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: selectedExpense.status === 'Reimbursed' ? '#198754' : '#ffc107', top: '90px' }}></div>
+                          <div className="mb-3">
+                            <p className="mb-0 fw-medium text-dark small">Approved</p>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>Manager</p>
                           </div>
                         </>
                       )}
 
                       {selectedExpense.status === 'Rejected' && (
                         <>
-                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#dc3545', top: '110px' }}></div>
-                          <div className="mb-4">
-                            <p className="mb-0 fw-bold text-danger small">Rejected</p>
-                            <div className="mt-2 p-3 bg-danger bg-opacity-10 rounded-2 border border-danger border-opacity-25">
-                              <p className="small text-danger fw-bold mb-1">Admin Remarks:</p>
-                              <p className="small text-dark mb-0">Receipt is missing or unclear, please re-upload.</p>
-                            </div>
+                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#dc3545', top: '90px' }}></div>
+                          <div className="mb-3">
+                            <p className="mb-0 fw-medium text-danger small">Rejected</p>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>Admin Remarks: Receipt unclear.</p>
                           </div>
                         </>
                       )}
                       
                       {selectedExpense.status === 'Reimbursed' && (
                         <>
-                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#198754', top: '165px' }}></div>
+                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#198754', top: '135px' }}></div>
                           <div>
-                            <p className="mb-0 fw-bold text-success small">Reimbursed</p>
-                            <p className="text-muted small mb-0">Payment Processed</p>
+                            <p className="mb-0 fw-medium text-success small">Reimbursed</p>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>Payment Processed</p>
                           </div>
                         </>
                       )}
 
                       {selectedExpense.status === 'Withdrawn' && (
                         <>
-                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#6c757d', top: '110px' }}></div>
+                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '8px', height: '8px', borderRadius: '50%', backgroundColor: '#6c757d', top: '90px' }}></div>
                           <div>
-                            <p className="mb-0 fw-bold text-secondary small">Withdrawn</p>
-                            <p className="text-muted small mb-0">Withdrawn by Employee</p>
+                            <p className="mb-0 fw-medium text-secondary small">Withdrawn</p>
+                            <p className="text-muted mb-0" style={{ fontSize: '0.75rem' }}>Withdrawn by Employee</p>
                           </div>
                         </>
                       )}
                     </div>
                   </div>
                 </div>
+
+                <div className="mt-2">
+                  <h6 className="fw-bold mb-3 small text-muted text-uppercase tracking-wide" style={{ letterSpacing: '0.5px' }}>Uploaded Receipts</h6>
+                  {selectedExpense.receipts && selectedExpense.receipts.length > 0 ? (
+                    <div className="d-flex flex-column gap-2">
+                      {selectedExpense.receipts.map((file, idx) => (
+                        <div key={idx} className="d-flex align-items-center small p-2 rounded-2 border">
+                          <i className="bi-file-earmark-pdf text-muted me-2"></i>
+                          <span className="fw-medium text-dark me-auto">{file.name}</span>
+                          <button className="btn btn-link text-primary p-0 text-decoration-none small me-3 border-0">Preview</button>
+                          <button className="btn btn-link text-primary p-0 text-decoration-none small border-0">Download</button>
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <p className="text-muted small mb-0">No receipts uploaded.</p>
+                  )}
+                </div>
               </div>
-              <div className="modal-footer bg-light border-top p-3 d-flex justify-content-end gap-2">
+              <div className="modal-footer border-top p-3 d-flex justify-content-end gap-2">
                 <button type="button" className="btn btn-light btn-sm px-4 rounded-2 border fw-medium text-dark" onClick={() => setShowDetailsModal(false)}>Close</button>
                 {selectedExpense.status === "Pending" && (
                   <button type="button" className="btn btn-outline-danger btn-sm px-4 rounded-2 fw-medium" onClick={() => setShowWithdrawConfirm(true)}>Withdraw Request</button>
