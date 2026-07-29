@@ -4,6 +4,8 @@ const ExpensesPage = () => {
   const [expenses, setExpenses] = useState([]); // Start empty
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
+  const [showWithdrawConfirm, setShowWithdrawConfirm] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
   const [selectedExpense, setSelectedExpense] = useState(null);
   
   const [searchTerm, setSearchTerm] = useState("");
@@ -88,6 +90,17 @@ const ExpensesPage = () => {
     setShowDetailsModal(true);
   };
 
+  const handleWithdrawRequest = () => {
+    const updatedExpenses = expenses.map(e => 
+      e.id === selectedExpense.id ? { ...e, status: "Withdrawn" } : e
+    );
+    setExpenses(updatedExpenses);
+    setSelectedExpense({ ...selectedExpense, status: "Withdrawn" });
+    setShowWithdrawConfirm(false);
+    setToastMessage("Expense request withdrawn successfully.");
+    setTimeout(() => setToastMessage(""), 3000);
+  };
+
   // Render Helpers
   const getBadgeClass = (status) => {
     switch (status) {
@@ -95,6 +108,7 @@ const ExpensesPage = () => {
       case "Approved": return "bg-success";
       case "Rejected": return "bg-danger";
       case "Reimbursed": return "bg-info text-dark";
+      case "Withdrawn": return "bg-secondary";
       default: return "bg-secondary";
     }
   };
@@ -454,10 +468,61 @@ const ExpensesPage = () => {
                           </div>
                         </>
                       )}
+
+                      {selectedExpense.status === 'Withdrawn' && (
+                        <>
+                          <div className="position-absolute start-0 translate-middle mt-1" style={{ width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#6c757d', top: '110px' }}></div>
+                          <div>
+                            <p className="mb-0 fw-bold text-secondary small">Withdrawn</p>
+                            <p className="text-muted small mb-0">Withdrawn by Employee</p>
+                          </div>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
               </div>
+              <div className="modal-footer bg-light border-top p-3 d-flex justify-content-end gap-2">
+                <button type="button" className="btn btn-light btn-sm px-4 rounded-2 border fw-medium text-dark" onClick={() => setShowDetailsModal(false)}>Close</button>
+                {selectedExpense.status === "Pending" && (
+                  <button type="button" className="btn btn-outline-danger btn-sm px-4 rounded-2 fw-medium" onClick={() => setShowWithdrawConfirm(true)}>Withdraw Request</button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Withdraw Confirmation Modal */}
+      {showWithdrawConfirm && (
+        <div className="modal fade show d-block" style={{ backgroundColor: 'rgba(0,0,0,0.6)', zIndex: 1060 }}>
+          <div className="modal-dialog modal-dialog-centered modal-sm">
+            <div className="modal-content border-0 rounded-3 shadow-lg">
+              <div className="modal-body p-4 text-center">
+                <div className="text-danger mb-3">
+                  <i className="bi-exclamation-circle" style={{ fontSize: '3rem' }}></i>
+                </div>
+                <h5 className="fw-bold text-dark mb-2">Withdraw Expense Request</h5>
+                <p className="text-muted small mb-4">Are you sure you want to withdraw this expense request? This action will cancel the pending request.</p>
+                <div className="d-flex justify-content-center gap-2">
+                  <button type="button" className="btn btn-light btn-sm px-4 rounded-2 border fw-medium text-dark" onClick={() => setShowWithdrawConfirm(false)}>Cancel</button>
+                  <button type="button" className="btn btn-danger btn-sm px-4 rounded-2 fw-medium" onClick={handleWithdrawRequest}>Withdraw Request</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Toast Notification */}
+      {toastMessage && (
+        <div className="position-fixed bottom-0 end-0 p-3" style={{ zIndex: 1100 }}>
+          <div className="toast show align-items-center text-white bg-success border-0 rounded-3 shadow" role="alert" aria-live="assertive" aria-atomic="true">
+            <div className="d-flex">
+              <div className="toast-body fw-medium">
+                <i className="bi-check-circle me-2"></i>{toastMessage}
+              </div>
+              <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setToastMessage("")}></button>
             </div>
           </div>
         </div>
