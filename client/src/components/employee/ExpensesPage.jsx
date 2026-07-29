@@ -309,7 +309,7 @@ const ExpensesPage = () => {
                   <div className="row g-3 mb-4">
                     <div className="col-md-6">
                       <label className="form-label small fw-medium">Expense Title <span className="text-danger">*</span></label>
-                      <input type="text" className="form-control form-control-sm" required placeholder="e.g. Client Dinner" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
+                      <input type="text" className="form-control form-control-sm" required value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} />
                     </div>
                     <div className="col-md-6">
                       <label className="form-label small fw-medium">Category <span className="text-danger">*</span></label>
