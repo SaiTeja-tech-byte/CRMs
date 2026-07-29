@@ -13,6 +13,7 @@ import OrganizationChart from "./OrganizationChart";
 import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
+import ExpensesPage from "../components/employee/ExpensesPage";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -170,6 +171,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "news", label: "News", icon: "bi-newspaper" },
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
+    { key: "expenses", label: "Expenses", icon: "bi-wallet2" },
     { key: "team", label: "Team", icon: "bi-people" },
     { key: "chat", label: "Chat", icon: "bi-chat-dots" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
@@ -7432,6 +7434,11 @@ body {
               onDeleteTask={handleDeleteTask}
               profile={profile}
             />
+          )}
+
+          {/* VIEW: EXPENSES TAB */}
+          {activeMenu === "expenses" && (
+            <ExpensesPage />
           )}
 
           {/* VIEW: CHAT TAB */}
