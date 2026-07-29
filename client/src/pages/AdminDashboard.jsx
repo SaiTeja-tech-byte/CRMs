@@ -21,6 +21,7 @@ import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
 import ChatPage from './ChatPage';
 import AdminFeedback from './AdminFeedback';
+import AdminExpensesPage from './AdminExpensesPage';
 // =========================
 // AdminHome
 // =========================
@@ -3283,6 +3284,9 @@ const AdminDashboard = () => {
 
       case "feedback":
         return <AdminFeedback />;
+
+      case "expenses":
+        return <AdminExpensesPage />;
 
       default:
         return <AdminHome setActiveMenu={setActiveMenu} />;
