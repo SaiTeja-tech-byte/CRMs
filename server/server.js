@@ -2,6 +2,7 @@ const express = require("express");
 const http = require("http");
 const cors = require("cors");
 const helmet = require("helmet");
+const compression = require("compression");
 const dotenv = require("dotenv");
 
 dotenv.config();
@@ -54,19 +55,14 @@ require("./models/Feedback");
 require("./models/Expense");
 
 const app = express();
-// Socket.IO needs the raw http server (not the express app) so it can
-// upgrade connections to WebSockets on the same port.
 const httpServer = http.createServer(app);
 initSocket(httpServer);
 
 app.use(helmet());
 app.use(cors());
-app.use(express.json({ limit: "15mb" })); // documents are uploaded as base64, raise the default 100kb JSON limit
+app.use(compression());
+app.use(express.json({ limit: "15mb" }));
 
-// Prevent browsers/proxies from caching any API response. Without this,
-// GET requests (e.g. /api/tasks) can get served from the browser's HTTP
-// cache on a normal refresh, showing stale data until a full logout/login
-// forces a genuinely fresh request.
 app.use((req, res, next) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   next();
@@ -104,15 +100,15 @@ const start = async () => {
   try {
     await connectDB();
 
-    await sequelize.sync({ alter: true });
-    console.log("Database synced");
+    if (process.env.NODE_ENV !== "production") {
+      await sequelize.sync({ alter: true });
+      console.log("Database synced");
+    }
   } catch (error) {
     console.error("Could not connect/sync database. Check DATABASE_URL in .env");
     console.error(error.message);
   }
 
-  // Listen on the http server (not app.listen) so the Socket.IO upgrade
-  // handler attached in initSocket() actually gets a chance to run.
   httpServer.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
   });
