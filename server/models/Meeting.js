@@ -10,12 +10,10 @@ const Meeting = sequelize.define(
       primaryKey: true,
     },
     title: {
-      // Company / meeting name, e.g. "Amazon"
       type: DataTypes.STRING,
       allowNull: false,
     },
     subtitle: {
-      // e.g. "Product Demo", "Sales Discussion"
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -26,7 +24,7 @@ const Meeting = sequelize.define(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Pending", // Pending | Confirmed
+      defaultValue: "Pending",
     },
     ownerId: {
       type: DataTypes.UUID,
@@ -36,6 +34,7 @@ const Meeting = sequelize.define(
   {
     tableName: "meetings",
     timestamps: true,
+    indexes: [{ fields: ["ownerId"] }],
   }
 );
 
