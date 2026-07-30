@@ -31,6 +31,7 @@ const leaveRoutes = require("./routes/leaveRoutes");
 const contactRoutes = require("./routes/contactRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
+const ticketRoutes = require("./routes/ticketRoutes");
 
 require("./models/User");
 require("./models/Deal");
@@ -53,6 +54,7 @@ require("./models/LeaveRequest");
 require("./models/ContactQuery");
 require("./models/Feedback");
 require("./models/Expense");
+require("./models/Ticket");
 
 const app = express();
 const httpServer = http.createServer(app);
@@ -89,6 +91,7 @@ app.use("/api/leave", leaveRoutes);
 app.use("/api/contact", contactRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/expenses", expenseRoutes);
+app.use("/api/tickets", ticketRoutes);
 
 app.get("/", (req, res) => {
   res.send("CRM Backend Running");

@@ -14,6 +14,7 @@ import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
 import ExpensesPage from "../components/employee/ExpensesPage";
+import HelpCenterPage from "./HelpCenterPage";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -7439,6 +7440,11 @@ body {
           {/* VIEW: EXPENSES TAB */}
           {activeMenu === "expenses" && (
             <ExpensesPage />
+          )}
+
+          {/* VIEW: HELP CENTER TAB */}
+          {activeMenu === "help-center" && (
+            <HelpCenterPage />
           )}
 
           {/* VIEW: CHAT TAB */}

@@ -22,6 +22,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     // activeMenu switch, so it needs `to` instead of relying on setActiveMenu.
     { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
+    { key: "help-center", label: "Help Center", icon: "bi-life-preserver" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Settings", icon: "bi-gear" },
     { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
@@ -37,6 +38,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "chat", label: "Chat", icon: "bi-chat-dots", to: "/chat" },
     { key: "contact-queries", label: "Customer Queries", icon: "bi-envelope-paper" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
+    { key: "help-center", label: "Help Center", icon: "bi-life-preserver" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "feedback", label: "Feedback", icon: "bi-chat-square-text" },
     { key: "expenses", label: "Expenses", icon: "bi-receipt" },
