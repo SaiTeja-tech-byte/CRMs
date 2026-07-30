@@ -3,41 +3,29 @@ const Deal = require("../models/Deal");
 const Task = require("../models/Task");
 const Meeting = require("../models/Meeting");
 
-// GET /api/dashboard/stats
-// Computes the stat cards live from real rows instead of storing precomputed
-// numbers — always accurate, and needs no extra table.
 const getDashboardStats = async (req, res) => {
   try {
     const ownerId = req.user.id;
 
-    const openDealsCount = await Deal.count({
-      where: { ownerId, stage: { [Op.notIn]: ["Won", "Lost"] } },
-    });
-
-    const activeLeadsCount = await Deal.count({
-      where: { ownerId, stage: "Leads" },
-    });
-
-    // Distinct companies with a deal = a rough stand-in for "customers assigned"
-    const customersAssigned = await Deal.count({
-      where: { ownerId },
-      distinct: true,
-      col: "title",
-    });
-
-    const pendingTasksCount = await Task.count({
-      where: { ownerId, completed: false },
-    });
-
-    const meetingsTodayCount = await Meeting.count({
-      where: { ownerId },
-    });
-
-    const revenueResult = await Deal.findOne({
-      where: { ownerId, stage: "Won" },
-      attributes: [[fn("SUM", col("value")), "totalRevenue"]],
-      raw: true,
-    });
+    const [
+      openDealsCount,
+      activeLeadsCount,
+      customersAssigned,
+      pendingTasksCount,
+      meetingsTodayCount,
+      revenueResult,
+    ] = await Promise.all([
+      Deal.count({ where: { ownerId, stage: { [Op.notIn]: ["Won", "Lost"] } } }),
+      Deal.count({ where: { ownerId, stage: "Leads" } }),
+      Deal.count({ where: { ownerId }, distinct: true, col: "title" }),
+      Task.count({ where: { ownerId, completed: false } }),
+      Meeting.count({ where: { ownerId } }),
+      Deal.findOne({
+        where: { ownerId, stage: "Won" },
+        attributes: [[fn("SUM", col("value")), "totalRevenue"]],
+        raw: true,
+      }),
+    ]);
 
     const revenueGenerated = Number(revenueResult?.totalRevenue || 0);
 
