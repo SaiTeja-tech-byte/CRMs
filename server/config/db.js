@@ -1,13 +1,9 @@
 const { Sequelize } = require("sequelize");
 
-// Uses a single connection string (works with Neon, Supabase, ElephantSQL, Render, or local Postgres)
-// Example: postgresql://user:password@host:5432/dbname
 const sequelize = new Sequelize(process.env.DATABASE_URL, {
   dialect: "postgres",
   logging: false,
   dialectOptions: {
-    // Most free cloud Postgres providers (Neon/Supabase) require SSL.
-    // Set DB_SSL=false in .env if you're running Postgres locally.
     ssl:
       process.env.DB_SSL === "false"
         ? false
@@ -15,6 +11,17 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
             require: true,
             rejectUnauthorized: false,
           },
+    statement_timeout: 10000,
+  },
+  pool: {
+    max: parseInt(process.env.DB_POOL_MAX, 10) || 20,
+    min: parseInt(process.env.DB_POOL_MIN, 10) || 2,
+    acquire: 30000,
+    idle: 10000,
+    evict: 1000,
+  },
+  retry: {
+    max: 2,
   },
 });
 
