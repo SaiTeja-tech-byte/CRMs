@@ -1,8 +1,6 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 
-// Field names match the Tasks UI directly (title, dueDate, assignedTo, etc.)
-// so the frontend can send/receive task objects with no adapter layer.
 const Task = sequelize.define(
   "Task",
   {
@@ -22,15 +20,13 @@ const Task = sequelize.define(
     priority: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Medium", // High | Medium | Low
+      defaultValue: "Medium",
     },
     dueDate: {
-      // "YYYY-MM-DD"
       type: DataTypes.STRING,
       allowNull: true,
     },
     dueTime: {
-      // Free text to match the UI directly, e.g. "12:00 PM"
       type: DataTypes.STRING,
       allowNull: true,
     },
@@ -42,25 +38,20 @@ const Task = sequelize.define(
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Pending", // Pending | In Progress | Completed
+      defaultValue: "Pending",
     },
     notes: {
       type: DataTypes.TEXT,
       allowNull: true,
     },
-    // Who the task is FOR (the person whose task list it shows up on).
     ownerId: {
       type: DataTypes.UUID,
       allowNull: true,
     },
-    // Denormalized display name of the owner — avoids a join for the admin
-    // task table, matches the frontend's "assignedTo" field directly.
     assignedTo: {
       type: DataTypes.STRING,
       allowNull: true,
     },
-    // Who created/assigned the task — null/self if the employee made it
-    // themselves, or an admin's id+name if it was assigned to them.
     createdById: {
       type: DataTypes.UUID,
       allowNull: true,
@@ -69,8 +60,6 @@ const Task = sequelize.define(
       type: DataTypes.STRING,
       allowNull: true,
     },
-    // Kept in sync with status === "Completed" so simple count queries
-    // (e.g. admin stats) don't need a string comparison.
     completed: {
       type: DataTypes.BOOLEAN,
       defaultValue: false,
@@ -79,6 +68,10 @@ const Task = sequelize.define(
   {
     tableName: "tasks",
     timestamps: true,
+    indexes: [
+      { fields: ["ownerId"] },
+      { fields: ["ownerId", "createdAt"] },
+    ],
   }
 );
 
