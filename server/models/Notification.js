@@ -10,7 +10,6 @@ const Notification = sequelize.define(
       primaryKey: true,
     },
     userId: {
-      // Who this notification belongs to
       type: DataTypes.UUID,
       allowNull: false,
     },
@@ -19,13 +18,9 @@ const Notification = sequelize.define(
       allowNull: false,
     },
     icon: {
-      // Matches the icon class used in the UI, e.g. "bi-file-earmark-check"
       type: DataTypes.STRING,
       allowNull: true,
     },
-    // Lets a section (Documents, Settings/System) show its own badge count
-    // by filtering on type instead of only the combined bell count.
-    // "general" | "document" | "system"
     type: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -39,6 +34,7 @@ const Notification = sequelize.define(
   {
     tableName: "notifications",
     timestamps: true,
+    indexes: [{ fields: ["userId"] }],
   }
 );
 
