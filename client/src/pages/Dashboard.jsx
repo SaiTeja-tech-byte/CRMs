@@ -176,6 +176,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "team", label: "Team", icon: "bi-people" },
     { key: "chat", label: "Chat", icon: "bi-chat-dots" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
+    { key: "help-center", label: "Help Center", icon: "bi-life-preserver" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "settings", label: "Settings", icon: "bi-gear" },
     { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
@@ -7491,7 +7492,7 @@ body {
           )}
 
           {/* VIEW: OTHER WORKSPACE PLACEHOLDERS */}
-          {activeMenu !== "dashboard" && activeMenu !== "me" && activeMenu !== "news" && activeMenu !== "settings" && activeMenu !== "calendar" && activeMenu !== "tasks" && activeMenu !== "expenses" && activeMenu !== "team" && activeMenu !== "notifications" && activeMenu !== "documents" && activeMenu !== "orgchart" && activeMenu !== "chat" && (
+          {activeMenu !== "dashboard" && activeMenu !== "me" && activeMenu !== "news" && activeMenu !== "settings" && activeMenu !== "calendar" && activeMenu !== "tasks" && activeMenu !== "expenses" && activeMenu !== "team" && activeMenu !== "notifications" && activeMenu !== "documents" && activeMenu !== "orgchart" && activeMenu !== "chat" && activeMenu !== "help-center" && (
             <div className="dashboard-card-flat text-center py-5">
               <h3><i className="bi bi-lock-fill text-muted"></i> {activeMenu.charAt(0).toUpperCase() + activeMenu.slice(1)} Section</h3>
               <p className="text-muted mt-2">This module is coming soon.</p>
