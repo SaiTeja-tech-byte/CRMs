@@ -4,6 +4,7 @@ const cors = require("cors");
 const helmet = require("helmet");
 const compression = require("compression");
 const dotenv = require("dotenv");
+const { apiLimiter } = require("./middleware/rateLimiter");
 
 dotenv.config();
 
@@ -57,12 +58,14 @@ require("./models/Expense");
 require("./models/Ticket");
 
 const app = express();
+app.set("trust proxy", 1);
 const httpServer = http.createServer(app);
 initSocket(httpServer);
 
 app.use(helmet());
 app.use(cors());
 app.use(compression());
+app.use(apiLimiter);
 app.use(express.json({ limit: "15mb" }));
 
 app.use((req, res, next) => {
