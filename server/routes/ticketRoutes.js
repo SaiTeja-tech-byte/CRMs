@@ -1,12 +1,13 @@
 const express = require("express");
 const router = express.Router();
 const ticketController = require("../controllers/ticketController");
-const { protect, authorize } = require("../middleware/auth");
+const requireAuth = require("../middleware/authMiddleware");
+const requireAdmin = require("../middleware/adminMiddleware");
 
-router.post("/", protect, ticketController.createTicket);
-router.get("/mine", protect, authorize("employee"), ticketController.getMyTickets);
-router.get("/", protect, authorize("admin"), ticketController.getAllTickets);
-router.patch("/:id", protect, ticketController.updateTicketStatus);
-router.post("/:id/reply", protect, ticketController.replyToTicket);
+router.post("/", requireAuth, ticketController.createTicket);
+router.get("/mine", requireAuth, ticketController.getMyTickets);
+router.get("/", requireAuth, requireAdmin, ticketController.getAllTickets);
+router.patch("/:id", requireAuth, ticketController.updateTicketStatus);
+router.post("/:id/reply", requireAuth, ticketController.replyToTicket);
 
 module.exports = router;
