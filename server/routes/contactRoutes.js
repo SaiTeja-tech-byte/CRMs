@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/authMiddleware");
 const requireAdmin = require("../middleware/adminMiddleware");
+const { publicFormLimiter } = require("../middleware/rateLimiter");
 const {
   submitQuery,
   getQueries,
@@ -12,10 +13,8 @@ const {
   closeQuery,
 } = require("../controllers/contactController");
 
-// Public - no login required, this is the landing page "Get in Touch" form
-router.post("/", submitQuery);
+router.post("/", publicFormLimiter, submitQuery);
 
-// Everything below is admin-only
 router.get("/", requireAuth, requireAdmin, getQueries);
 router.get("/unread-count", requireAuth, requireAdmin, getUnreadCount);
 router.patch("/:id/read", requireAuth, requireAdmin, markQueryRead);
