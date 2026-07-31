@@ -24,7 +24,7 @@ exports.createPayroll = async (req, res) => {
 
     const payroll = await Payroll.create({
       employeeId,
-      employeeName: user.name,
+      employeeName: user.fullName || "Unknown",
       department: user.department || "General",
       designation: user.designation || "Employee",
       payPeriodMonth,
@@ -55,7 +55,7 @@ exports.createPayroll = async (req, res) => {
     res.status(201).json({ success: true, payroll });
   } catch (error) {
     console.error("Error creating payroll:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 
@@ -115,7 +115,7 @@ exports.updatePayroll = async (req, res) => {
     res.json({ success: true, payroll });
   } catch (error) {
     console.error("Error updating payroll:", error);
-    res.status(500).json({ success: false, message: "Server Error" });
+    res.status(500).json({ success: false, message: "Server Error", error: error.message });
   }
 };
 

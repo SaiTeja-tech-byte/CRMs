@@ -132,7 +132,8 @@ const AdminPayrollPage = () => {
       }
     } catch (error) {
       console.error("Error submitting payroll:", error);
-      alert("Failed to save payroll.");
+      const errorMsg = error.response?.data?.message || error.response?.data?.error || "Unable to save payroll. Please try again.";
+      alert(errorMsg);
     } finally {
       setIsSubmitting(false);
     }
@@ -338,7 +339,7 @@ const AdminPayrollPage = () => {
                           <label className="form-label small fw-medium">Employee <span className="text-danger">*</span></label>
                           <select className="form-select form-select-sm" name="employeeId" required value={formData.employeeId} onChange={handleInputChange} disabled={!!selectedPayroll}>
                             <option value="">Select Employee</option>
-                            {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.name} ({emp.email})</option>)}
+                            {employees.map(emp => <option key={emp.id} value={emp.id}>{emp.fullName} ({emp.email})</option>)}
                           </select>
                         </div>
                         <div className="col-md-3">
