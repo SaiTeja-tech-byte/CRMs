@@ -7,6 +7,8 @@ const HelpCenterPage = () => {
   const [showSubmitModal, setShowSubmitModal] = useState(false);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [selectedTicket, setSelectedTicket] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitError, setSubmitError] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   
   const [formData, setFormData] = useState({
@@ -123,20 +125,35 @@ const HelpCenterPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setSubmitError("");
+
+    if (!formData.subject || !formData.category || !formData.priority || !formData.description) {
+      setSubmitError("Please fill in all required fields.");
+      return;
+    }
+
+    setIsSubmitting(true);
     try {
       const payload = {
         ...formData,
         attachments: files
       };
-      await ticketService.createTicket(payload);
-      setShowSubmitModal(false);
-      setFormData({ subject: "", category: "", priority: "Medium", description: "" });
-      setFiles([]);
-      fetchTickets();
-      setToastMessage("Support ticket created successfully.");
-      setTimeout(() => setToastMessage(""), 3000);
+      const res = await ticketService.createTicket(payload);
+      if (res && res.success) {
+        setShowSubmitModal(false);
+        setFormData({ subject: "", category: "", priority: "Medium", description: "" });
+        setFiles([]);
+        fetchTickets();
+        setToastMessage("Support ticket submitted successfully.");
+        setTimeout(() => setToastMessage(""), 3000);
+      } else {
+        setSubmitError(res?.message || "Unable to submit support ticket. Please try again.");
+      }
     } catch (error) {
       console.error("Error submitting ticket:", error);
+      setSubmitError(error.response?.data?.message || "Unable to submit support ticket. Please try again.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -307,6 +324,12 @@ const HelpCenterPage = () => {
                 <button type="button" className="btn-close" onClick={() => setShowSubmitModal(false)}></button>
               </div>
               <div className="modal-body p-4">
+                {submitError && (
+                  <div className="alert alert-danger py-2 px-3 small mb-3">
+                    <i className="bi-exclamation-triangle-fill me-2"></i>
+                    {submitError}
+                  </div>
+                )}
                 <form onSubmit={handleSubmit}>
                   <div className="row g-3 mb-4">
                     <div className="col-md-12">
@@ -361,8 +384,12 @@ const HelpCenterPage = () => {
                   )}
 
                   <div className="d-flex justify-content-end gap-2 mt-4 pt-4 border-top">
-                    <button type="button" className="btn btn-light btn-sm px-4 rounded-2 fw-medium text-dark border" onClick={() => setShowSubmitModal(false)}>Cancel</button>
-                    <button type="submit" className="btn btn-primary btn-sm px-4 rounded-2 fw-medium">Submit Ticket</button>
+                    <button type="button" className="btn btn-light btn-sm px-4 rounded-2 fw-medium text-dark border" onClick={() => setShowSubmitModal(false)} disabled={isSubmitting}>Cancel</button>
+                    <button type="submit" className="btn btn-primary btn-sm px-4 rounded-2 fw-medium" disabled={isSubmitting}>
+                      {isSubmitting ? (
+                        <><span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>Submitting...</>
+                      ) : "Submit Ticket"}
+                    </button>
                   </div>
                 </form>
               </div>
