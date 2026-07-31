@@ -1,7 +1,7 @@
 const Payroll = require("../models/Payroll");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
-const { getIo } = require("../utils/socket");
+const { getIO } = require("../utils/socket");
 
 exports.createPayroll = async (req, res) => {
   try {
@@ -32,11 +32,12 @@ exports.createPayroll = async (req, res) => {
       basicSalary, hra, allowances, bonus, incentives,
       tax, pf, esi, professionalTax, otherDeductions,
       grossSalary, netSalary,
-      paymentDate, paymentMethod, transactionReference,
+      paymentDate: paymentDate === "" ? null : paymentDate, 
+      paymentMethod, transactionReference,
       status: status || "Pending"
     });
 
-    const io = getIo();
+    const io = getIO();
     if (io) {
       io.emit("payroll:new", payroll);
     }
@@ -89,14 +90,14 @@ exports.updatePayroll = async (req, res) => {
     const totalDeductions = Number(payroll.tax) + Number(payroll.pf) + Number(payroll.esi) + Number(payroll.professionalTax) + Number(payroll.otherDeductions);
     payroll.netSalary = payroll.grossSalary - totalDeductions;
 
-    if (paymentDate !== undefined) payroll.paymentDate = paymentDate;
+    if (paymentDate !== undefined) payroll.paymentDate = paymentDate === "" ? null : paymentDate;
     if (paymentMethod !== undefined) payroll.paymentMethod = paymentMethod;
     if (transactionReference !== undefined) payroll.transactionReference = transactionReference;
     if (status !== undefined) payroll.status = status;
 
     await payroll.save();
 
-    const io = getIo();
+    const io = getIO();
     if (io) {
       io.emit("payroll:updated", payroll);
     }
