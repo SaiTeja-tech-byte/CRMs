@@ -204,64 +204,29 @@ const AdminPayrollPage = () => {
           <h4 className="fw-bold mb-1">Payroll Management</h4>
           <p className="text-muted mb-0 small">Manage employee payroll and salary records.</p>
         </div>
-        <button className="btn btn-primary btn-sm px-3 fw-medium rounded-pill shadow-sm" onClick={openCreateModal}>
-          <i className="bi-plus-lg me-1"></i> Generate Payroll
+        <button className="btn btn-primary btn-sm px-3 shadow-sm rounded-2" onClick={openCreateModal}>
+          <i className="bi-plus-lg me-2"></i>Generate Payroll
         </button>
       </div>
 
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-primary bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-people text-primary fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Total Employees</p>
-                <h4 className="fw-bold mb-0 text-dark">{uniqueEmployeesCount}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-info bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-gear text-info fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Payroll Processed</p>
-                <h4 className="fw-bold mb-0 text-dark">{processedPayrolls}</h4>
+        {[
+          { label: "Total Employees", value: uniqueEmployeesCount },
+          { label: "Payroll Processed", value: processedPayrolls },
+          { label: "Pending Payroll", value: pendingPayrolls },
+          { label: "Total Salary Paid", value: `₹${totalSalaryPaid.toLocaleString()}` },
+        ].map((stat, idx) => (
+          <div className="col-12 col-sm-6 col-md-3" key={idx}>
+            <div className="card border-0 shadow-sm rounded-2 h-100">
+              <div className="card-body p-3">
+                <div>
+                  <div className="text-muted small fw-medium">{stat.label}</div>
+                  <div className="fs-5 fw-bold text-dark">{stat.value}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-warning bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-hourglass-split text-warning fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Pending Payroll</p>
-                <h4 className="fw-bold mb-0 text-dark">{pendingPayrolls}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-success bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-cash text-success fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Total Salary Paid</p>
-                <h4 className="fw-bold mb-0 text-dark">₹{totalSalaryPaid.toLocaleString()}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="card border-0 shadow-sm rounded-3">
@@ -344,7 +309,6 @@ const AdminPayrollPage = () => {
                 ) : (
                   <tr>
                     <td colSpan="7" className="text-center py-5">
-                      <div className="text-muted mb-2"><i className="bi-file-earmark-x fs-2"></i></div>
                       <h6 className="fw-medium text-dark mb-1">No payroll records available.</h6>
                       <p className="small text-muted mb-0">Create payroll to generate employee salary records.</p>
                     </td>

@@ -94,58 +94,23 @@ const PayrollPage = () => {
 
       {/* Summary Cards */}
       <div className="row g-3 mb-4">
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-primary bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-cash-stack text-primary fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Current Salary (Gross)</p>
-                <h4 className="fw-bold mb-0 text-dark">₹{currentSalary.toLocaleString()}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-success bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-wallet2 text-success fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">This Month Net Pay</p>
-                <h4 className="fw-bold mb-0 text-dark">₹{thisMonthNetPay.toLocaleString()}</h4>
+        {[
+          { label: "Current Salary", value: `₹${currentSalary.toLocaleString()}` },
+          { label: "This Month Net Pay", value: `₹${thisMonthNetPay.toLocaleString()}` },
+          { label: "Total Payslips", value: totalPayslips },
+          { label: "Last Payment Date", value: lastPaymentDate },
+        ].map((stat, idx) => (
+          <div className="col-12 col-sm-6 col-md-3" key={idx}>
+            <div className="card border-0 shadow-sm rounded-2 h-100">
+              <div className="card-body p-3">
+                <div>
+                  <div className="text-muted small fw-medium">{stat.label}</div>
+                  <div className="fs-5 fw-bold text-dark">{stat.value}</div>
+                </div>
               </div>
             </div>
           </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-info bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-file-earmark-text text-info fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Total Payslips</p>
-                <h4 className="fw-bold mb-0 text-dark">{totalPayslips}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-md-3">
-          <div className="card border-0 shadow-sm rounded-3 h-100 bg-white">
-            <div className="card-body p-3 d-flex align-items-center">
-              <div className="bg-warning bg-opacity-10 rounded-3 p-3 me-3 d-flex align-items-center justify-content-center">
-                <i className="bi-calendar-check text-warning fs-4"></i>
-              </div>
-              <div>
-                <p className="text-muted mb-0 small fw-medium">Last Payment Date</p>
-                <h4 className="fw-bold mb-0 text-dark">{lastPaymentDate}</h4>
-              </div>
-            </div>
-          </div>
-        </div>
+        ))}
       </div>
 
       <div className="card border-0 shadow-sm rounded-3">
@@ -207,7 +172,6 @@ const PayrollPage = () => {
                 ) : (
                   <tr>
                     <td colSpan="8" className="text-center py-5">
-                      <div className="text-muted mb-2"><i className="bi-file-earmark-x fs-2"></i></div>
                       <h6 className="fw-medium text-dark mb-1">No payroll records found.</h6>
                       <p className="small text-muted mb-0">Your salary details and payslips will appear here once payroll is processed.</p>
                     </td>
