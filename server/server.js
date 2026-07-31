@@ -33,6 +33,7 @@ const contactRoutes = require("./routes/contactRoutes");
 const feedbackRoutes = require("./routes/feedbackRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
+const payrollRoutes = require("./routes/payrollRoutes");
 
 require("./models/User");
 require("./models/Deal");
@@ -56,6 +57,7 @@ require("./models/ContactQuery");
 require("./models/Feedback");
 require("./models/Expense");
 require("./models/Ticket");
+require("./models/Payroll");
 
 const app = express();
 app.set("trust proxy", 1);
@@ -95,6 +97,7 @@ app.use("/api/contact", contactRoutes);
 app.use("/api/feedback", feedbackRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/tickets", ticketRoutes);
+app.use("/api/payroll", payrollRoutes);
 
 app.get("/", (req, res) => {
   res.send("CRM Backend Running");

@@ -15,6 +15,7 @@ import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
 import ExpensesPage from "../components/employee/ExpensesPage";
 import HelpCenterPage from "./HelpCenterPage";
+import PayrollPage from "./PayrollPage";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -173,6 +174,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "expenses", label: "Expenses", icon: "bi-wallet2" },
+    { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
     { key: "team", label: "Team", icon: "bi-people" },
     { key: "chat", label: "Chat", icon: "bi-chat-dots" },
     { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
@@ -7446,6 +7448,11 @@ body {
           {/* VIEW: HELP CENTER TAB */}
           {activeMenu === "help-center" && (
             <HelpCenterPage />
+          )}
+
+          {/* VIEW: PAYROLL TAB */}
+          {activeMenu === "payroll" && (
+            <PayrollPage />
           )}
 
           {/* VIEW: CHAT TAB */}

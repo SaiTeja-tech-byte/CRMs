@@ -18,6 +18,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "expenses", label: "Expenses", icon: "bi-wallet2" },
+    { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
     { key: "team", label: "Team", icon: "bi-people" },
     // Chat lives at its own route (/chat), not a tab inside Dashboard.jsx's
     // activeMenu switch, so it needs `to` instead of relying on setActiveMenu.
@@ -43,6 +44,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "feedback", label: "Feedback", icon: "bi-chat-square-text" },
     { key: "expenses", label: "Expenses", icon: "bi-receipt" },
+    { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
     { key: "settings", label: "Company Settings", icon: "bi-gear" },
     { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
   ];

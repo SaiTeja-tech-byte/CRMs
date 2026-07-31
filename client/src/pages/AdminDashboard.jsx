@@ -23,6 +23,7 @@ import ChatPage from './ChatPage';
 import AdminFeedback from './AdminFeedback';
 import AdminExpensesPage from './AdminExpensesPage';
 import AdminHelpCenterPage from './AdminHelpCenterPage';
+import AdminPayrollPage from './AdminPayrollPage';
 // =========================
 // AdminHome
 // =========================
@@ -3288,6 +3289,9 @@ const AdminDashboard = () => {
 
       case "expenses":
         return <AdminExpensesPage />;
+
+      case "payroll":
+        return <AdminPayrollPage />;
 
       case "help-center":
         return <AdminHelpCenterPage />;
