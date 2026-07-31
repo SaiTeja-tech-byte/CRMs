@@ -106,10 +106,8 @@ const start = async () => {
   try {
     await connectDB();
 
-    if (process.env.NODE_ENV !== "production") {
-      await sequelize.sync({ alter: true });
-      console.log("Database synced");
-    }
+    await sequelize.sync({ alter: true });
+    console.log("Database synced");
   } catch (error) {
     console.error("Could not connect/sync database. Check DATABASE_URL in .env");
     console.error(error.message);
