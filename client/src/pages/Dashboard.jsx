@@ -15,6 +15,7 @@ import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
 import ExpensesPage from "../components/employee/ExpensesPage";
 import PlannerPage from "../components/employee/PlannerPage";
+import AttendanceCard from "../components/employee/AttendanceCard";
 import HelpCenterPage from "./HelpCenterPage";
 import PayrollPage from "./PayrollPage";
 
@@ -7222,6 +7223,8 @@ body {
                 </div>
 
                 <div className="ew-right">
+
+                  <AttendanceCard />
 
                   <div className="ew-card ew-summary-card">
                     <div className="ew-summary-header">
