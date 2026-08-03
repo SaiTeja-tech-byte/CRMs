@@ -15,7 +15,7 @@ import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
 import ExpensesPage from "../components/employee/ExpensesPage";
 import PlannerPage from "../components/employee/PlannerPage";
-import AttendanceCard from "../components/employee/AttendanceCard";
+import AttendanceWidget from "../components/attendance/AttendanceWidget";
 import HelpCenterPage from "./HelpCenterPage";
 import PayrollPage from "./PayrollPage";
 
