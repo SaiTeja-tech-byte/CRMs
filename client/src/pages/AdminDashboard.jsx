@@ -17,6 +17,7 @@ import { onSocketEvent, connectSocket, disconnectSocket } from '../services/sock
 import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import { getAllRegularizationRequests, updateRegularizationStatus } from '../services/plannerService';
+import { getAllAttendance } from '../services/attendanceApi';
 import AdminOrganizationChart from './AdminOrganizationChart';
 import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
@@ -2461,6 +2462,94 @@ const AdminLeaveRequests = () => {
   );
 };
 
+const AdminAttendancePage = () => {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().slice(0, 10));
+
+  const load = (date) => {
+    getAllAttendance(date ? { date } : {})
+      .then((data) => setRecords(data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load(dateFilter);
+    connectSocket();
+    const unsubCreated = onSocketEvent("attendanceCreated", () => load(dateFilter));
+    const unsubUpdated = onSocketEvent("attendanceUpdated", () => load(dateFilter));
+    return () => { unsubCreated && unsubCreated(); unsubUpdated && unsubUpdated(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFilter]);
+
+  const workingCount = records.filter((r) => r.status === "Working").length;
+
+  return (
+    <div className="card bg-white mb-2" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+      <div className="card-body p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h5 className="fw-semibold mb-0 text-dark" style={{ fontSize: "16px" }}>
+              Attendance {workingCount > 0 && <span className="badge bg-warning text-dark ms-1">{workingCount} working now</span>}
+            </h5>
+            <p className="text-secondary mb-0" style={{ fontSize: "13px" }}>Live Tap In / Tap Out log — updates instantly, no refresh needed.</p>
+          </div>
+          <input
+            type="date"
+            className="form-control form-control-sm w-auto"
+            value={dateFilter}
+            onChange={(e) => { setLoading(true); setDateFilter(e.target.value); }}
+          />
+        </div>
+
+        {loading ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>Loading attendance...</div>
+        ) : records.length === 0 ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>No attendance records for this date.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table mb-0" style={{ fontSize: "13.5px" }}>
+              <thead>
+                <tr>
+                  <th className="text-secondary fw-semibold border-bottom">Employee</th>
+                  <th className="text-secondary fw-semibold border-bottom">Department</th>
+                  <th className="text-secondary fw-semibold border-bottom">Date</th>
+                  <th className="text-secondary fw-semibold border-bottom">Tap In</th>
+                  <th className="text-secondary fw-semibold border-bottom">Tap Out</th>
+                  <th className="text-secondary fw-semibold border-bottom">Working Hours</th>
+                  <th className="text-secondary fw-semibold border-bottom">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((r) => (
+                  <tr key={r.id}>
+                    <td className="fw-medium text-dark">{r.employeeName}</td>
+                    <td className="text-secondary">{r.department}</td>
+                    <td>{r.date}</td>
+                    <td>{r.timeIn}</td>
+                    <td>{r.timeOut || "—"}</td>
+                    <td>{r.totalHours != null ? `${r.totalHours.toFixed(2)} hrs` : "—"}</td>
+                    <td>
+                      <span className={`badge ${
+                        r.status === "Working" ? "bg-warning text-dark"
+                        : r.status === "Rejected" ? "bg-danger"
+                        : "bg-success"
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminAttendanceRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -3376,6 +3465,14 @@ const AdminDashboard = () => {
 
       case "team":
         return <AdminTeam />;
+
+      case "attendance":
+        return (
+          <div className="p-3">
+            <AdminAttendancePage />
+            <AdminAttendanceRequests />
+          </div>
+        );
 
       case "news":
         return <AdminNews />;
