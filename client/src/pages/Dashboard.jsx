@@ -7122,6 +7122,9 @@ body {
                 }
               `}</style>
 
+              <div style={{ width: "100%", marginBottom: "20px" }}>
+                <AttendanceWidget profile={profileData} />
+              </div>
               <div className="ew-root">
 
                 <div className="ew-left">
@@ -7189,9 +7192,6 @@ body {
                 </div>
 
                 <div className="ew-right">
-                  
-                  {/* Attendance Widget */}
-                  <AttendanceWidget />
 
                   <div className="ew-card ew-summary-card">
                     <div className="ew-summary-header">
