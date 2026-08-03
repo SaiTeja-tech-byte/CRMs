@@ -1,16 +1,23 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { tapIn, tapOut, getMyTodayAttendance } from "../../services/attendanceApi";
+import attendanceService from "../../services/attendanceService";
 import { onSocketEvent, connectSocket } from "../../services/socketService";
 
 const AttendanceCard = () => {
-  const [record, setRecord] = useState(null);
+  const [sessions, setSessions] = useState([]);
+  const [summary, setSummary] = useState(null);
   const [loading, setLoading] = useState(true);
   const [acting, setActing] = useState(false);
   const [error, setError] = useState("");
 
   const load = useCallback(() => {
-    getMyTodayAttendance()
-      .then((r) => setRecord(r))
+    attendanceService
+      .getToday()
+      .then((res) => {
+        if (res.success) {
+          setSessions(res.sessions || []);
+          setSummary(res.summary || null);
+        }
+      })
       .catch(() => {})
       .finally(() => setLoading(false));
   }, []);
@@ -18,20 +25,29 @@ const AttendanceCard = () => {
   useEffect(() => {
     load();
     connectSocket();
-    // Own-room event — keeps this card (and any other open tab/device)
-    // in sync the instant a tap happens, no refresh needed.
-    const unsub = onSocketEvent("attendanceUpdated", ({ record: updated }) => {
-      if (updated?.date === new Date().toISOString().slice(0, 10)) setRecord(updated);
+    const unsub = onSocketEvent("attendanceUpdated", (payload) => {
+      if (payload?.sessions) {
+        setSessions(payload.sessions);
+        setSummary(payload.summary);
+      }
     });
     return unsub;
   }, [load]);
+
+  const status = summary?.status || "Not Checked In";
+  const openSession = sessions.find((s) => !s.timeOut);
+  const maxSessions = summary?.maxSessions ?? 2;
+  const canTapInAgain = status !== "Working" && sessions.length < maxSessions;
 
   const handleTap = async () => {
     setError("");
     setActing(true);
     try {
-      const updated = record ? await tapOut() : await tapIn();
-      setRecord(updated);
+      const res = status === "Working" ? await attendanceService.tapOut() : await attendanceService.tapIn();
+      if (res.success) {
+        setSessions(res.sessions || []);
+        setSummary(res.summary || null);
+      }
     } catch (err) {
       setError(err?.response?.data?.message || "Something went wrong. Please try again.");
     } finally {
@@ -39,8 +55,13 @@ const AttendanceCard = () => {
     }
   };
 
-  const isTappedIn = record && !record.timeOut;
-  const isCompleted = record && record.timeOut;
+  const buttonLabel = () => {
+    if (status === "Working") return openSession?.sessionNo >= 2 ? "Tap Out" : "Tap Out (Break)";
+    if (status === "On Break") return "Resume Work";
+    return sessions.length === 0 ? "Tap In" : "Resume Work";
+  };
+
+  const isCompleted = status === "Completed";
 
   return (
     <div className="ew-card" style={{ padding: "18px 22px", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px", flexWrap: "wrap" }}>
@@ -58,12 +79,17 @@ const AttendanceCard = () => {
           {isCompleted ? (
             <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginTop: "2px" }}>
               <span className="badge bg-success me-2">Completed</span>
-              {record.timeIn} → {record.timeOut}
+              {sessions[0]?.timeIn} → {sessions[sessions.length - 1]?.timeOut}
             </div>
-          ) : isTappedIn ? (
+          ) : status === "Working" ? (
             <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginTop: "2px" }}>
               <span className="badge bg-warning text-dark me-2">Working</span>
-              Time In: {record.timeIn}
+              Time In: {openSession?.timeIn}
+            </div>
+          ) : status === "On Break" ? (
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginTop: "2px" }}>
+              <span className="badge bg-info text-dark me-2">On Break</span>
+              Tap in to resume
             </div>
           ) : (
             <div style={{ fontSize: "13px", fontWeight: 700, color: "#94a3b8", marginTop: "2px" }}>Not tapped in yet</div>
@@ -73,26 +99,24 @@ const AttendanceCard = () => {
 
       <div style={{ display: "flex", alignItems: "center", gap: "24px" }}>
         <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>Time In</div>
-          <div style={{ fontSize: "15px", fontWeight: 800, color: record?.timeIn ? "#0f172a" : "#cbd5e1" }}>{record?.timeIn || "--:--"}</div>
-        </div>
-        <div style={{ textAlign: "center" }}>
-          <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>Time Out</div>
-          <div style={{ fontSize: "15px", fontWeight: 800, color: record?.timeOut ? "#0f172a" : "#cbd5e1" }}>{record?.timeOut || "--:--"}</div>
+          <div style={{ fontSize: "11px", color: "#94a3b8", fontWeight: 700, textTransform: "uppercase" }}>Session {sessions.length + (openSession ? 0 : 1) || 1}</div>
+          <div style={{ fontSize: "15px", fontWeight: 800, color: "#0f172a" }}>
+            {sessions.length}/{maxSessions}
+          </div>
         </div>
 
         {loading ? (
-          <button className="btn btn-sm btn-light border" disabled style={{ width: "110px" }}>...</button>
+          <button className="btn btn-sm btn-light border" disabled style={{ width: "130px" }}>...</button>
         ) : isCompleted ? (
-          <button className="btn btn-sm btn-light border" disabled style={{ width: "110px", fontWeight: 700 }}>Done for today</button>
+          <button className="btn btn-sm btn-light border" disabled style={{ width: "130px", fontWeight: 700 }}>Done for today</button>
         ) : (
           <button
-            className={`btn btn-sm ${isTappedIn ? "btn-danger" : "btn-primary"}`}
-            style={{ width: "110px", fontWeight: 700 }}
+            className={`btn btn-sm ${status === "Working" ? "btn-danger" : "btn-primary"}`}
+            style={{ width: "130px", fontWeight: 700 }}
             onClick={handleTap}
-            disabled={acting}
+            disabled={acting || (status !== "Working" && !canTapInAgain)}
           >
-            {acting ? "..." : isTappedIn ? "Tap Out" : "Tap In"}
+            {acting ? "..." : buttonLabel()}
           </button>
         )}
       </div>
