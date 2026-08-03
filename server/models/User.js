@@ -70,6 +70,41 @@ const User = sequelize.define(
     },
     avatarUrl: { type: DataTypes.STRING, allowNull: true },
 
+    // Personal Information (Me page)
+    firstName: { type: DataTypes.STRING, allowNull: true },
+    lastName: { type: DataTypes.STRING, allowNull: true },
+    displayName: { type: DataTypes.STRING, allowNull: true },
+    dob: { type: DataTypes.DATEONLY, allowNull: true },
+    gender: { type: DataTypes.STRING, allowNull: true },
+    nationality: { type: DataTypes.STRING, allowNull: true },
+
+    // Work Information (Me page)
+    employmentType: { type: DataTypes.STRING, allowNull: true },
+    joiningDate: { type: DataTypes.DATEONLY, allowNull: true },
+
+    // Contact Information (Me page)
+    officialEmail: { type: DataTypes.STRING, allowNull: true },
+    personalEmail: { type: DataTypes.STRING, allowNull: true },
+    alternatePhone: { type: DataTypes.STRING, allowNull: true },
+    emergencyContact: { type: DataTypes.STRING, allowNull: true },
+    emergencyPhone: { type: DataTypes.STRING, allowNull: true },
+    address: { type: DataTypes.STRING, allowNull: true },
+    city: { type: DataTypes.STRING, allowNull: true },
+    state: { type: DataTypes.STRING, allowNull: true },
+    country: { type: DataTypes.STRING, allowNull: true },
+    zipCode: { type: DataTypes.STRING, allowNull: true },
+
+    // About / social (Me page)
+    bio: { type: DataTypes.TEXT, allowNull: true },
+    skills: { type: DataTypes.TEXT, allowNull: true },
+    experience: { type: DataTypes.STRING, allowNull: true },
+    languagesKnown: { type: DataTypes.STRING, allowNull: true },
+    avatar: { type: DataTypes.TEXT, allowNull: true }, // base64 image data from the Me page uploader
+    linkedin: { type: DataTypes.STRING, allowNull: true },
+    portfolio: { type: DataTypes.STRING, allowNull: true },
+    github: { type: DataTypes.STRING, allowNull: true },
+    website: { type: DataTypes.STRING, allowNull: true },
+
     // Distinguishes admin accounts from regular employee accounts.
     // Admin accounts are created manually (DB/seed), not via public register.
     role: {
