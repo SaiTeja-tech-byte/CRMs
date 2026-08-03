@@ -7157,7 +7157,7 @@ body {
               `}</style>
 
               <div style={{ width: "100%", marginBottom: "20px" }}>
-                <AttendanceWidget profile={profileData} />
+                <AttendanceWidget profile={profile} />
               </div>
               <div className="ew-root">
 
