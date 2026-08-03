@@ -1,8 +1,32 @@
 const User = require("../models/User");
 
+
+const serializeProfile = (user) => {
+  const { password, otpCode, otpExpiresAt, resetToken, resetTokenExpiresAt, googleId, ...safe } = user.toJSON();
+
+  const [fallbackFirst, ...fallbackRest] = (safe.fullName || "").split(" ");
+
+  return {
+    ...safe,
+    firstName: safe.firstName || fallbackFirst || "",
+    lastName: safe.lastName || fallbackRest.join(" ") || "",
+    company: safe.companyName || "",
+    officialEmail: safe.officialEmail || safe.email || "",
+  };
+};
+
 // GET /api/profile
 const getProfile = async (req, res) => {
-  return res.status(200).json({ success: true, profile: req.user });
+  try {
+    const user = await User.findByPk(req.user.id);
+    if (!user) {
+      return res.status(404).json({ success: false, message: "User not found" });
+    }
+    return res.status(200).json({ success: true, profile: serializeProfile(user) });
+  } catch (error) {
+    console.error("Get profile error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching profile" });
+  }
 };
 
 // PATCH /api/profile
@@ -15,20 +39,40 @@ const updateProfile = async (req, res) => {
     }
 
     const editableFields = [
-      "fullName",
-      "companyName",
+      // Personal Information
+      "firstName",
+      "lastName",
+      "displayName",
+      "dob",
+      "gender",
+      "nationality",
+      // Work Information
       "employeeId",
       "designation",
       "department",
       "officeLocation",
-      "phoneNumber",
+      "employmentType",
+      "joiningDate",
       "reportingManager",
       "employmentStatus",
-      "employmentType",
+      // Contact Information
+      "officialEmail",
+      "personalEmail",
+      "phoneNumber",
+      "alternatePhone",
+      "emergencyContact",
+      "emergencyPhone",
+      "address",
+      "city",
+      "state",
+      "country",
+      "zipCode",
+      // About / social
       "bio",
       "skills",
       "experience",
       "languagesKnown",
+      "avatar",
       "linkedin",
       "github",
       "portfolio",
@@ -38,15 +82,28 @@ const updateProfile = async (req, res) => {
 
     editableFields.forEach((field) => {
       if (req.body[field] !== undefined) {
-        user[field] = req.body[field];
+        // Empty-string dates blow up Postgres DATEONLY columns — store as null instead.
+        user[field] = req.body[field] === "" && ["dob", "joiningDate"].includes(field) ? null : req.body[field];
       }
     });
 
+    // "company" comes in from the frontend form but is stored as companyName.
+    if (req.body.company !== undefined) {
+      user.companyName = req.body.company;
+    }
+
+    // Keep fullName (used elsewhere — team lists, headers) in sync when the
+    // person edits their first/last name on the Me page.
+    if (req.body.firstName !== undefined || req.body.lastName !== undefined) {
+      const first = req.body.firstName ?? user.firstName ?? "";
+      const last = req.body.lastName ?? user.lastName ?? "";
+      const combined = `${first} ${last}`.trim();
+      if (combined) user.fullName = combined;
+    }
+
     await user.save();
 
-    const { password, otpCode, otpExpiresAt, resetToken, resetTokenExpiresAt, ...safeUser } = user.toJSON();
-
-    return res.status(200).json({ success: true, profile: safeUser });
+    return res.status(200).json({ success: true, profile: serializeProfile(user) });
   } catch (error) {
     console.error("Update profile error:", error);
     return res.status(500).json({ success: false, message: "Server error updating profile" });
