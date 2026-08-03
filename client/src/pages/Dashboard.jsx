@@ -319,10 +319,18 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
     setTimeout(() => setShowToast(false), 3500);
   };
 
-  const handleSubmit = (e) => {
+  const [saving, setSaving] = useState(false);
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    onSave(formData);
-    showToastMsg("Profile updated successfully!");
+    setSaving(true);
+    const result = await onSave(formData);
+    setSaving(false);
+    if (result && result.success === false) {
+      showToastMsg(result.message || "Unable to save profile. Please try again.", "error");
+    } else {
+      showToastMsg("Profile updated successfully!");
+    }
   };
 
   const handleDeleteAccount = async () => {
@@ -759,8 +767,8 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
               <i className="bi bi-trash3"></i>
               Delete Account
             </button>
-            <button type="submit" className="btn-profile-primary" style={{ padding: "10px 30px" }}>
-              Save Changes
+            <button type="submit" className="btn-profile-primary" style={{ padding: "10px 30px" }} disabled={saving}>
+              {saving ? "Saving..." : "Save Changes"}
             </button>
           </div>
 
@@ -4723,15 +4731,35 @@ const Dashboard = () => {
     return () => unsubscribers.forEach((unsub) => unsub());
   }, []);
 
-  const handleSaveProfile = (updatedProfile) => {
-    setProfile(updatedProfile);
-    localStorage.setItem("crm_profile_v2", JSON.stringify(updatedProfile));
-    triggerNotification(
-      "Profile Updated",
-      "Your personal CRM profile details were modified successfully.",
-      "Low",
-      "Profile Updated"
-    );
+  const handleSaveProfile = async (updatedProfile) => {
+    const token = localStorage.getItem("token");
+    const API_BASE = (import.meta.env.VITE_API_URL || "https://crms-1.onrender.com/api").replace(/\/auth\/?$/, "");
+    try {
+      const res = await fetch(`${API_BASE}/profile`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+        body: JSON.stringify(updatedProfile),
+      });
+      const data = await res.json();
+      if (res.ok && data.success && data.profile) {
+        setProfile(data.profile);
+        localStorage.setItem("crm_profile_v2", JSON.stringify(data.profile));
+        triggerNotification(
+          "Profile Updated",
+          "Your personal CRM profile details were modified successfully.",
+          "Low",
+          "Profile Updated"
+        );
+        return { success: true };
+      }
+      return { success: false, message: data.message || "Unable to save profile. Please try again." };
+    } catch (err) {
+      console.error("Error saving profile:", err);
+      return { success: false, message: "Unable to save profile. Please check your connection and try again." };
+    }
   };
 
   const handleSaveSettings = (settingsData) => {
