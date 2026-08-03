@@ -1,157 +1,118 @@
+const { Op } = require("sequelize");
 const Attendance = require("../models/Attendance");
 const User = require("../models/User");
-const { getIO } = require("../utils/socket");
-const { Op } = require("sequelize");
+const { emitToAdmins, emitToUser } = require("../utils/socket");
 
-const calculateWorkingHours = (tapInTime, tapOutTime) => {
-  const diffInMs = new Date(tapOutTime) - new Date(tapInTime);
-  const totalMinutes = Math.floor(diffInMs / (1000 * 60));
-  const hours = Math.floor(totalMinutes / 60);
-  const minutes = totalMinutes % 60;
-  return `${hours}h ${minutes}m`;
+const todayDateOnly = () => new Date().toISOString().slice(0, 10); // "YYYY-MM-DD"
+const nowHHMM = () => {
+  const d = new Date();
+  return `${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 
-exports.tapIn = async (req, res) => {
+
+const tapIn = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const role = req.user.role || "employee";
-    const todayStr = new Date().toISOString().split("T")[0]; // YYYY-MM-DD local timezone approximation depending on server time
+    const date = todayDateOnly();
 
-    let attendance = await Attendance.findOne({
-      where: { userId, date: todayStr }
-    });
-
-    if (attendance) {
-      if (attendance.status === "Working") {
-        return res.status(400).json({ success: false, message: "Already checked in." });
-      }
-      if (attendance.status === "Completed") {
-        return res.status(400).json({ success: false, message: "Attendance already completed for today." });
-      }
+    const existing = await Attendance.findOne({ where: { employeeId: req.user.id, date } });
+    if (existing) {
+      return res.status(400).json({ success: false, message: "You've already tapped in today" });
     }
 
-    attendance = await Attendance.create({
-      userId,
-      role,
-      date: todayStr,
-      tapInTime: new Date(),
+    const record = await Attendance.create({
+      employeeId: req.user.id,
+      employeeName: req.user.fullName,
+      date,
+      timeIn: nowHHMM(),
+      timeOut: null,
+      totalHours: null,
       status: "Working",
+      source: "tap",
     });
 
-    const io = getIO();
-    if (io) {
-      io.emit("attendance:updated");
+    const payload = { record, department: req.user.department };
+    emitToAdmins("attendance:tapIn", payload);
+    emitToAdmins("attendanceCreated", payload);
+    emitToUser(req.user.id, "attendanceUpdated", { record });
+
+    return res.status(201).json({ success: true, record });
+  } catch (error) {
+    console.error("Tap in error:", error);
+    return res.status(500).json({ success: false, message: "Server error tapping in" });
+  }
+};
+
+// Employee: tap out — closes today's open "Working" row.
+const tapOut = async (req, res) => {
+  try {
+    const date = todayDateOnly();
+
+    const record = await Attendance.findOne({ where: { employeeId: req.user.id, date } });
+    if (!record) {
+      return res.status(400).json({ success: false, message: "You haven't tapped in today" });
+    }
+    if (record.timeOut) {
+      return res.status(400).json({ success: false, message: "You've already tapped out today" });
     }
 
-    res.status(201).json({ success: true, attendance, message: "Successfully checked in." });
+    const timeOut = nowHHMM();
+    const [inH, inM] = record.timeIn.split(":").map(Number);
+    const [outH, outM] = timeOut.split(":").map(Number);
+    const totalHours = Math.max(0, (outH * 60 + outM - (inH * 60 + inM)) / 60);
+
+    record.timeOut = timeOut;
+    record.totalHours = totalHours;
+    record.status = "Completed";
+    await record.save();
+
+    const payload = { record, department: req.user.department };
+    emitToAdmins("attendance:tapOut", payload);
+    emitToAdmins("attendanceUpdated", payload);
+    emitToUser(req.user.id, "attendanceUpdated", { record });
+
+    return res.status(200).json({ success: true, record });
   } catch (error) {
-    console.error("Error tapping in:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Tap out error:", error);
+    return res.status(500).json({ success: false, message: "Server error tapping out" });
   }
 };
 
-exports.tapOut = async (req, res) => {
+// Employee: today's own attendance status, for the Tap In/Out card to
+// restore its state on page load/refresh.
+const getMyTodayAttendance = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const todayStr = new Date().toISOString().split("T")[0];
-
-    const attendance = await Attendance.findOne({
-      where: { userId, date: todayStr, status: "Working" }
-    });
-
-    if (!attendance) {
-      return res.status(400).json({ success: false, message: "No active check-in found for today." });
-    }
-
-    attendance.tapOutTime = new Date();
-    attendance.workingHours = calculateWorkingHours(attendance.tapInTime, attendance.tapOutTime);
-    attendance.status = "Completed";
-
-    await attendance.save();
-
-    const io = getIO();
-    if (io) {
-      io.emit("attendance:updated");
-    }
-
-    res.json({ success: true, attendance, message: "Successfully checked out." });
+    const record = await Attendance.findOne({ where: { employeeId: req.user.id, date: todayDateOnly() } });
+    return res.status(200).json({ success: true, record: record || null });
   } catch (error) {
-    console.error("Error tapping out:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Get today attendance error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching today's attendance" });
   }
 };
 
-exports.getTodayAttendance = async (req, res) => {
+// Admin: live attendance sheet — every employee's tap in/out, newest first,
+// optionally filtered by date/employee/department.
+const getAllAttendance = async (req, res) => {
   try {
-    const userId = req.user.id;
-    const todayStr = new Date().toISOString().split("T")[0];
+    const { date, employeeId, department } = req.query;
+    const where = {};
+    if (date) where.date = date;
+    if (employeeId) where.employeeId = employeeId;
 
-    let attendance = await Attendance.findOne({
-      where: { userId, date: todayStr }
-    });
+    const records = await Attendance.findAll({ where, order: [["date", "DESC"], ["createdAt", "DESC"]] });
 
-    res.json({ success: true, attendance });
+    const employeeIds = [...new Set(records.map((r) => r.employeeId))];
+    const users = await User.findAll({ where: { id: employeeIds }, attributes: ["id", "department"] });
+    const departmentById = {};
+    users.forEach((u) => { departmentById[u.id] = u.department || "—"; });
+
+    let rows = records.map((r) => ({ ...r.toJSON(), department: departmentById[r.employeeId] || "—" }));
+    if (department) rows = rows.filter((r) => r.department === department);
+
+    return res.status(200).json({ success: true, records: rows });
   } catch (error) {
-    console.error("Error fetching today's attendance:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
+    console.error("Get all attendance error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching attendance" });
   }
 };
 
-exports.getAttendanceHistory = async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const history = await Attendance.findAll({
-      where: { userId },
-      order: [["date", "DESC"]],
-      limit: 100
-    });
-    res.json({ success: true, history });
-  } catch (error) {
-    console.error("Error fetching attendance history:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
-  }
-};
-
-exports.getAllAttendance = async (req, res) => {
-  try {
-    const { date, role, department } = req.query;
-    let whereClause = {};
-    if (date) whereClause.date = date;
-    if (role) whereClause.role = role;
-
-    // Fetch attendances along with User info for department/name filtering
-    const attendances = await Attendance.findAll({
-      where: whereClause,
-      order: [["date", "DESC"], ["createdAt", "DESC"]]
-    });
-
-    // We'll map User data manually or use table join. Since they aren't linked via Sequelize associations explicitly, we'll fetch users.
-    const userIds = [...new Set(attendances.map(a => a.userId))];
-    const users = await User.findAll({
-      where: { id: userIds },
-      attributes: ["id", "fullName", "department", "employeeId"]
-    });
-
-    const userMap = {};
-    users.forEach(u => { userMap[u.id] = u; });
-
-    let finalData = attendances.map(a => {
-      const u = userMap[a.userId];
-      return {
-        ...a.toJSON(),
-        employeeName: u ? u.fullName : "Unknown",
-        department: u ? (u.department || "General") : "Unknown",
-        employeeCode: u ? u.employeeId : "N/A"
-      };
-    });
-
-    if (department) {
-      finalData = finalData.filter(d => d.department === department);
-    }
-
-    res.json({ success: true, attendances: finalData });
-  } catch (error) {
-    console.error("Error fetching all attendance:", error);
-    res.status(500).json({ success: false, message: "Server Error", error: error.message });
-  }
-};
+module.exports = { tapIn, tapOut, getMyTodayAttendance, getAllAttendance };
