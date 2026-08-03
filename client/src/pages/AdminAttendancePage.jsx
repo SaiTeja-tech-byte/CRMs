@@ -11,7 +11,7 @@ const AdminAttendancePage = () => {
   const [selectedAttendance, setSelectedAttendance] = useState(null);
   const [showModal, setShowModal] = useState(false);
 
-  // Pagination and sorting
+  
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
   const [sort, setSort] = useState({ sortBy: "date", sortDir: "desc" });
@@ -21,7 +21,7 @@ const AdminAttendancePage = () => {
       setLoading(true);
       const res = await attendanceService.getAllAttendance({ date: filterDate });
       if (res.success) {
-        setAttendances(res.attendances);
+        setAttendances(res.attendances || res.records || []);
       }
     } catch (err) {
       console.error("Failed to load attendance", err);
@@ -72,6 +72,7 @@ const AdminAttendancePage = () => {
   const getStatusBadge = (status) => {
     switch (status) {
       case "Working": return <span className="badge bg-primary rounded-pill">Working</span>;
+      case "On Break": return <span className="badge bg-info text-dark rounded-pill">On Break</span>;
       case "Completed": return <span className="badge bg-success rounded-pill">Completed</span>;
       case "Absent": return <span className="badge bg-secondary rounded-pill">Absent</span>;
       case "Late": return <span className="badge bg-warning text-dark rounded-pill">Late</span>;
@@ -79,9 +80,19 @@ const AdminAttendancePage = () => {
     }
   };
 
-  const formatTime = (isoString) => {
-    if (!isoString) return "--:--";
-    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (hhmm) => {
+    if (!hhmm) return "--:--";
+    const [hours, minutes] = hhmm.split(":");
+    const d = new Date();
+    d.setHours(parseInt(hours, 10), parseInt(minutes, 10));
+    return d.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  };
+
+  const formatMinutes = (mins) => {
+    if (!mins) return "0h 0m";
+    const h = Math.floor(mins / 60);
+    const m = Math.round(mins % 60);
+    return `${h}h ${m}m`;
   };
 
   return (
@@ -158,9 +169,12 @@ const AdminAttendancePage = () => {
                 <SortableHeader label="Employee Name" field="employeeName" sort={sort} onSort={handleSort} />
                 <SortableHeader label="Role" field="role" sort={sort} onSort={handleSort} />
                 <SortableHeader label="Department" field="department" sort={sort} onSort={handleSort} />
-                <SortableHeader label="Tap In" field="tapInTime" sort={sort} onSort={handleSort} />
-                <SortableHeader label="Tap Out" field="tapOutTime" sort={sort} onSort={handleSort} />
-                <SortableHeader label="Work Hours" field="workingHours" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Morning In" field="morningIn" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Lunch Out" field="lunchOut" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Resume In" field="resumeIn" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Final Out" field="finalOut" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Working" field="workingMinutes" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Break" field="breakMinutes" sort={sort} onSort={handleSort} />
                 <SortableHeader label="Status" field="status" sort={sort} onSort={handleSort} />
                 <th>Actions</th>
               </tr>
@@ -168,19 +182,19 @@ const AdminAttendancePage = () => {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-5 text-muted">
+                  <td colSpan="10" className="text-center py-5 text-muted">
                     <div className="spinner-border spinner-border-sm me-2"></div> Loading...
                   </td>
                 </tr>
               ) : currentData.length === 0 ? (
                 <tr>
-                  <td colSpan="8" className="text-center py-5 text-muted">
+                  <td colSpan="10" className="text-center py-5 text-muted">
                     No attendance records found for {filterDate}.
                   </td>
                 </tr>
               ) : (
                 currentData.map(a => (
-                  <tr key={a.id}>
+                  <tr key={a.employeeId}>
                     <td>
                       <div className="d-flex align-items-center gap-2">
                         <div className="rounded-circle bg-primary text-white d-flex align-items-center justify-content-center fw-bold" style={{ width: "32px", height: "32px", fontSize: "12px" }}>
@@ -193,9 +207,12 @@ const AdminAttendancePage = () => {
                       {a.role === "admin" ? <span className="badge bg-danger rounded-pill">Admin</span> : <span className="badge bg-secondary rounded-pill">Employee</span>}
                     </td>
                     <td className="text-muted small">{a.department}</td>
-                    <td className="fw-medium">{formatTime(a.tapInTime)}</td>
-                    <td className="fw-medium">{formatTime(a.tapOutTime)}</td>
-                    <td className="fw-bold">{a.workingHours || "--"}</td>
+                    <td className="fw-medium">{formatTime(a.morningIn)}</td>
+                    <td className="fw-medium">{formatTime(a.lunchOut)}</td>
+                    <td className="fw-medium">{formatTime(a.resumeIn)}</td>
+                    <td className="fw-medium">{formatTime(a.finalOut)}</td>
+                    <td className="fw-bold">{formatMinutes(a.workingMinutes)}</td>
+                    <td className="fw-medium">{formatMinutes(a.breakMinutes)}</td>
                     <td>{getStatusBadge(a.status)}</td>
                     <td>
                       <button 
@@ -250,20 +267,28 @@ const AdminAttendancePage = () => {
                     <div>{getStatusBadge(selectedAttendance.status)}</div>
                   </div>
                   <div className="col-6">
-                    <label className="text-muted small mb-1">Tap In</label>
-                    <p className="fw-medium">{formatTime(selectedAttendance.tapInTime)}</p>
+                    <label className="text-muted small mb-1">Morning In</label>
+                    <p className="fw-medium">{formatTime(selectedAttendance.morningIn)}</p>
                   </div>
                   <div className="col-6">
-                    <label className="text-muted small mb-1">Tap Out</label>
-                    <p className="fw-medium">{formatTime(selectedAttendance.tapOutTime)}</p>
+                    <label className="text-muted small mb-1">Lunch Out</label>
+                    <p className="fw-medium">{formatTime(selectedAttendance.lunchOut)}</p>
                   </div>
                   <div className="col-6">
-                    <label className="text-muted small mb-1">Working Hours</label>
-                    <p className="fw-bold text-primary">{selectedAttendance.workingHours || "0h 0m"}</p>
+                    <label className="text-muted small mb-1">Resume In</label>
+                    <p className="fw-medium">{formatTime(selectedAttendance.resumeIn)}</p>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted small mb-1">Final Out</label>
+                    <p className="fw-medium">{formatTime(selectedAttendance.finalOut)}</p>
+                  </div>
+                  <div className="col-6">
+                    <label className="text-muted small mb-1">Working Time</label>
+                    <p className="fw-bold text-primary">{formatMinutes(selectedAttendance.workingMinutes)}</p>
                   </div>
                   <div className="col-6">
                     <label className="text-muted small mb-1">Break Time</label>
-                    <p className="fw-medium">{selectedAttendance.breakTime || "0h 0m"}</p>
+                    <p className="fw-medium">{formatMinutes(selectedAttendance.breakMinutes)}</p>
                   </div>
                 </div>
               </div>
