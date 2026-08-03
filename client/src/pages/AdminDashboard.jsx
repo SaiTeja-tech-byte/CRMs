@@ -24,6 +24,8 @@ import AdminFeedback from './AdminFeedback';
 import AdminExpensesPage from './AdminExpensesPage';
 import AdminHelpCenterPage from './AdminHelpCenterPage';
 import AdminPayrollPage from './AdminPayrollPage';
+import AdminAttendancePage from './AdminAttendancePage';
+import AttendanceWidget from '../components/attendance/AttendanceWidget';
 // =========================
 // AdminHome
 // =========================
@@ -409,7 +411,7 @@ const AdminHome = () => {
         </div>
 
         <div className="ew-right">
-
+          <AttendanceWidget />
           <div className="ew-card ew-summary-card">
             <div className="ew-summary-header">
               <h3 className="ew-summary-title">Today's Work Summary</h3>
@@ -3286,6 +3288,9 @@ const AdminDashboard = () => {
 
       case "feedback":
         return <AdminFeedback />;
+
+      case "attendance":
+        return <AdminAttendancePage />;
 
       case "expenses":
         return <AdminExpensesPage />;

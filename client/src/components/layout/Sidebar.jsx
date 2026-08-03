@@ -43,6 +43,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "help-center", label: "Help Center", icon: "bi-life-preserver" },
     { key: "notifications", label: "Notifications", icon: "bi-bell" },
     { key: "feedback", label: "Feedback", icon: "bi-chat-square-text" },
+    { key: "attendance", label: "Attendance", icon: "bi-person-check" },
     { key: "expenses", label: "Expenses", icon: "bi-receipt" },
     { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
     { key: "settings", label: "Company Settings", icon: "bi-gear" },

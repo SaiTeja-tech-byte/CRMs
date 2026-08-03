@@ -5,6 +5,10 @@ import useChatUnreadCount from "../hooks/useChatUnreadCount";
 import useNotificationUnreadCount from "../hooks/useNotificationUnreadCount";
 import { getMyTasks, createMyTask, updateMyTask, deleteMyTask } from "../services/taskService";
 import { getMyEvents, createMyEvent, updateMyEvent, deleteMyEvent } from "../services/eventService";
+
+import attendanceService from "../services/attendanceService";
+import AttendanceWidget from "../components/attendance/AttendanceWidget";
+import AttendanceHistory from "../components/attendance/AttendanceHistory";
 import { getTeam } from "../services/teamService";
 import { onSocketEvent, connectSocket, disconnectSocket } from "../services/socketService";
 import { getNotifications as fetchServerNotifications, markNotificationRead as markServerNotificationRead, markAllNotificationsRead as markAllServerNotificationsRead } from "../services/notificationService";
@@ -7185,6 +7189,9 @@ body {
                 </div>
 
                 <div className="ew-right">
+                  
+                  {/* Attendance Widget */}
+                  <AttendanceWidget />
 
                   <div className="ew-card ew-summary-card">
                     <div className="ew-summary-header">
@@ -7319,6 +7326,9 @@ body {
                       </div>
                     )}
                   </div>
+
+                  {/* Attendance History Table */}
+                  <AttendanceHistory />
 
                 </div>
               </div>
