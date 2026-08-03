@@ -7,10 +7,10 @@ const { tapIn, tapOut, getMyTodayAttendance, getAllAttendance, getMyHistory } = 
 router.use(requireAuth);
 
 router.post("/tap-in", tapIn);
-router.put("/tap-out", tapOut); // Changed to PUT to match frontend service
+router.put("/tap-out", tapOut); 
 router.get("/today", getMyTodayAttendance);
 router.get("/history", getMyHistory);
 
-router.get("/all", requireAdmin, getAllAttendance); // Changed from "/" to "/all" to match frontend service
+router.get("/all", requireAdmin, getAllAttendance); 
 
 module.exports = router;
