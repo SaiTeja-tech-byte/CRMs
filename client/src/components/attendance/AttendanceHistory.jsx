@@ -7,7 +7,7 @@ const AttendanceHistory = () => {
   const [loading, setLoading] = useState(true);
   const [page, setPage] = useState(1);
   const itemsPerPage = 5;
-  const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" });
+  const [sort, setSort] = useState({ sortBy: "date", sortDir: "desc" });
 
   useEffect(() => {
     const fetchHistory = async () => {
@@ -25,19 +25,15 @@ const AttendanceHistory = () => {
     fetchHistory();
   }, []);
 
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+  const handleSort = (newSort) => {
+    setSort(newSort);
   };
 
   const sortedHistory = [...history].sort((a, b) => {
-    let aVal = a[sortConfig.key] || "";
-    let bVal = b[sortConfig.key] || "";
-    if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+    let aVal = a[sort.sortBy] || "";
+    let bVal = b[sort.sortBy] || "";
+    if (aVal < bVal) return sort.sortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return sort.sortDir === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -68,12 +64,12 @@ const AttendanceHistory = () => {
         <table className="table table-hover align-middle mb-0" style={{ fontSize: "14px" }}>
           <thead className="bg-light">
             <tr>
-              <SortableHeader label="Date" sortKey="date" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Tap In" sortKey="tapInTime" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Tap Out" sortKey="tapOutTime" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Work Hours" sortKey="workingHours" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Break Time" sortKey="breakTime" currentSort={sortConfig} onSort={handleSort} />
-              <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+              <SortableHeader label="Date" field="date" sort={sort} onSort={handleSort} />
+              <SortableHeader label="Tap In" field="tapInTime" sort={sort} onSort={handleSort} />
+              <SortableHeader label="Tap Out" field="tapOutTime" sort={sort} onSort={handleSort} />
+              <SortableHeader label="Work Hours" field="workingHours" sort={sort} onSort={handleSort} />
+              <SortableHeader label="Break Time" field="breakTime" sort={sort} onSort={handleSort} />
+              <SortableHeader label="Status" field="status" sort={sort} onSort={handleSort} />
             </tr>
           </thead>
           <tbody>
@@ -102,7 +98,10 @@ const AttendanceHistory = () => {
       </div>
       {history.length > 0 && (
         <div className="card-footer bg-white border-top p-3">
-          <PaginationBar page={page} totalPages={totalPages} setPage={setPage} totalItems={history.length} itemsName="records" />
+          <PaginationBar 
+            pagination={{ page, totalPages, total: history.length, limit: itemsPerPage }} 
+            onPageChange={setPage} 
+          />
         </div>
       )}
     </div>

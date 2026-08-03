@@ -14,7 +14,7 @@ const AdminAttendancePage = () => {
   // Pagination and sorting
   const [page, setPage] = useState(1);
   const itemsPerPage = 10;
-  const [sortConfig, setSortConfig] = useState({ key: "date", direction: "desc" });
+  const [sort, setSort] = useState({ sortBy: "date", sortDir: "desc" });
 
   const loadAttendance = async () => {
     try {
@@ -51,13 +51,13 @@ const AdminAttendancePage = () => {
 
   // Sort
   filtered.sort((a, b) => {
-    let aVal = a[sortConfig.key] || "";
-    let bVal = b[sortConfig.key] || "";
+    let aVal = a[sort.sortBy] || "";
+    let bVal = b[sort.sortBy] || "";
     if (typeof aVal === "string") aVal = aVal.toLowerCase();
     if (typeof bVal === "string") bVal = bVal.toLowerCase();
     
-    if (aVal < bVal) return sortConfig.direction === "asc" ? -1 : 1;
-    if (aVal > bVal) return sortConfig.direction === "asc" ? 1 : -1;
+    if (aVal < bVal) return sort.sortDir === "asc" ? -1 : 1;
+    if (aVal > bVal) return sort.sortDir === "asc" ? 1 : -1;
     return 0;
   });
 
@@ -65,12 +65,8 @@ const AdminAttendancePage = () => {
   const totalPages = Math.ceil(filtered.length / itemsPerPage) || 1;
   const currentData = filtered.slice((page - 1) * itemsPerPage, page * itemsPerPage);
 
-  const handleSort = (key) => {
-    let direction = "asc";
-    if (sortConfig.key === key && sortConfig.direction === "asc") {
-      direction = "desc";
-    }
-    setSortConfig({ key, direction });
+  const handleSort = (newSort) => {
+    setSort(newSort);
   };
 
   const getStatusBadge = (status) => {
@@ -159,13 +155,13 @@ const AdminAttendancePage = () => {
           <table className="table table-hover align-middle mb-0">
             <thead className="bg-light">
               <tr>
-                <SortableHeader label="Employee Name" sortKey="employeeName" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Role" sortKey="role" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Department" sortKey="department" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Tap In" sortKey="tapInTime" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Tap Out" sortKey="tapOutTime" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Work Hours" sortKey="workingHours" currentSort={sortConfig} onSort={handleSort} />
-                <SortableHeader label="Status" sortKey="status" currentSort={sortConfig} onSort={handleSort} />
+                <SortableHeader label="Employee Name" field="employeeName" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Role" field="role" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Department" field="department" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Tap In" field="tapInTime" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Tap Out" field="tapOutTime" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Work Hours" field="workingHours" sort={sort} onSort={handleSort} />
+                <SortableHeader label="Status" field="status" sort={sort} onSort={handleSort} />
                 <th>Actions</th>
               </tr>
             </thead>
@@ -217,7 +213,10 @@ const AdminAttendancePage = () => {
         </div>
         {filtered.length > 0 && (
           <div className="card-footer bg-white border-top p-3">
-            <PaginationBar page={page} totalPages={totalPages} setPage={setPage} totalItems={filtered.length} itemsName="records" />
+            <PaginationBar 
+              pagination={{ page, totalPages, total: filtered.length, limit: itemsPerPage }} 
+              onPageChange={setPage} 
+            />
           </div>
         )}
       </div>
