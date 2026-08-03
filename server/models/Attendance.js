@@ -13,15 +13,17 @@ const Attendance = sequelize.define(
     employeeId: { type: DataTypes.UUID, allowNull: false },
     employeeName: { type: DataTypes.STRING, allowNull: false },
     date: { type: DataTypes.DATEONLY, allowNull: false },
-    timeIn: { type: DataTypes.STRING, allowNull: false }, 
-    timeOut: { type: DataTypes.STRING, allowNull: true }, 
-    totalHours: { type: DataTypes.FLOAT, allowNull: true },
+    sessionNo: { type: DataTypes.INTEGER, allowNull: false, defaultValue: 1 },
+    timeIn: { type: DataTypes.STRING, allowNull: false }, // "HH:MM"
+    timeOut: { type: DataTypes.STRING, allowNull: true }, // "HH:MM", null while this session is open
+    durationMinutes: { type: DataTypes.INTEGER, allowNull: true }, // this session's worked minutes
+    totalHours: { type: DataTypes.FLOAT, allowNull: true }, // kept for backward compatibility (this session's hours)
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Completed", 
+      defaultValue: "Working", // "Working" (session open) | "Completed" (session closed) | "Approved" (regularization)
     },
-    
+
     source: {
       type: DataTypes.STRING,
       allowNull: false,
@@ -32,7 +34,10 @@ const Attendance = sequelize.define(
   {
     tableName: "attendance",
     timestamps: true,
-    indexes: [{ fields: ["employeeId", "date"] }],
+    indexes: [
+      { fields: ["employeeId", "date"] },
+      { unique: true, fields: ["employeeId", "date", "sessionNo"] },
+    ],
   }
 );
 
