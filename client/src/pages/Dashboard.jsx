@@ -7226,7 +7226,6 @@ body {
                 </div>
 
                 <div className="ew-right">
-
                   <div className="ew-card ew-summary-card">
                     <div className="ew-summary-header">
                       <h3 className="ew-summary-title">Today's Work Summary</h3>

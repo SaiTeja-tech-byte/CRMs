@@ -115,4 +115,54 @@ const getAllAttendance = async (req, res) => {
   }
 };
 
-module.exports = { tapIn, tapOut, getMyTodayAttendance, getAllAttendance };
+// Employee: history and summary stats
+const getMyHistory = async (req, res) => {
+  try {
+    const records = await Attendance.findAll({
+      where: { employeeId: req.user.id },
+      order: [["date", "DESC"]],
+      limit: 5
+    });
+
+    const d = new Date();
+    const firstDay = new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
+    const todayStr = d.toISOString().slice(0, 10);
+
+    const monthRecords = await Attendance.findAll({
+      where: {
+        employeeId: req.user.id,
+        date: { [Op.gte]: firstDay, [Op.lte]: todayStr }
+      }
+    });
+
+    const totalDaysInMonthSoFar = d.getDate();
+    let presentDays = 0;
+    let absentDays = 0;
+    let lateArrivals = 0;
+
+    monthRecords.forEach(r => {
+      if (r.status === "Completed" || r.status === "Working") presentDays++;
+      else if (r.status === "Absent") absentDays++;
+      else if (r.status === "Late") lateArrivals++;
+    });
+
+    const attendancePercent = totalDaysInMonthSoFar > 0 ? Math.round((presentDays / totalDaysInMonthSoFar) * 100) : 0;
+
+    const summary = {
+      presentDays,
+      absentDays: absentDays || (totalDaysInMonthSoFar - presentDays - monthRecords.filter(r=>r.status==="Late").length), // Basic fallback
+      lateArrivals,
+      attendancePercent
+    };
+
+    // Ensure absentDays isn't negative due to weekends etc, this is just a mockup metric
+    if (summary.absentDays < 0) summary.absentDays = 0;
+
+    return res.status(200).json({ success: true, records, summary });
+  } catch (error) {
+    console.error("Get my history error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching history" });
+  }
+};
+
+module.exports = { tapIn, tapOut, getMyTodayAttendance, getAllAttendance, getMyHistory };
