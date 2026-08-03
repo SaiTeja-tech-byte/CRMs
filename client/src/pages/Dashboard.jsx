@@ -5,10 +5,6 @@ import useChatUnreadCount from "../hooks/useChatUnreadCount";
 import useNotificationUnreadCount from "../hooks/useNotificationUnreadCount";
 import { getMyTasks, createMyTask, updateMyTask, deleteMyTask } from "../services/taskService";
 import { getMyEvents, createMyEvent, updateMyEvent, deleteMyEvent } from "../services/eventService";
-
-import attendanceService from "../services/attendanceService";
-import AttendanceWidget from "../components/attendance/AttendanceWidget";
-import AttendanceHistory from "../components/attendance/AttendanceHistory";
 import { getTeam } from "../services/teamService";
 import { onSocketEvent, connectSocket, disconnectSocket } from "../services/socketService";
 import { getNotifications as fetchServerNotifications, markNotificationRead as markServerNotificationRead, markAllNotificationsRead as markAllServerNotificationsRead } from "../services/notificationService";
@@ -18,6 +14,8 @@ import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
 import { PaginationBar } from "../components/PaginationBar";
 import ExpensesPage from "../components/employee/ExpensesPage";
+import PlannerPage from "../components/employee/PlannerPage";
+import AttendanceCard from "../components/employee/AttendanceCard";
 import HelpCenterPage from "./HelpCenterPage";
 import PayrollPage from "./PayrollPage";
 
@@ -281,6 +279,7 @@ const AvatarRenderer = ({ profile, size }) => {
 // ----------------------------------------------------
 // ----------------------------------------------------
 const MeProfile = ({ profile, onSave, onCancel }) => {
+  const [meTab, setMeTab] = useState("profile"); // "profile" | "planner"
   const [formData, setFormData] = useState({ ...profile });
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState({ text: "", type: "success" });
@@ -469,6 +468,39 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
         <span className="text-muted" style={{ fontSize: "11.5px", fontWeight: "700" }}>Manage your personal details</span>
       </div>
 
+      <div className="d-flex gap-2 mb-4" style={{ borderBottom: "1px solid #e2e8f0" }}>
+        <button
+          type="button"
+          onClick={() => setMeTab("profile")}
+          style={{
+            border: "none", background: "transparent", padding: "10px 4px", marginRight: "20px",
+            fontSize: "13px", fontWeight: "700",
+            color: meTab === "profile" ? "#2563eb" : "#64748b",
+            borderBottom: meTab === "profile" ? "2px solid #2563eb" : "2px solid transparent",
+            cursor: "pointer",
+          }}
+        >
+          <i className="bi bi-person me-1"></i> Profile
+        </button>
+        <button
+          type="button"
+          onClick={() => setMeTab("planner")}
+          style={{
+            border: "none", background: "transparent", padding: "10px 4px", marginRight: "20px",
+            fontSize: "13px", fontWeight: "700",
+            color: meTab === "planner" ? "#2563eb" : "#64748b",
+            borderBottom: meTab === "planner" ? "2px solid #2563eb" : "2px solid transparent",
+            cursor: "pointer",
+          }}
+        >
+          <i className="bi bi-calendar3 me-1"></i> Planner
+        </button>
+      </div>
+
+      {meTab === "planner" && <PlannerPage />}
+
+      {meTab === "profile" && (
+      <>
       {(!profile.firstName || profile.firstName.trim() === "") && (
         <div className="alert alert-info border-0 rounded-3 mb-4 d-flex align-items-center gap-2" style={{ background: "#eff6ff", color: "#2563eb", padding: "16px" }}>
           <i className="bi bi-info-circle-fill" style={{ fontSize: "16px" }}></i>
@@ -734,6 +766,8 @@ const MeProfile = ({ profile, onSave, onCancel }) => {
 
         </div>
       </form>
+      </>
+      )}
     </div>
   );
 };
@@ -7326,9 +7360,6 @@ body {
                       </div>
                     )}
                   </div>
-
-                  {/* Attendance History Table */}
-                  <AttendanceHistory />
 
                 </div>
               </div>

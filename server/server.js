@@ -34,6 +34,7 @@ const feedbackRoutes = require("./routes/feedbackRoutes");
 const expenseRoutes = require("./routes/expenseRoutes");
 const ticketRoutes = require("./routes/ticketRoutes");
 const payrollRoutes = require("./routes/payrollRoutes");
+const plannerRoutes = require("./routes/plannerRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
 
 require("./models/User");
@@ -59,6 +60,7 @@ require("./models/Feedback");
 require("./models/Expense");
 require("./models/Ticket");
 require("./models/Payroll");
+require("./models/AttendanceRegularization");
 require("./models/Attendance");
 
 const app = express();
@@ -100,6 +102,7 @@ app.use("/api/feedback", feedbackRoutes);
 app.use("/api/expenses", expenseRoutes);
 app.use("/api/tickets", ticketRoutes);
 app.use("/api/payroll", payrollRoutes);
+app.use("/api/planner", plannerRoutes);
 app.use("/api/attendance", attendanceRoutes);
 
 app.get("/", (req, res) => {

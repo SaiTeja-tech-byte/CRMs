@@ -1,12 +1,17 @@
 const express = require("express");
 const router = express.Router();
-const attendanceController = require("../controllers/attendanceController");
-const { protect, authorize } = require("../middleware/auth");
+const requireAuth = require("../middleware/authMiddleware");
+const requireAdmin = require("../middleware/adminMiddleware");
+const { tapIn, tapOut, getMyTodayAttendance, getAllAttendance } = require("../controllers/attendanceController");
 
-router.post("/tap-in", protect, attendanceController.tapIn);
-router.put("/tap-out", protect, attendanceController.tapOut);
-router.get("/today", protect, attendanceController.getTodayAttendance);
-router.get("/history", protect, attendanceController.getAttendanceHistory);
-router.get("/all", protect, authorize("admin"), attendanceController.getAllAttendance);
+router.use(requireAuth);
+
+
+router.post("/tap-in", tapIn);
+router.post("/tap-out", tapOut);
+router.get("/today", getMyTodayAttendance);
+
+
+router.get("/", requireAdmin, getAllAttendance);
 
 module.exports = router;

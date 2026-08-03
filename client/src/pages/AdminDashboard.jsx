@@ -16,6 +16,8 @@ import { adminGetAllEvents, adminAssignEvent, adminDeleteEvent } from '../servic
 import { onSocketEvent, connectSocket, disconnectSocket } from '../services/socketService';
 import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
+import { getAllRegularizationRequests, updateRegularizationStatus } from '../services/plannerService';
+import { getAllAttendance } from '../services/attendanceApi';
 import AdminOrganizationChart from './AdminOrganizationChart';
 import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
@@ -24,8 +26,6 @@ import AdminFeedback from './AdminFeedback';
 import AdminExpensesPage from './AdminExpensesPage';
 import AdminHelpCenterPage from './AdminHelpCenterPage';
 import AdminPayrollPage from './AdminPayrollPage';
-import AdminAttendancePage from './AdminAttendancePage';
-import AttendanceWidget from '../components/attendance/AttendanceWidget';
 // =========================
 // AdminHome
 // =========================
@@ -411,7 +411,7 @@ const AdminHome = () => {
         </div>
 
         <div className="ew-right">
-          <AttendanceWidget />
+
           <div className="ew-card ew-summary-card">
             <div className="ew-summary-header">
               <h3 className="ew-summary-title">Today's Work Summary</h3>
@@ -2462,6 +2462,211 @@ const AdminLeaveRequests = () => {
   );
 };
 
+const AdminAttendancePage = () => {
+  const [records, setRecords] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [dateFilter, setDateFilter] = useState(new Date().toISOString().slice(0, 10));
+
+  const load = (date) => {
+    getAllAttendance(date ? { date } : {})
+      .then((data) => setRecords(data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load(dateFilter);
+    connectSocket();
+    const unsubCreated = onSocketEvent("attendanceCreated", () => load(dateFilter));
+    const unsubUpdated = onSocketEvent("attendanceUpdated", () => load(dateFilter));
+    return () => { unsubCreated && unsubCreated(); unsubUpdated && unsubUpdated(); };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dateFilter]);
+
+  const workingCount = records.filter((r) => r.status === "Working").length;
+
+  return (
+    <div className="card bg-white mb-2" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+      <div className="card-body p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+          <div>
+            <h5 className="fw-semibold mb-0 text-dark" style={{ fontSize: "16px" }}>
+              Attendance {workingCount > 0 && <span className="badge bg-warning text-dark ms-1">{workingCount} working now</span>}
+            </h5>
+            <p className="text-secondary mb-0" style={{ fontSize: "13px" }}>Live Tap In / Tap Out log — updates instantly, no refresh needed.</p>
+          </div>
+          <input
+            type="date"
+            className="form-control form-control-sm w-auto"
+            value={dateFilter}
+            onChange={(e) => { setLoading(true); setDateFilter(e.target.value); }}
+          />
+        </div>
+
+        {loading ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>Loading attendance...</div>
+        ) : records.length === 0 ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>No attendance records for this date.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table mb-0" style={{ fontSize: "13.5px" }}>
+              <thead>
+                <tr>
+                  <th className="text-secondary fw-semibold border-bottom">Employee</th>
+                  <th className="text-secondary fw-semibold border-bottom">Department</th>
+                  <th className="text-secondary fw-semibold border-bottom">Date</th>
+                  <th className="text-secondary fw-semibold border-bottom">Tap In</th>
+                  <th className="text-secondary fw-semibold border-bottom">Tap Out</th>
+                  <th className="text-secondary fw-semibold border-bottom">Working Hours</th>
+                  <th className="text-secondary fw-semibold border-bottom">Status</th>
+                </tr>
+              </thead>
+              <tbody>
+                {records.map((r) => (
+                  <tr key={r.id}>
+                    <td className="fw-medium text-dark">{r.employeeName}</td>
+                    <td className="text-secondary">{r.department}</td>
+                    <td>{r.date}</td>
+                    <td>{r.timeIn}</td>
+                    <td>{r.timeOut || "—"}</td>
+                    <td>{r.totalHours != null ? `${r.totalHours.toFixed(2)} hrs` : "—"}</td>
+                    <td>
+                      <span className={`badge ${
+                        r.status === "Working" ? "bg-warning text-dark"
+                        : r.status === "Rejected" ? "bg-danger"
+                        : "bg-success"
+                      }`}>
+                        {r.status}
+                      </span>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const AdminAttendanceRequests = () => {
+  const [requests, setRequests] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [actioningId, setActioningId] = useState(null);
+  const [filter, setFilter] = useState("Pending");
+
+  const load = () => {
+    getAllRegularizationRequests()
+      .then((data) => setRequests(data || []))
+      .catch(() => {})
+      .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    load();
+    connectSocket();
+    const unsub = onSocketEvent("attendance:new", load);
+    return unsub;
+  }, []);
+
+  const handleAction = async (id, status) => {
+    setActioningId(id);
+    try {
+      await updateRegularizationStatus(id, status);
+      load();
+    } catch (err) {
+      alert(describeApiError ? describeApiError(err) : "Couldn't update this request — please try again.");
+    } finally {
+      setActioningId(null);
+    }
+  };
+
+  const visible = requests.filter((r) => filter === "All" || r.status === filter);
+  const pendingCount = requests.filter((r) => r.status === "Pending").length;
+
+  return (
+    <div className="card bg-white mb-2" style={{ border: "1px solid #e2e8f0", borderRadius: "8px", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
+      <div className="card-body p-3">
+        <div className="d-flex justify-content-between align-items-center mb-3">
+          <div>
+            <h5 className="fw-semibold mb-0 text-dark" style={{ fontSize: "16px" }}>
+              Attendance Regularization Requests {pendingCount > 0 && <span className="badge bg-danger ms-1">{pendingCount} pending</span>}
+            </h5>
+            <p className="text-secondary mb-0" style={{ fontSize: "13px" }}>Employees requesting a manual attendance entry (e.g. CRM was under maintenance).</p>
+          </div>
+          <select className="form-select form-select-sm w-auto" value={filter} onChange={(e) => setFilter(e.target.value)}>
+            <option value="Pending">Pending</option>
+            <option value="Approved">Approved</option>
+            <option value="Rejected">Rejected</option>
+            <option value="All">All</option>
+          </select>
+        </div>
+
+        {loading ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>Loading attendance requests...</div>
+        ) : visible.length === 0 ? (
+          <div className="text-secondary text-center py-3" style={{ fontSize: "13px" }}>No {filter !== "All" ? filter.toLowerCase() : ""} attendance requests.</div>
+        ) : (
+          <div className="table-responsive">
+            <table className="table mb-0" style={{ fontSize: "13.5px" }}>
+              <thead>
+                <tr>
+                  <th className="text-secondary fw-semibold border-bottom">Employee</th>
+                  <th className="text-secondary fw-semibold border-bottom">Date</th>
+                  <th className="text-secondary fw-semibold border-bottom">Time In</th>
+                  <th className="text-secondary fw-semibold border-bottom">Time Out</th>
+                  <th className="text-secondary fw-semibold border-bottom">Reason</th>
+                  <th className="text-secondary fw-semibold border-bottom">Status</th>
+                  <th className="text-secondary fw-semibold border-bottom text-end">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visible.map((r) => (
+                  <tr key={r.id}>
+                    <td className="fw-medium text-dark">{r.employeeName}</td>
+                    <td>{r.date}</td>
+                    <td>{r.timeIn}</td>
+                    <td>{r.timeOut}</td>
+                    <td className="text-secondary">{r.reason || "—"}</td>
+                    <td>
+                      <span className={`badge ${r.status === "Approved" ? "bg-success" : r.status === "Rejected" ? "bg-danger" : "bg-warning text-dark"}`}>
+                        {r.status}
+                      </span>
+                    </td>
+                    <td className="text-end">
+                      {r.status === "Pending" ? (
+                        <>
+                          <button
+                            className="btn btn-sm btn-success me-2"
+                            disabled={actioningId === r.id}
+                            onClick={() => handleAction(r.id, "Approved")}
+                          >
+                            Approve
+                          </button>
+                          <button
+                            className="btn btn-sm btn-outline-danger"
+                            disabled={actioningId === r.id}
+                            onClick={() => handleAction(r.id, "Rejected")}
+                          >
+                            Reject
+                          </button>
+                        </>
+                      ) : (
+                        <span className="text-secondary">{r.reviewedByName ? `by ${r.reviewedByName}` : "—"}</span>
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+};
+
 const AdminNotifications = () => {
   const { notifications, setNotifications } = useCRMContext();
   const [searchTerm, setSearchTerm] = useState("");
@@ -2532,6 +2737,8 @@ const AdminNotifications = () => {
     <div className="admin-notifications-container" style={{ display: "flex", flexDirection: "column", gap: "24px", color: "#333" }}>
 
       <AdminLeaveRequests />
+
+      <AdminAttendanceRequests />
 
       {/* Toast */}
       {showToast && (
@@ -3259,6 +3466,14 @@ const AdminDashboard = () => {
       case "team":
         return <AdminTeam />;
 
+      case "attendance":
+        return (
+          <div className="p-3">
+            <AdminAttendancePage />
+            <AdminAttendanceRequests />
+          </div>
+        );
+
       case "news":
         return <AdminNews />;
 
@@ -3288,9 +3503,6 @@ const AdminDashboard = () => {
 
       case "feedback":
         return <AdminFeedback />;
-
-      case "attendance":
-        return <AdminAttendancePage />;
 
       case "expenses":
         return <AdminExpensesPage />;
