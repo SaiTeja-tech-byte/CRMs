@@ -11,10 +11,7 @@ const Notification = require("../models/Notification");
 const { emitToUser, emitToDepartment, emitToAll, emitToAdmins } = require("../utils/socket");
 const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
-// Resolves a { targetType, employeeId, department } body into the actual
-// list of User rows the action applies to. Shared by task and event
-// assignment so "specific employee / department / everyone" works
-// identically in both places.
+
 const resolveTargets = async (body) => {
   const { targetType, employeeId, department } = body;
 
