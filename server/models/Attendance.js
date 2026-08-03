@@ -1,6 +1,7 @@
 const { DataTypes } = require("sequelize");
 const { sequelize } = require("../config/db");
 
+
 const Attendance = sequelize.define(
   "Attendance",
   {
@@ -9,45 +10,29 @@ const Attendance = sequelize.define(
       defaultValue: DataTypes.UUIDV4,
       primaryKey: true,
     },
-    userId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-    },
-    role: {
-      type: DataTypes.STRING,
-      allowNull: false,
-      defaultValue: "employee", // "employee" | "admin"
-    },
-    date: {
-      type: DataTypes.STRING, // e.g. "2026-08-03"
-      allowNull: false,
-    },
-    tapInTime: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    tapOutTime: {
-      type: DataTypes.DATE,
-      allowNull: true,
-    },
-    workingHours: {
-      type: DataTypes.STRING,
-      allowNull: true,
-    },
-    breakTime: {
-      type: DataTypes.STRING,
-      allowNull: true,
-      defaultValue: "0h 0m",
-    },
+    employeeId: { type: DataTypes.UUID, allowNull: false },
+    employeeName: { type: DataTypes.STRING, allowNull: false },
+    date: { type: DataTypes.DATEONLY, allowNull: false },
+    timeIn: { type: DataTypes.STRING, allowNull: false }, 
+    timeOut: { type: DataTypes.STRING, allowNull: true }, 
+    totalHours: { type: DataTypes.FLOAT, allowNull: true },
     status: {
       type: DataTypes.STRING,
       allowNull: false,
-      defaultValue: "Not Checked In", // "Not Checked In", "Working", "Completed", "Absent", "Late"
+      defaultValue: "Completed", 
     },
+    
+    source: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      defaultValue: "tap", // "tap" | "regularization"
+    },
+    regularizationId: { type: DataTypes.UUID, allowNull: true },
   },
   {
-    tableName: "attendances",
+    tableName: "attendance",
     timestamps: true,
+    indexes: [{ fields: ["employeeId", "date"] }],
   }
 );
 
