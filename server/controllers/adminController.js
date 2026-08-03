@@ -130,9 +130,26 @@ const updateUser = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
-    const editable = ["role", "employmentStatus", "designation", "department", "officeLocation", "reportingManager"];
+    // Fields any admin can edit for a team member. This includes the
+    // handful of "admin-only" fields (employeeId, joiningDate, etc.) that
+    // are intentionally read-only on the employee's own Me page — an
+    // employee can't set their own Employee ID or joining date, only an
+    // admin can, from the Team page.
+    const editable = [
+      "fullName", "role", "employmentStatus", "designation", "department",
+      "officeLocation", "reportingManager", "employeeId", "phoneNumber",
+      "employmentType", "joiningDate", "officialEmail",
+    ];
     for (const field of editable) {
-      if (req.body[field] !== undefined) user[field] = req.body[field];
+      if (req.body[field] !== undefined) {
+        // Empty-string dates blow up Postgres DATEONLY columns — store as null instead.
+        user[field] = req.body[field] === "" && field === "joiningDate" ? null : req.body[field];
+      }
+    }
+
+    // "company" comes in from the frontend form but is stored as companyName.
+    if (req.body.company !== undefined) {
+      user.companyName = req.body.company;
     }
 
     if (req.body.role && !["employee", "admin"].includes(req.body.role)) {
