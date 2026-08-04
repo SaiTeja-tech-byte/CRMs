@@ -751,7 +751,16 @@ const AdminProfile = () => {
                 </div>
                 <div className="col-md-6">
                   <label className="form-label text-muted mb-1" style={{ fontSize: "12px" }}>Company Email</label>
-                  <input type="text" className="form-control" value={formData.officialEmail} readOnly style={{ backgroundColor: "#f8f9fa", height: "34px", fontSize: "13px" }} />
+                  <input type="email" className="form-control" name="officialEmail" value={formData.officialEmail} onChange={handleChange} placeholder="you@company.com" style={{ height: "34px", fontSize: "13px" }} />
+                </div>
+                <div className="col-md-6">
+                  <label className="form-label text-muted mb-1" style={{ fontSize: "12px" }}>Office Location</label>
+                  <select className="form-select" name="officeLocation" value={formData.officeLocation || ""} onChange={handleChange} style={{ height: "34px", fontSize: "13px", padding: "4px 32px 4px 12px" }}>
+                    <option value="">Select Location</option>
+                    <option value="Remote">Remote</option>
+                    <option value="Head Office">Head Office</option>
+                    <option value="Branch Office">Branch Office</option>
+                  </select>
                 </div>
               </div>
             </div>
