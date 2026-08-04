@@ -2888,6 +2888,10 @@ const AdminNotifications = () => {
     employee: "", category: "General Announcement", priority: "Medium", status: "Active", schedule: "Send Now", date: "", time: "", attachment: null
   });
 
+  // Pagination (client-side, 8 per page)
+  const [page, setPage] = useState(1);
+  const limit = 8;
+
   const totalNotifs = notifications.length;
   const unreadCount = notifications.filter(n => !n.isRead).length;
   const scheduledCount = notifications.filter(n => n.status === "Scheduled").length;
@@ -2896,6 +2900,14 @@ const AdminNotifications = () => {
   const filteredNotifs = notifications.filter(n => {
     return n.text?.toLowerCase().includes(searchTerm.toLowerCase()) || n.title?.toLowerCase().includes(searchTerm.toLowerCase());
   });
+
+  // Reset to page 1 whenever the search changes what's being shown
+  useEffect(() => { setPage(1); }, [searchTerm]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredNotifs.length / limit));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedNotifs = filteredNotifs.slice((currentPage - 1) * limit, currentPage * limit);
+  const notifPagination = { page: currentPage, totalPages, total: filteredNotifs.length, limit };
 
   const handleCreateSubmit = () => {
     if (!newNotif.title || !newNotif.message) {
@@ -3040,7 +3052,7 @@ const AdminNotifications = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredNotifs.map(n => (
+                  {paginatedNotifs.map(n => (
                     <tr key={n.id} style={{ borderBottom: "1px solid #f1f5f9" }}>
                       <td className="px-4 py-3 fw-medium text-dark">{n.title || n.text}</td>
                       <td className="py-3 text-secondary">{n.recipient || "All Employees"}</td>
@@ -3057,6 +3069,9 @@ const AdminNotifications = () => {
                   ))}
                 </tbody>
               </table>
+              <div className="px-4">
+                <PaginationBar pagination={notifPagination} onPageChange={setPage} />
+              </div>
             </div>
           )}
         </div>
