@@ -81,6 +81,8 @@ const User = sequelize.define(
     // Work Information (Me page)
     employmentType: { type: DataTypes.STRING, allowNull: true },
     joiningDate: { type: DataTypes.DATEONLY, allowNull: true },
+    salary: { type: DataTypes.INTEGER, allowNull: true },
+    workMode: { type: DataTypes.STRING, allowNull: true, defaultValue: "Office" },
 
     // Contact Information (Me page)
     officialEmail: { type: DataTypes.STRING, allowNull: true },

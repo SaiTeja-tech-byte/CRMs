@@ -33,7 +33,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
   const adminMenuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
     { key: "me", label: "My Profile", icon: "bi-person-badge" },
-    { key: "team", label: "Team", icon: "bi-people" },
+    { key: "employees", label: "Employees", icon: "bi-people" },
     { key: "attendance", label: "Attendance", icon: "bi-clock-history" },
     { key: "news", label: "News", icon: "bi-newspaper" },
     { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },

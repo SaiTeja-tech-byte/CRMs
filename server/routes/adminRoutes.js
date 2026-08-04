@@ -6,6 +6,7 @@ const {
   listUsers, createUser, updateUser, getAdminStats,
   getAllTasks, assignTask, deleteAnyTask,
   getAllEvents, assignEvent, deleteAnyEvent,
+  getEmployeeProfile, bulkUpdateUsers
 } = require("../controllers/adminController");
 
 // Every route below requires a valid token AND role === "admin".
@@ -13,7 +14,9 @@ router.use(requireAuth, requireAdmin);
 
 router.get("/users", listUsers);
 router.post("/users", createUser);
+router.put("/users/bulk", bulkUpdateUsers);
 router.patch("/users/:id", updateUser);
+router.get("/users/:id", getEmployeeProfile);
 router.get("/stats", getAdminStats);
 
 router.get("/tasks", getAllTasks);

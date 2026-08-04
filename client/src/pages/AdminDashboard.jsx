@@ -27,6 +27,9 @@ import AdminFeedback from './AdminFeedback';
 import AdminExpensesPage from './AdminExpensesPage';
 import AdminHelpCenterPage from './AdminHelpCenterPage';
 import AdminPayrollPage from './AdminPayrollPage';
+import AdminEmployeesPage from './AdminEmployeesPage';
+import AdminEmployeeProfilePage from './AdminEmployeeProfilePage';
+import EmployeesDashboardWidgets from '../components/admin/employees/EmployeesDashboardWidgets';
 // =========================
 // AdminHome
 // =========================
@@ -76,6 +79,7 @@ const AdminHome = () => {
 
   return (
     <>
+      <EmployeesDashboardWidgets stats={stats} />
       <style>{`
         /* ── Employee Workspace Dashboard ── */
         .ew-root {
@@ -3654,6 +3658,7 @@ const AdminDashboard = () => {
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [mobileSidebarActive, setMobileSidebarActive] = useState(false);
   const [activeMenu, setActiveMenu] = useState("dashboard");
+  const [activeEmployeeId, setActiveEmployeeId] = useState(null);
   const [showProfileMenu, setShowProfileMenu] = useState(false);
 
   const profileRef = useRef(null);
@@ -3710,7 +3715,10 @@ const AdminDashboard = () => {
         return <AdminProfile />;
 
       case "team":
-        return <AdminTeam />;
+      case "employees":
+        return <AdminEmployeesPage onViewEmployee={(id) => { setActiveEmployeeId(id); setActiveMenu("employee_profile"); }} />;
+      case "employee_profile":
+        return <AdminEmployeeProfilePage id={activeEmployeeId} onBack={() => setActiveMenu("employees")} />;
 
       case "attendance":
         return (

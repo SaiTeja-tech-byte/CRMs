@@ -56,6 +56,10 @@ const Document = sequelize.define(
       allowNull: false,
       defaultValue: "Shared", // "Shared" | "Private"
     },
+    ownerId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+    },
   },
   {
     tableName: "documents",

@@ -78,7 +78,7 @@ const listUsers = async (req, res) => {
 // with the new hire — it is never stored in plaintext or shown again.
 const createUser = async (req, res) => {
   try {
-    const { firstName, lastName, email, phone, employeeId, department, designation, role, manager, officeLocation } = req.body;
+    const { firstName, lastName, email, phone, employeeId, department, designation, role, manager, officeLocation, salary, workMode } = req.body;
 
     if (!firstName || !lastName || !email) {
       return res.status(400).json({ success: false, message: "firstName, lastName, and email are required" });
@@ -96,7 +96,7 @@ const createUser = async (req, res) => {
       fullName: `${firstName} ${lastName}`.trim(),
       email,
       password: hashedPassword,
-      isEmailVerified: true, // admin-created accounts are trusted, skip OTP verification
+      isEmailVerified: true, 
       employeeId,
       designation,
       department,
@@ -104,6 +104,8 @@ const createUser = async (req, res) => {
       phoneNumber: phone,
       reportingManager: manager,
       employmentStatus: "Active",
+      salary: salary || null,
+      workMode: workMode || "Office",
       role: role === "admin" || role === "Admin" ? "admin" : "employee",
     });
 
@@ -138,7 +140,7 @@ const updateUser = async (req, res) => {
     const editable = [
       "fullName", "role", "employmentStatus", "designation", "department",
       "officeLocation", "reportingManager", "employeeId", "phoneNumber",
-      "employmentType", "joiningDate", "officialEmail",
+      "employmentType", "joiningDate", "officialEmail", "salary", "workMode"
     ];
     for (const field of editable) {
       if (req.body[field] !== undefined) {
@@ -385,8 +387,57 @@ const deleteAnyEvent = async (req, res) => {
   }
 };
 
+// GET /api/admin/employees/:id - Employee full profile with cross-module aggregates
+const getEmployeeProfile = async (req, res) => {
+  try {
+    const user = await User.findByPk(req.params.id, {
+      attributes: { exclude: ["password", "otpCode", "otpExpiresAt", "resetToken", "resetTokenExpiresAt"] }
+    });
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    // Fetch related modules natively or pseudo-aggregate if models exist.
+    // In this basic version we will just return the user as the overview,
+    // and let the frontend make specific calls for the other tabs,
+    // or aggregate basic ones.
+    return res.status(200).json({ success: true, user });
+  } catch (error) {
+    console.error("Get Employee Profile Error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching profile" });
+  }
+};
+
+// PUT /api/admin/users/bulk - Bulk actions on multiple employees
+const bulkUpdateUsers = async (req, res) => {
+  try {
+    const { userIds, updateData } = req.body;
+    if (!userIds || !Array.isArray(userIds) || userIds.length === 0) {
+      return res.status(400).json({ success: false, message: "userIds array is required" });
+    }
+
+    const allowedUpdates = ["department", "reportingManager", "employmentStatus", "role"];
+    const payload = {};
+    for (const key of allowedUpdates) {
+      if (updateData[key] !== undefined) payload[key] = updateData[key];
+    }
+
+    await User.update(payload, { where: { id: { [Op.in]: userIds } } });
+
+    // Broadcast updates
+    userIds.forEach(id => {
+      emitToUser(id, "profile:updated", { user: payload }); // Partial update alert
+    });
+    emitToAdmins("team:bulk_updated", { count: userIds.length });
+
+    return res.status(200).json({ success: true, message: `Successfully updated ${userIds.length} employees.` });
+  } catch (error) {
+    console.error("Bulk update users error:", error);
+    return res.status(500).json({ success: false, message: "Server error in bulk update" });
+  }
+};
+
 module.exports = {
   listUsers, createUser, updateUser, getAdminStats,
   getAllTasks, assignTask, deleteAnyTask,
   getAllEvents, assignEvent, deleteAnyEvent,
+  getEmployeeProfile, bulkUpdateUsers
 };
