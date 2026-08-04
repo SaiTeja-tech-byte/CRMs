@@ -1282,6 +1282,78 @@ const AdminTeam = () => {
   const [showExportMenu, setShowExportMenu] = useState(false);
   const [activeActionMenu, setActiveActionMenu] = useState(null);
 
+  // Edit Team Member modal — lets admin change fields (including role) for
+  // an employee. Saving PATCHes the backend, which emits socket events so
+  // the change reflects instantly on the employee's own dashboard and on
+  // every other admin's Team page, with no refresh needed anywhere.
+  const [showEditModal, setShowEditModal] = useState(false);
+  const [editingMember, setEditingMember] = useState(null);
+  const [editForm, setEditForm] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMsg, setToastMsg] = useState("");
+
+  const fireToast = (msg) => {
+    setToastMsg(msg);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
+
+  const openEditModal = (member) => {
+    setEditingMember(member);
+    setEditForm({
+      fullName: member.fullName || "",
+      employeeId: member.employeeId || "",
+      role: member.role === "admin" ? "admin" : "employee",
+      department: member.department || "",
+      designation: member.designation || "",
+      officialEmail: member.officialEmail || member.email || "",
+      phoneNumber: member.phoneNumber || "",
+      reportingManager: member.reportingManager || "",
+      officeLocation: member.officeLocation || "Remote",
+      employmentType: member.employmentType || "Full-Time",
+      joiningDate: member.joiningDate ? String(member.joiningDate).slice(0, 10) : "",
+      employmentStatus: member.employmentStatus || "Active",
+    });
+    setShowEditModal(true);
+  };
+
+  const handleEditChange = (e) => {
+    const { name, value } = e.target;
+    setEditForm((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingMember) return;
+    try {
+      setSavingEdit(true);
+      await updateAdminUser(editingMember.id, editForm);
+      setShowEditModal(false);
+      setEditingMember(null);
+      fireToast("Team member updated successfully.");
+      loadTeam();
+    } catch (err) {
+      console.error(err);
+      fireToast(describeApiError(err, "Couldn't update this team member."));
+    } finally {
+      setSavingEdit(false);
+    }
+  };
+
+  // Quick one-click toggle from the dropdown — no modal needed. Also
+  // PATCHes the backend, so this syncs live via socket.io too.
+  const handleToggleStatus = async (member) => {
+    const nextStatus = member.employmentStatus === "Active" ? "Inactive" : "Active";
+    try {
+      await updateAdminUser(member.id, { employmentStatus: nextStatus });
+      fireToast(`${member.fullName} marked as ${nextStatus}.`);
+      loadTeam();
+    } catch (err) {
+      console.error(err);
+      fireToast(describeApiError(err, "Couldn't update this team member's status."));
+    }
+  };
+
   // Debounce search input so every keystroke doesn't fire a request.
   useEffect(() => {
     const t = setTimeout(() => setDebouncedSearch(searchTerm), 400);
@@ -1359,7 +1431,18 @@ const AdminTeam = () => {
 
   return (
     <div className="admin-team-container" style={{ display: "flex", flexDirection: "column", gap: "24px", minHeight: "100%" }} onClick={() => { setActiveActionMenu(null); setShowExportMenu(false); }}>
-      
+
+      {showToast && (
+        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1050 }}>
+          <div className="toast show align-items-center text-white bg-primary border-0" role="alert">
+            <div className="d-flex">
+              <div className="toast-body"><i className="bi bi-info-circle me-2"></i>{toastMsg}</div>
+              <button aria-label="Close" type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)}></button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* HEADER & ACTIONS */}
       <div className="d-flex flex-wrap justify-content-between align-items-end gap-3">
         <div>
@@ -1502,9 +1585,16 @@ const AdminTeam = () => {
                             <div className="text-muted" style={{ fontSize: "12px" }}>{m.designation || "—"}</div>
                           </td>
                           <td className="py-3">
-                            <span className={`badge rounded-pill px-2 py-1 ${m.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`} style={{ fontSize: "11px" }}>
-                              {m.employmentStatus || "Active"}
-                            </span>
+                            <div className="d-flex align-items-center gap-2">
+                              <span className={`badge rounded-pill px-2 py-1 ${m.employmentStatus === 'Active' ? 'bg-success bg-opacity-10 text-success' : 'bg-secondary bg-opacity-10 text-secondary'}`} style={{ fontSize: "11px" }}>
+                                {m.employmentStatus || "Active"}
+                              </span>
+                              {m.role === "admin" && (
+                                <span className="badge rounded-pill px-2 py-1 bg-primary bg-opacity-10 text-primary" style={{ fontSize: "11px" }}>
+                                  Admin
+                                </span>
+                              )}
+                            </div>
                           </td>
                           <td className="py-3 px-4 text-end position-relative">
                             <button aria-label="More actions" className="btn btn-sm btn-light border p-1 rounded" onClick={(e) => { e.stopPropagation(); setActiveActionMenu(activeActionMenu === m.id ? null : m.id); setShowExportMenu(false); }}>
@@ -1512,9 +1602,11 @@ const AdminTeam = () => {
                             </button>
                             {activeActionMenu === m.id && (
                               <div className="position-absolute bg-white border shadow-sm rounded py-2 z-3" style={{ width: "160px", right: "20px", top: "100%", textAlign: "left" }} onClick={(e) => e.stopPropagation()}>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>View Profile</button>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Edit Team Member</button>
-                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => setActiveActionMenu(null)}>Deactivate Team Member</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => { setActiveActionMenu(null); openEditModal(m); }}>View Profile</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => { setActiveActionMenu(null); openEditModal(m); }}>Edit Team Member</button>
+                                <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-dark" onClick={() => { setActiveActionMenu(null); handleToggleStatus(m); }}>
+                                  {m.employmentStatus === "Active" ? "Deactivate Team Member" : "Activate Team Member"}
+                                </button>
                                 <div className="dropdown-divider my-1"></div>
                                 <button className="btn btn-sm btn-light w-100 text-start px-3 py-2 border-0 rounded-0 bg-transparent text-danger" onClick={() => setActiveActionMenu(null)}>Delete Team Member</button>
                               </div>
@@ -1623,6 +1715,103 @@ const AdminTeam = () => {
                 <div className="modal-footer border-top py-3 px-4">
                   <button type="button" className="btn btn-light border" onClick={() => setShowImportModal(false)}>Cancel</button>
                   <button type="button" className="btn btn-primary" onClick={() => setShowImportModal(false)}>Import</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
+
+      {/* EDIT TEAM MEMBER MODAL */}
+      {showEditModal && editingMember && (
+        <>
+          <div className="modal-backdrop fade show"></div>
+          <div className="modal fade show d-block" tabIndex="-1">
+            <div className="modal-dialog modal-dialog-centered modal-lg">
+              <div className="modal-content" style={{ borderRadius: "14px", border: "none" }}>
+                <div className="modal-header border-bottom py-3 px-4">
+                  <h5 className="modal-title fw-bold">Edit Team Member</h5>
+                  <button aria-label="Close" type="button" className="btn-close" onClick={() => setShowEditModal(false)}></button>
+                </div>
+                <div className="modal-body p-4">
+                  <div className="row g-3">
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Team Member Name *</label>
+                      <input type="text" name="fullName" className="form-control" value={editForm.fullName || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">
+                        Employee ID <span className="badge bg-light text-muted border ms-1" style={{ fontSize: "10px", fontWeight: 500 }}>Admin only</span>
+                      </label>
+                      <input type="text" name="employeeId" className="form-control" value={editForm.employeeId || ""} onChange={handleEditChange} placeholder="e.g. EMP-1042" />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">
+                        Role <span className="badge bg-light text-muted border ms-1" style={{ fontSize: "10px", fontWeight: 500 }}>Admin only</span>
+                      </label>
+                      <select name="role" className="form-select" value={editForm.role || "employee"} onChange={handleEditChange}>
+                        <option value="employee">Employee</option>
+                        <option value="admin">Admin</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Department</label>
+                      <input type="text" name="department" className="form-control" value={editForm.department || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Designation</label>
+                      <input type="text" name="designation" className="form-control" value={editForm.designation || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Official Email</label>
+                      <input type="email" name="officialEmail" className="form-control" value={editForm.officialEmail || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Phone Number</label>
+                      <input type="text" name="phoneNumber" className="form-control" value={editForm.phoneNumber || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Reporting Manager</label>
+                      <input type="text" name="reportingManager" className="form-control" value={editForm.reportingManager || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Office Location</label>
+                      <select name="officeLocation" className="form-select" value={editForm.officeLocation || "Remote"} onChange={handleEditChange}>
+                        <option value="Remote">Remote</option>
+                        <option value="Head Office">Head Office</option>
+                        <option value="Branch Office">Branch Office</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Employment Type</label>
+                      <select name="employmentType" className="form-select" value={editForm.employmentType || "Full-Time"} onChange={handleEditChange}>
+                        <option>Full-Time</option>
+                        <option>Part-Time</option>
+                        <option>Contract</option>
+                        <option>Internship</option>
+                      </select>
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">
+                        Joining Date <span className="badge bg-light text-muted border ms-1" style={{ fontSize: "10px", fontWeight: 500 }}>Admin only</span>
+                      </label>
+                      <input type="date" name="joiningDate" className="form-control" value={editForm.joiningDate || ""} onChange={handleEditChange} />
+                    </div>
+                    <div className="col-md-6">
+                      <label className="form-label text-muted small fw-semibold">Status</label>
+                      <select name="employmentStatus" className="form-select" value={editForm.employmentStatus || "Active"} onChange={handleEditChange}>
+                        <option>Active</option>
+                        <option>Probation</option>
+                        <option>Inactive</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+                <div className="modal-footer border-top py-3 px-4">
+                  <button type="button" className="btn btn-light border" onClick={() => setShowEditModal(false)} disabled={savingEdit}>Cancel</button>
+                  <button type="button" className="btn btn-primary" onClick={handleSaveEdit} disabled={savingEdit}>
+                    {savingEdit ? "Saving..." : "Save Changes"}
+                  </button>
                 </div>
               </div>
             </div>
