@@ -9,7 +9,7 @@ const User = require("../models/User");
 const getDashboardStats = async (req, res) => {
   try {
     const ownerId = req.user.id;
-    const todayStr =a new Date().toISOString().slice(0, 10);
+    const todayStr = new Date().toISOString().slice(0, 10);
     const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
 
     const [
