@@ -18,6 +18,7 @@ import { describeApiError } from '../services/errorHelper';
 import { getAllLeaveRequests, updateLeaveRequestStatus } from '../services/leaveService';
 import { getAllRegularizationRequests, updateRegularizationStatus } from '../services/plannerService';
 import { getAllAttendance } from '../services/attendanceApi';
+import { getMyProfile, updateMyProfile } from '../services/profileService';
 import AdminOrganizationChart from './AdminOrganizationChart';
 import AdminContactQueries from './AdminContactQueries';
 import GlobalSearch from '../components/layout/GlobalSearch';
@@ -511,6 +512,25 @@ const AdminProfile = () => {
   const [showToast, setShowToast] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  // Load the real profile from the database on mount, so we're editing
+  // (and later saving) the actual DB record instead of stale local state.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const dbProfile = await getMyProfile();
+        if (!cancelled && dbProfile) {
+          setProfile(dbProfile);
+          setFormData(dbProfile);
+        }
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -520,18 +540,28 @@ const AdminProfile = () => {
     }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.officialEmail) {
+    if (!formData.firstName || !formData.lastName || !formData.personalEmail) {
       setToastMsg("First Name, Last Name, and Email are required.");
       setShowToast(true);
       setTimeout(() => setShowToast(false), 3000);
       return;
     }
-    setProfile(formData);
-    setToastMsg("Profile updated successfully.");
-    setShowToast(true);
-    setTimeout(() => setShowToast(false), 3000);
+    setSaving(true);
+    try {
+      const updated = await updateMyProfile(formData);
+      setProfile(updated);
+      setFormData(updated);
+      setToastMsg("Profile updated successfully.");
+    } catch (error) {
+      console.error("Failed to update profile:", error);
+      setToastMsg(error?.response?.data?.message || "Failed to update profile. Please try again.");
+    } finally {
+      setSaving(false);
+      setShowToast(true);
+      setTimeout(() => setShowToast(false), 3000);
+    }
   };
 
   const handleReset = () => {
@@ -830,7 +860,7 @@ const AdminProfile = () => {
             </div>
             <div className="d-flex gap-2">
               <button className="btn btn-light border px-4" onClick={handleReset}>Reset</button>
-              <button className="btn btn-primary px-4" onClick={handleSave}>Save Changes</button>
+              <button className="btn btn-primary px-4" onClick={handleSave} disabled={saving}>{saving ? "Saving..." : "Save Changes"}</button>
             </div>
           </div>
 
@@ -3954,3 +3984,4 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
+
