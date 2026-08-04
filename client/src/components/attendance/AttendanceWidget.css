@@ -1,0 +1,12 @@
+/* Layout wrapper for the attendance widget (profile + card, summary, history) */
+.ew-widget-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.ew-widget-container * {
+  box-sizing: border-box;
+}
