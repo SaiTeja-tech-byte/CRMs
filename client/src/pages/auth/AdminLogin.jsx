@@ -10,7 +10,7 @@ import SplitAuthLayout from "../../components/SplitAuthLayout";
 import Input from "../../components/Input";
 import PasswordInput from "../../components/PasswordInput";
 import GoogleButton from "../../components/GoogleButton";
-import { adminLoginUser, googleLogin } from "../../services/authService";
+import { adminLoginUser, adminGoogleLogin } from "../../services/authService";
 
 const AdminLogin = () => {
   const [serverError, setServerError] = useState("");
@@ -41,7 +41,7 @@ const AdminLogin = () => {
   const handleGoogleSuccess = async (accessToken) => {
     setServerError("");
     try {
-      const res = await googleLogin(accessToken, true);
+      const res = await adminGoogleLogin(accessToken);
       localStorage.setItem("token", res.token);
       localStorage.setItem("user", JSON.stringify(res.user));
       navigate("/admin/dashboard");
