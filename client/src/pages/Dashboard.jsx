@@ -3304,6 +3304,10 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
   const [searchQuery, setSearchQuery] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
+  // Pagination (client-side, 8 per page)
+  const [page, setPage] = useState(1);
+  const limit = 8;
+
   const handleRefresh = () => {
     setIsRefreshing(true);
     setTimeout(() => {
@@ -3363,6 +3367,14 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
     if (filterTab === "Archived") return matchesSearch && n.archived;
     return matchesSearch && !n.archived;
   });
+
+  // Reset to page 1 whenever the filter/search changes what's being shown
+  useEffect(() => { setPage(1); }, [filterTab, searchQuery]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredList.length / limit));
+  const currentPage = Math.min(page, totalPages);
+  const paginatedList = filteredList.slice((currentPage - 1) * limit, currentPage * limit);
+  const notifPagination = { page: currentPage, totalPages, total: filteredList.length, limit };
 
   return (
     <div className="dashboard-card-flat">
@@ -3436,7 +3448,7 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
           {/* Notifications Listing */}
           {filteredList.length > 0 ? (
             <div className="d-flex flex-column gap-3">
-              {filteredList.map(notif => (
+              {paginatedList.map(notif => (
                 <div key={notif.id} className={`notif-card-item ${notif.unread ? "unread" : ""}`}>
                   <div className="notif-icon-box">
                     <i className={`bi ${getNotifIcon(notif.type)}`}></i>
@@ -3483,6 +3495,7 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
                   </div>
                 </div>
               ))}
+              <PaginationBar pagination={notifPagination} onPageChange={setPage} />
             </div>
           ) : (
             <div className="empty-state-card py-5">
