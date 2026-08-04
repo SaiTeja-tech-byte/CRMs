@@ -1,109 +1,84 @@
-import React, { useState, useEffect } from "react";
-import attendanceService from "../../services/attendanceService";
-import { PaginationBar, SortableHeader } from "../PaginationBar";
+import React from "react";
+import { useAttendance } from "../../context/AttendanceContext";
 
 const AttendanceHistory = () => {
-  const [history, setHistory] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
-  const itemsPerPage = 5;
-  const [sort, setSort] = useState({ sortBy: "date", sortDir: "desc" });
+  const { history } = useAttendance();
 
-  useEffect(() => {
-    const fetchHistory = async () => {
-      try {
-        const res = await attendanceService.getHistory();
-        if (res.success) {
-          setHistory(res.history);
-        }
-      } catch (err) {
-        console.error("Failed to fetch history", err);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchHistory();
-  }, []);
-
-  const handleSort = (newSort) => {
-    setSort(newSort);
+  const formatTotalHours = (minutesTotal) => {
+    if (!minutesTotal || minutesTotal < 0) return "0h 0m";
+    const h = Math.floor(minutesTotal / 60);
+    const m = Math.floor(minutesTotal % 60);
+    return `${h}h ${m}m`;
   };
 
-  const sortedHistory = [...history].sort((a, b) => {
-    let aVal = a[sort.sortBy] || "";
-    let bVal = b[sort.sortBy] || "";
-    if (aVal < bVal) return sort.sortDir === "asc" ? -1 : 1;
-    if (aVal > bVal) return sort.sortDir === "asc" ? 1 : -1;
-    return 0;
-  });
-
-  const totalPages = Math.ceil(sortedHistory.length / itemsPerPage) || 1;
-  const currentData = sortedHistory.slice((page - 1) * itemsPerPage, page * itemsPerPage);
-
-  const formatTime = (isoString) => {
-    if (!isoString) return "--:--";
-    return new Date(isoString).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-  };
-
-  const getStatusBadge = (status) => {
-    switch (status) {
-      case "Working": return <span className="badge bg-primary">Working</span>;
-      case "Completed": return <span className="badge bg-success">Completed</span>;
-      case "Absent": return <span className="badge bg-secondary">Absent</span>;
-      case "Late": return <span className="badge bg-warning text-dark">Late</span>;
-      default: return <span className="badge bg-light text-dark border">{status}</span>;
+  const formatTimeStr = (timeStr) => {
+    if (!timeStr) return "--:--";
+    try {
+      const [hours, minutes] = timeStr.split(":");
+      const date = new Date();
+      date.setHours(parseInt(hours, 10));
+      date.setMinutes(parseInt(minutes, 10));
+      return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    } catch (e) {
+      return "--:--";
     }
   };
 
   return (
-    <div className="ew-card mt-4 mb-4">
-      <div className="card-header bg-white border-bottom p-4">
-        <h5 className="mb-0 fw-bold" style={{ color: "#0f172a" }}>Attendance History</h5>
+    <div style={{ marginTop: "24px", background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+      <div style={{ padding: "16px 20px", borderBottom: "1px solid #e2e8f0" }}>
+        <h3 style={{ margin: 0, fontSize: "16px", fontWeight: "700", color: "#0f172a" }}>Recent Attendance</h3>
       </div>
-      <div className="table-responsive">
-        <table className="table table-hover align-middle mb-0" style={{ fontSize: "14px" }}>
-          <thead className="bg-light">
-            <tr>
-              <SortableHeader label="Date" field="date" sort={sort} onSort={handleSort} />
-              <SortableHeader label="Tap In" field="tapInTime" sort={sort} onSort={handleSort} />
-              <SortableHeader label="Tap Out" field="tapOutTime" sort={sort} onSort={handleSort} />
-              <SortableHeader label="Work Hours" field="workingHours" sort={sort} onSort={handleSort} />
-              <SortableHeader label="Break Time" field="breakTime" sort={sort} onSort={handleSort} />
-              <SortableHeader label="Status" field="status" sort={sort} onSort={handleSort} />
+      
+      <div style={{ overflowX: "auto" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "13px" }}>
+          <thead>
+            <tr style={{ background: "#f8fafc", textAlign: "left" }}>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Date</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Check In</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Break</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Resume</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Check Out</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Working</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Break Time</th>
+              <th style={{ padding: "12px 20px", fontWeight: "600", color: "#64748b" }}>Status</th>
             </tr>
           </thead>
           <tbody>
-            {loading ? (
+            {(!history || history.length === 0) ? (
               <tr>
-                <td colSpan="6" className="text-center py-4 text-muted">Loading history...</td>
-              </tr>
-            ) : currentData.length === 0 ? (
-              <tr>
-                <td colSpan="6" className="text-center py-4 text-muted">No attendance records found.</td>
+                <td colSpan="8" style={{ padding: "24px", textAlign: "center", color: "#94a3b8" }}>No records found.</td>
               </tr>
             ) : (
-              currentData.map(record => (
-                <tr key={record.id}>
-                  <td className="fw-medium">{record.date}</td>
-                  <td>{formatTime(record.tapInTime)}</td>
-                  <td>{formatTime(record.tapOutTime)}</td>
-                  <td className="fw-bold text-dark">{record.workingHours || "--"}</td>
-                  <td>{record.breakTime || "--"}</td>
-                  <td>{getStatusBadge(record.status)}</td>
+              history.map((record) => (
+                <tr key={record.id} style={{ borderTop: "1px solid #e2e8f0" }}>
+                  <td style={{ padding: "12px 20px", color: "#0f172a", fontWeight: "500" }}>
+                    {new Date(record.attendanceDate).toLocaleDateString("en-IN", { day: "2-digit", month: "short" })}
+                  </td>
+                  <td style={{ padding: "12px 20px", color: "#475569" }}>{formatTimeStr(record.morningCheckIn)}</td>
+                  <td style={{ padding: "12px 20px", color: "#475569" }}>{formatTimeStr(record.lunchOut)}</td>
+                  <td style={{ padding: "12px 20px", color: "#475569" }}>{formatTimeStr(record.lunchResume)}</td>
+                  <td style={{ padding: "12px 20px", color: "#475569" }}>{formatTimeStr(record.finalCheckOut)}</td>
+                  <td style={{ padding: "12px 20px", color: "#0f172a", fontWeight: "600" }}>{formatTotalHours(record.totalWorkingMinutes)}</td>
+                  <td style={{ padding: "12px 20px", color: "#64748b" }}>{formatTotalHours(record.totalBreakMinutes)}</td>
+                  <td style={{ padding: "12px 20px" }}>
+                    <span style={{ 
+                      padding: "4px 8px", 
+                      borderRadius: "4px", 
+                      fontSize: "11px", 
+                      fontWeight: "600",
+                      background: record.status === "Completed" ? "#eff6ff" : (record.status === "Working" ? "#fef3c7" : "#f1f5f9"),
+                      color: record.status === "Completed" ? "#3b82f6" : (record.status === "Working" ? "#d97706" : "#64748b")
+                    }}>
+                      {record.status}
+                    </span>
+                  </td>
                 </tr>
               ))
             )}
           </tbody>
         </table>
       </div>
-      {history.length > 0 && (
-        <div className="card-footer bg-white border-top p-3">
-          <PaginationBar 
-            pagination={{ page, totalPages, total: history.length, limit: itemsPerPage }} 
-            onPageChange={setPage} 
-          />
-        </div>
-      )}
     </div>
   );
 };

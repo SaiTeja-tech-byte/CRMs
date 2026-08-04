@@ -11,6 +11,14 @@ const attendanceService = {
     const response = await axios.post(`${API_BASE}/attendance/tap-in`, {}, authHeaders());
     return response.data;
   },
+  takeBreak: async () => {
+    const response = await axios.put(`${API_BASE}/attendance/break`, {}, authHeaders());
+    return response.data;
+  },
+  resume: async () => {
+    const response = await axios.put(`${API_BASE}/attendance/resume`, {}, authHeaders());
+    return response.data;
+  },
   tapOut: async () => {
     const response = await axios.put(`${API_BASE}/attendance/tap-out`, {}, authHeaders());
     return response.data;
