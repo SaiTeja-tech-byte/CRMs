@@ -9,6 +9,8 @@ import { getTeam } from "../services/teamService";
 import { onSocketEvent, connectSocket, disconnectSocket } from "../services/socketService";
 import { getNotifications as fetchServerNotifications, markNotificationRead as markServerNotificationRead, markAllNotificationsRead as markAllServerNotificationsRead } from "../services/notificationService";
 import { getMyLeaveRequests, getMyLeaveBalance, createLeaveRequest as submitLeaveRequest } from "../services/leaveService";
+import { getDashboardStats } from "../services/dashboardService";
+import attendanceService from "../services/attendanceService";
 import OrganizationChart from "./OrganizationChart";
 import GlobalSearch from "../components/layout/GlobalSearch";
 import ChatPage from "./ChatPage";
@@ -4593,6 +4595,10 @@ const Dashboard = () => {
 
   const [leaveBalance, setLeaveBalance] = useState(null);
 
+  const [dashboardStats, setDashboardStats] = useState(null);
+
+  const notifUnread = useNotificationUnreadCount();
+
   const [otherEvents, setOtherEvents] = useState([]);
 
   const [events, setEvents] = useState(() => {
@@ -4709,6 +4715,25 @@ const Dashboard = () => {
     } catch (e) { console.error("Error syncing leave data:", e); }
   };
 
+  // Populates the "Today's Work Summary" card, the mini stat cards, the
+  // Attendance progress bar, and the "Team Members On Leave" card with
+  // real backend data instead of the placeholder zeros they used to show.
+  const syncWorkSummaryData = async () => {
+    try {
+      const [stats, historyRes] = await Promise.all([
+        getDashboardStats(),
+        attendanceService.getHistory(),
+      ]);
+      setDashboardStats(stats || null);
+      if (stats) {
+        setLeaveData((prev) => ({ ...(prev || {}), teamOnLeave: stats.teamOnLeave || [] }));
+      }
+      if (historyRes?.success) {
+        setAttendance({ monthlyPercent: historyRes.summary?.attendancePercent ?? 0 });
+      }
+    } catch (e) { console.error("Error syncing work summary data:", e); }
+  };
+
   React.useEffect(() => {
     syncDashboardData();
     const interval = setInterval(syncDashboardData, 10000);
@@ -4718,6 +4743,45 @@ const Dashboard = () => {
   React.useEffect(() => {
     syncLeaveData();
   }, []);
+
+  React.useEffect(() => {
+    syncWorkSummaryData();
+    const interval = setInterval(syncWorkSummaryData, 30000);
+    return () => clearInterval(interval);
+  }, []);
+
+  // Derives the mini stat cards, "Today's Work Summary" card, and
+  // Productivity bar from the already-loaded tasks/events/leave/stats data.
+  React.useEffect(() => {
+    const overdueTasks = (tasks || []).filter(t => t.dueDate && t.dueDate < TODAY_STR && t.status !== "Completed").length;
+    const pendingTasksCount = (tasks || []).filter(t => t.status !== "Completed").length;
+    const completedTasksCount = (tasks || []).filter(t => t.status === "Completed").length;
+    const totalTasksCount = (tasks || []).length;
+    const upcomingEventsCount = (events || []).filter(e => e.date && e.date >= TODAY_STR).length;
+
+    setEmployeeStats({
+      leavesThisYear: leaveBalance?.usedLeave ?? 0,
+      overdueTasks,
+      // Not tracked anywhere in the schema yet — Attendance has no overtime
+      // field and there's no Project model, so these stay at 0 until those
+      // features exist rather than showing a made-up number.
+      overtimeHours: 0,
+      projects: 0,
+    });
+
+    setWorkSummary({
+      todaysMeetings: dashboardStats?.meetingsToday ?? 0,
+      pendingTasks: pendingTasksCount,
+      openDeals: dashboardStats?.openDeals ?? 0,
+      upcomingEvents: upcomingEventsCount,
+      recentActivity: dashboardStats?.recentActivity ?? 0,
+      notifications: notifUnread,
+    });
+
+    setProductivity({
+      weeklyPercent: totalTasksCount > 0 ? Math.round((completedTasksCount / totalTasksCount) * 100) : 0,
+    });
+  }, [tasks, events, leaveBalance, dashboardStats, notifUnread]);
 
   React.useEffect(() => {
     connectSocket();
