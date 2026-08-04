@@ -31,6 +31,7 @@ import AdminPayrollPage from './AdminPayrollPage';
 // AdminHome
 // =========================
 const AdminHome = () => {
+  const { profile } = useCRMContext();
   const [stats, setStats] = useState(null);
   const [statsLoading, setStatsLoading] = useState(true);
 
@@ -55,22 +56,6 @@ const AdminHome = () => {
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
   }, []);
-
-  const profile = {
-    avatar: "", // Admin avatar
-    firstName: "Admin",
-    lastName: "User",
-    displayName: "Administrator",
-    designation: "System Administrator",
-    department: "Management",
-    employmentStatus: "Active",
-    employeeId: "",
-    company: "",
-    officeLocation: "",
-    officialEmail: "",
-    phoneNumber: "",
-    joiningDate: ""
-  };
 
   const totalEmployees = stats?.totalEmployees || 0;
   const activeEmployees = stats?.activeEmployees || 0;
@@ -3637,7 +3622,7 @@ const AdminNews = () => {
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
-  const { profile } = useCRMContext();
+  const { profile, setProfile } = useCRMContext();
 
   const userRaw = localStorage.getItem("user");
   const user = userRaw ? JSON.parse(userRaw) : null;
@@ -3651,6 +3636,24 @@ const AdminDashboard = () => {
 
   useEffect(() => {
     connectSocket();
+  }, []);
+
+  // Load the real profile from the database once, as soon as the admin
+  // area mounts, so every section (Dashboard card, header, My Profile)
+  // shows the actual saved data instead of the context's placeholder values.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const dbProfile = await getMyProfile();
+        if (!cancelled && dbProfile) {
+          setProfile(dbProfile);
+        }
+      } catch (error) {
+        console.error("Failed to load profile:", error);
+      }
+    })();
+    return () => { cancelled = true; };
   }, []);
 
   useEffect(() => {
@@ -3984,4 +3987,3 @@ const AdminDashboard = () => {
 };
 
 export default AdminDashboard;
-
