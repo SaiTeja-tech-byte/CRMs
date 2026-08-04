@@ -71,7 +71,18 @@ initSocket(httpServer);
 app.use(helmet());
 app.use(cors());
 app.use(compression());
-app.use(apiLimiter);
+// The global API limiter shares one bucket per IP across every /api/* route.
+// A busy dashboard session (stats, notifications, team, calendar, tasks, etc.
+// all polling on load) can burn through that budget on its own — and since
+// this ran in front of every route, once it tripped it also blocked
+// /api/auth/admin/login for anyone on the same IP, even though login has its
+// own dedicated, much stricter limiter (authLimiter) already guarding it.
+// Auth routes are excluded here so a heavy dashboard session can never lock
+// people out of signing in.
+app.use((req, res, next) => {
+  if (req.path.startsWith("/api/auth")) return next();
+  return apiLimiter(req, res, next);
+});
 app.use(express.json({ limit: "15mb" }));
 
 app.use((req, res, next) => {
