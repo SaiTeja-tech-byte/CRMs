@@ -36,6 +36,7 @@ const ticketRoutes = require("./routes/ticketRoutes");
 const payrollRoutes = require("./routes/payrollRoutes");
 const plannerRoutes = require("./routes/plannerRoutes");
 const attendanceRoutes = require("./routes/attendanceRoutes");
+const reportRoutes = require("./routes/reportRoutes");
 
 require("./models/User");
 require("./models/Deal");
@@ -115,6 +116,7 @@ app.use("/api/tickets", ticketRoutes);
 app.use("/api/payroll", payrollRoutes);
 app.use("/api/planner", plannerRoutes);
 app.use("/api/attendance", attendanceRoutes);
+app.use("/api/reports", reportRoutes);
 
 app.get("/", (req, res) => {
   res.send("CRM Backend Running");
