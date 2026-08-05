@@ -13,13 +13,6 @@ const REPORT_CARDS = [
   { key: "tasks", label: "Tasks Report", icon: "bi-clipboard-check", desc: "Track tasks progress and completion rates.", date: "02 Aug 2026" },
 ];
 
-const STATS = [
-  { label: "Reports Generated", value: "342" },
-  { label: "This Month", value: "28" },
-  { label: "Most Downloaded", value: "Attendance" },
-  { label: "Last Generated", value: "Today, 10:42 AM" },
-];
-
 const AdminReportsPage = () => {
   const [view, setView] = useState("hub"); // "hub" | "viewer"
   const [modalType, setModalType] = useState(null); // "attendance" | "payroll" | ...
@@ -81,16 +74,6 @@ const AdminReportsPage = () => {
       <div style={{ marginBottom: "32px" }}>
         <h2 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", marginBottom: "8px" }}>Reports</h2>
         <p style={{ color: "#64748b", fontSize: "15px", margin: 0 }}>Generate organization reports.</p>
-      </div>
-
-      {/* Admin Statistics Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px", marginBottom: "32px" }}>
-        {STATS.map((stat, i) => (
-          <div key={i} style={{ background: "#fff", padding: "16px", borderRadius: "10px", border: "1px solid #e2e8f0", boxShadow: "0 1px 2px rgba(0,0,0,0.05)" }}>
-            <p style={{ fontSize: "12px", color: "#64748b", margin: "0 0 8px 0", fontWeight: "600", textTransform: "uppercase" }}>{stat.label}</p>
-            <h3 style={{ fontSize: "20px", fontWeight: "700", color: "#0f172a", margin: 0 }}>{stat.value}</h3>
-          </div>
-        ))}
       </div>
 
       <div className="reports-grid">
