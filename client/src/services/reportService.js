@@ -6,29 +6,37 @@ const authHeaders = () => ({
   headers: { Authorization: `Bearer ${localStorage.getItem("token")}` },
 });
 
+const getParams = (params) => {
+  // Remove empty keys
+  const clean = {};
+  for (const k in params) {
+    if (params[k] !== undefined && params[k] !== null && params[k] !== "") {
+      clean[k] = params[k];
+    }
+  }
+  return clean;
+};
+
 const reportService = {
   getAttendanceReport: async (params = {}) => {
-    const response = await axios.get(`${API_BASE}/reports/attendance`, {
-      ...authHeaders(),
-      params,
-    });
+    const response = await axios.get(`${API_BASE}/reports/attendance`, { ...authHeaders(), params: getParams(params) });
     return response.data;
   },
-
-  downloadAttendanceCsv: async (params = {}) => {
-    const response = await axios.get(`${API_BASE}/reports/attendance`, {
-      ...authHeaders(),
-      params: { ...params, format: "csv" },
-      responseType: "blob",
-    });
-    const url = window.URL.createObjectURL(new Blob([response.data], { type: "text/csv" }));
-    const link = document.createElement("a");
-    link.href = url;
-    link.setAttribute("download", `attendance-report-${Date.now()}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    link.remove();
-    window.URL.revokeObjectURL(url);
+  getPayrollReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/payroll`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
+  },
+  getExpensesReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/expenses`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
+  },
+  getHelpCenterReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/help-center`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
+  },
+  getTasksReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/tasks`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
   },
 };
 

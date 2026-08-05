@@ -1,12 +1,17 @@
 const { Op } = require("sequelize");
 const Attendance = require("../models/Attendance");
+const Payroll = require("../models/Payroll");
+const Expense = require("../models/Expense");
+const Ticket = require("../models/Ticket");
+const Task = require("../models/Task");
 const User = require("../models/User");
 
-const buildDateWhere = (from, to) => {
+// Helpers
+const buildDateWhere = (from, to, dateField) => {
   const where = {};
-  if (from && to) where.attendanceDate = { [Op.between]: [from, to] };
-  else if (from) where.attendanceDate = { [Op.gte]: from };
-  else if (to) where.attendanceDate = { [Op.lte]: to };
+  if (from && to) where[dateField] = { [Op.between]: [from, to] };
+  else if (from) where[dateField] = { [Op.gte]: from };
+  else if (to) where[dateField] = { [Op.lte]: to };
   return where;
 };
 
@@ -17,30 +22,39 @@ const minutesToHrsMin = (mins = 0) => {
   return `${h}h ${m}m`;
 };
 
-const toCsv = (rows) => {
-  const header = [
-    "Employee ID", "Employee Name", "Department", "Date", "Check In",
-    "Break Out", "Break Resume", "Check Out", "Working Hours", "Break Time", "Status",
-  ];
-  const escape = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
-  const lines = rows.map((r) => [
-    r.employeeId, r.employeeName, r.department, r.date, r.checkIn,
-    r.breakOut, r.breakResume, r.checkOut, r.workingHours, r.breakTime, r.status,
-  ].map(escape).join(","));
-  return [header.join(","), ...lines].join("\n");
+const applyAdminFilters = (rows, req) => {
+  if (req.user.role !== "admin") return rows;
+  let filtered = rows;
+  const { employeeId, name, department, status, category, priority } = req.query;
+
+  if (employeeId) {
+    filtered = filtered.filter((r) => r.employeeId && r.employeeId.toLowerCase() === String(employeeId).toLowerCase());
+  }
+  if (name) {
+    const s = String(name).toLowerCase();
+    filtered = filtered.filter((r) => r.employeeName && r.employeeName.toLowerCase().includes(s));
+  }
+  if (department) {
+    filtered = filtered.filter((r) => r.department && r.department.toLowerCase() === String(department).toLowerCase());
+  }
+  if (status) {
+    filtered = filtered.filter((r) => r.status && r.status.toLowerCase() === String(status).toLowerCase());
+  }
+  if (category) {
+    filtered = filtered.filter((r) => r.category && r.category.toLowerCase() === String(category).toLowerCase());
+  }
+  if (priority) {
+    filtered = filtered.filter((r) => r.priority && r.priority.toLowerCase() === String(priority).toLowerCase());
+  }
+  return filtered;
 };
 
-// GET /api/reports/attendance
-// Employees: only ever see their own records (employeeId/name/department query params are ignored).
-// Admins: can filter by employeeId (human-readable, e.g. EMP001), name, or department.
+// --- Attendance Report ---
 const getAttendanceReport = async (req, res) => {
   try {
-    const { from, to, employeeId, name, department, format } = req.query;
-    const where = buildDateWhere(from, to);
-
-    if (req.user.role === "employee") {
-      where.employeeId = req.user.id;
-    }
+    const { from, to } = req.query;
+    const where = buildDateWhere(from, to, "attendanceDate");
+    if (req.user.role === "employee") where.employeeId = req.user.id;
 
     const records = await Attendance.findAll({
       where,
@@ -50,7 +64,7 @@ const getAttendanceReport = async (req, res) => {
     const employeeUuids = [...new Set(records.map((r) => r.employeeId))];
     const users = await User.findAll({
       where: { id: employeeUuids },
-      attributes: ["id", "employeeId", "department", "fullName"],
+      attributes: ["id", "employeeId", "department"],
     });
     const userById = {};
     users.forEach((u) => { userById[u.id] = u; });
@@ -65,8 +79,6 @@ const getAttendanceReport = async (req, res) => {
         department: u.department || "—",
         date: r.attendanceDate,
         checkIn: r.morningCheckIn || "-",
-        breakOut: r.lunchOut || "-",
-        breakResume: r.lunchResume || "-",
         checkOut: r.finalCheckOut || "-",
         workingHours: minutesToHrsMin(r.totalWorkingMinutes),
         breakTime: minutesToHrsMin(r.totalBreakMinutes),
@@ -74,39 +86,157 @@ const getAttendanceReport = async (req, res) => {
       };
     });
 
-    // Admin-only search filters — an employee can never widen their own query past their own id.
-    if (req.user.role === "admin") {
-      if (employeeId) {
-        rows = rows.filter((r) => r.employeeId.toLowerCase() === String(employeeId).toLowerCase());
-      }
-      if (name) {
-        const s = String(name).toLowerCase();
-        rows = rows.filter((r) => r.employeeName.toLowerCase().includes(s));
-      }
-      if (department) {
-        rows = rows.filter((r) => r.department.toLowerCase() === String(department).toLowerCase());
-      }
-    }
-
-    const summary = {
-      totalRecords: rows.length,
-      present: rows.filter((r) => ["Working", "On Break", "Completed"].includes(r.status)).length,
-      absent: rows.filter((r) => r.status === "Absent").length,
-      late: rows.filter((r) => r.status === "Late").length,
-    };
-
-    if (format === "csv") {
-      const csv = toCsv(rows);
-      res.setHeader("Content-Type", "text/csv");
-      res.setHeader("Content-Disposition", `attachment; filename="attendance-report-${Date.now()}.csv"`);
-      return res.status(200).send(csv);
-    }
-
-    return res.status(200).json({ success: true, rows, summary });
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
   } catch (error) {
     console.error("Attendance report error:", error);
-    return res.status(500).json({ success: false, message: "Server error generating attendance report" });
+    return res.status(500).json({ success: false, message: "Server error" });
   }
 };
 
-module.exports = { getAttendanceReport };
+// --- Payroll Report ---
+const getPayrollReport = async (req, res) => {
+  try {
+    const { month, year } = req.query;
+    const where = {};
+    if (month) where.payPeriodMonth = month;
+    if (year) where.payPeriodYear = year;
+    if (req.user.role === "employee") where.employeeId = req.user.id;
+
+    const records = await Payroll.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+    });
+
+    let rows = records.map((r) => ({
+      id: r.id,
+      employeeUuid: r.employeeId,
+      employeeName: r.employeeName,
+      department: r.department || "—",
+      month: r.payPeriodMonth,
+      year: r.payPeriodYear,
+      basicSalary: r.basicSalary,
+      allowances: (r.hra || 0) + (r.allowances || 0) + (r.bonus || 0) + (r.incentives || 0),
+      deductions: (r.tax || 0) + (r.pf || 0) + (r.esi || 0) + (r.professionalTax || 0) + (r.otherDeductions || 0),
+      netSalary: r.netSalary,
+      status: r.status,
+    }));
+
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Payroll report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// --- Expenses Report ---
+const getExpensesReport = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const where = buildDateWhere(from, to, "date");
+    if (req.user.role === "employee") where.employeeId = req.user.id;
+
+    const records = await Expense.findAll({
+      where,
+      order: [["date", "DESC"]],
+    });
+
+    let rows = records.map((r) => ({
+      id: r.id,
+      employeeUuid: r.employeeId,
+      employeeName: r.employeeName,
+      department: r.department || "—",
+      title: r.title,
+      category: r.category,
+      amount: r.amount,
+      date: r.date,
+      status: r.status,
+    }));
+
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Expenses report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// --- Help Center Report ---
+const getHelpCenterReport = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const where = buildDateWhere(from, to, "createdAt");
+    if (req.user.role === "employee") where.employeeId = req.user.id;
+
+    const records = await Ticket.findAll({
+      where,
+      order: [["createdAt", "DESC"]],
+    });
+
+    let rows = records.map((r) => ({
+      id: r.id,
+      employeeUuid: r.employeeId,
+      employeeName: r.employeeName,
+      department: r.department || "—",
+      subject: r.subject,
+      category: r.category,
+      priority: r.priority,
+      status: r.status,
+      createdDate: new Date(r.createdAt).toISOString().slice(0, 10),
+      closedDate: r.status === "Closed" || r.status === "Resolved" ? new Date(r.updatedAt).toISOString().slice(0, 10) : "-",
+    }));
+
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Help Center report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// --- Tasks Report ---
+const getTasksReport = async (req, res) => {
+  try {
+    const { from, to } = req.query;
+    const where = buildDateWhere(from, to, "createdAt"); // Optional: filter by dueDate instead
+    
+    // For tasks, employees see tasks assigned to them or created by them
+    if (req.user.role === "employee") {
+      where[Op.or] = [
+        { ownerId: req.user.id },
+        { createdById: req.user.id }
+      ];
+    }
+
+    const records = await Task.findAll({
+      where,
+      order: [["dueDate", "ASC"]],
+    });
+
+    let rows = records.map((r) => ({
+      id: r.id,
+      employeeName: r.assignedTo || "Unassigned",
+      title: r.title,
+      category: r.category || "—",
+      priority: r.priority,
+      dueDate: r.dueDate || "—",
+      status: r.status,
+      completion: r.completed ? "100%" : "0%",
+    }));
+
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Tasks report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+module.exports = {
+  getAttendanceReport,
+  getPayrollReport,
+  getExpensesReport,
+  getHelpCenterReport,
+  getTasksReport
+};

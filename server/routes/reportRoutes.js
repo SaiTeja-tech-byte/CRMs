@@ -1,12 +1,20 @@
 const express = require("express");
 const router = express.Router();
 const requireAuth = require("../middleware/authMiddleware");
-const { getAttendanceReport } = require("../controllers/reportController");
+const {
+  getAttendanceReport,
+  getPayrollReport,
+  getExpensesReport,
+  getHelpCenterReport,
+  getTasksReport
+} = require("../controllers/reportController");
 
 router.use(requireAuth);
 
-// Role-based inside the controller: employees get only their own rows,
-// admins can pass ?employeeId=&name=&department=&from=&to=&format=csv
 router.get("/attendance", getAttendanceReport);
+router.get("/payroll", getPayrollReport);
+router.get("/expenses", getExpensesReport);
+router.get("/help-center", getHelpCenterReport);
+router.get("/tasks", getTasksReport);
 
 module.exports = router;

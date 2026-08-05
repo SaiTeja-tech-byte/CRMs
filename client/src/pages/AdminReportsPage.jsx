@@ -1,80 +1,69 @@
 import React, { useState } from "react";
 import reportService from "../services/reportService";
+import ReportModal from "../components/admin/reports/ReportModal";
+import ReportViewer from "../components/admin/reports/ReportViewer";
 
-const today = () => new Date().toISOString().slice(0, 10);
-const firstDayOfMonth = () => {
-  const d = new Date();
-  return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
-};
-const currentMonth = () => {
-  const d = new Date();
-  return d.getMonth() + 1;
-};
-const currentYear = () => {
-  const d = new Date();
-  return d.getFullYear();
-};
-
-const DEPARTMENTS = ["Engineering", "HR", "Sales", "Marketing", "Finance", "Product"];
-const STATUSES = ["Active", "Inactive", "On Leave", "Suspended"];
+const REPORT_CARDS = [
+  { key: "attendance", label: "Attendance Report", icon: "bi-calendar-check", desc: "View organization-wide attendance records.", date: "04 Aug 2026" },
+  { key: "payroll", label: "Payroll Report", icon: "bi-cash-coin", desc: "View salary and payment records for all employees.", date: "01 Aug 2026" },
+  { key: "expenses", label: "Expenses Report", icon: "bi-wallet2", desc: "Track expense claims across departments.", date: "01 Aug 2026" },
+  { key: "helpCenter", label: "Help Center Report", icon: "bi-life-preserver", desc: "Monitor ticket statuses and resolution times.", date: "29 Jul 2026" },
+  { key: "tasks", label: "Tasks Report", icon: "bi-check2-square", desc: "Track tasks progress and completion rates.", date: "02 Aug 2026" },
+];
 
 const AdminReportsPage = () => {
-  // Employee Filters
-  const [empDepartment, setEmpDepartment] = useState("");
-  const [empStatus, setEmpStatus] = useState("");
+  const [view, setView] = useState("hub"); // "hub" | "viewer"
+  const [modalType, setModalType] = useState(null); // "attendance" | "payroll" | ...
+  const [filters, setFilters] = useState({});
+  const [reportData, setReportData] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [activeReport, setActiveReport] = useState(null);
 
-  // Attendance Filters
-  const [attendanceFrom, setAttendanceFrom] = useState(firstDayOfMonth());
-  const [attendanceTo, setAttendanceTo] = useState(today());
-
-  // Payroll Filters
-  const [payrollMonth, setPayrollMonth] = useState(currentMonth());
-  const [payrollYear, setPayrollYear] = useState(currentYear());
-
-  // Expenses Filters
-  const [expensesFrom, setExpensesFrom] = useState(firstDayOfMonth());
-  const [expensesTo, setExpensesTo] = useState(today());
-
-  // Help Center Filters
-  const [helpCenterStatus, setHelpCenterStatus] = useState("");
-
-  const [generatedReports, setGeneratedReports] = useState([
-    { id: 1, name: "Employees Report", date: "05 Aug 2026", format: "Excel" },
-    { id: 2, name: "Attendance Report", date: "04 Aug 2026", format: "PDF" },
-    { id: 3, name: "Payroll Report", date: "01 Aug 2026", format: "Excel" },
-    { id: 4, name: "Expense Report", date: "01 Aug 2026", format: "PDF" },
-  ]);
-
-  const [loadingType, setLoadingType] = useState("");
-
-  const handleGenerateAttendance = async () => {
-    try {
-      setLoadingType("attendance");
-      await reportService.downloadAttendanceCsv({ from: attendanceFrom, to: attendanceTo });
-      
-      const newReport = {
-        id: Date.now(),
-        name: "Attendance Report",
-        date: new Date().toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
-        format: "Excel"
-      };
-      setGeneratedReports([newReport, ...generatedReports]);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate attendance report");
-    } finally {
-      setLoadingType("");
+  const openModal = (type) => {
+    setModalType(type);
+    
+    // Set default filters
+    if (type === "payroll") {
+      setFilters({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), name: "", department: "" });
+    } else {
+      const today = new Date().toISOString().slice(0, 10);
+      const firstDay = new Date(new Date().getFullYear(), new Date().getMonth(), 1).toISOString().slice(0, 10);
+      setFilters({ from: firstDay, to: today, name: "", department: "" });
     }
   };
 
-  const handleMockGenerate = (type) => {
-    alert(`${type} report generation will be available soon.`);
+  const handleLaunch = async () => {
+    setLoading(true);
+    try {
+      let data = [];
+      if (modalType === "attendance") data = await reportService.getAttendanceReport(filters);
+      if (modalType === "payroll") data = await reportService.getPayrollReport(filters);
+      if (modalType === "expenses") data = await reportService.getExpensesReport(filters);
+      if (modalType === "helpCenter") data = await reportService.getHelpCenterReport(filters);
+      if (modalType === "tasks") data = await reportService.getTasksReport(filters);
+      
+      setReportData(data.rows || []);
+      setActiveReport(modalType);
+      setView("viewer");
+      setModalType(null);
+    } catch (err) {
+      console.error(err);
+      alert("Failed to generate report.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  const thStyle = { padding: "16px 24px", fontWeight: "600", color: "#64748b", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" };
-  const tdStyle = { padding: "16px 24px", borderBottom: "1px solid #f1f5f9", verticalAlign: "middle" };
-  const inputStyle = { padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px", outline: "none", color: "#0f172a" };
-  const primaryBtn = { padding: "8px 16px", borderRadius: "6px", fontSize: "14px", fontWeight: "500", cursor: "pointer", border: "1px solid transparent", background: "#2563eb", color: "#fff" };
+  if (view === "viewer") {
+    return (
+      <ReportViewer 
+        type={activeReport} 
+        filters={filters} 
+        data={reportData} 
+        onBack={() => setView("hub")} 
+      />
+    );
+  }
 
   return (
     <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto", background: "#f5f7fb", minHeight: "100vh" }}>
@@ -83,144 +72,45 @@ const AdminReportsPage = () => {
         <p style={{ color: "#64748b", fontSize: "15px", margin: 0 }}>Generate organization reports.</p>
       </div>
 
-      <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: "32px" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>Report Type</th>
-              <th style={thStyle}>Filters</th>
-              <th style={thStyle}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr>
-              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Employees</td>
-              <td style={tdStyle}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <select style={inputStyle} value={empDepartment} onChange={(e) => setEmpDepartment(e.target.value)}>
-                    <option value="">All Departments</option>
-                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
-                  </select>
-                  <select style={inputStyle} value={empStatus} onChange={(e) => setEmpStatus(e.target.value)}>
-                    <option value="">All Statuses</option>
-                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
-                  </select>
-                </div>
-              </td>
-              <td style={tdStyle}>
-                <button onClick={() => handleMockGenerate("Employees")} style={primaryBtn}>Generate</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Attendance</td>
-              <td style={tdStyle}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <input type="date" style={inputStyle} value={attendanceFrom} onChange={(e) => setAttendanceFrom(e.target.value)} />
-                  <span style={{ color: "#94a3b8" }}>to</span>
-                  <input type="date" style={inputStyle} value={attendanceTo} onChange={(e) => setAttendanceTo(e.target.value)} />
-                </div>
-              </td>
-              <td style={tdStyle}>
-                <button onClick={handleGenerateAttendance} style={primaryBtn} disabled={loadingType === "attendance"}>Generate</button>
-              </td>
-            </tr>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: "24px" }}>
+        {REPORT_CARDS.map((card) => (
+          <div key={card.key} style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", padding: "24px", display: "flex", flexDirection: "column", boxShadow: "0 1px 2px rgba(0,0,0,0.05)", transition: "box-shadow 0.2s" }} onMouseEnter={e => e.currentTarget.style.boxShadow = "0 4px 6px rgba(0,0,0,0.1)"} onMouseLeave={e => e.currentTarget.style.boxShadow = "0 1px 2px rgba(0,0,0,0.05)"}>
             
-            <tr>
-              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Payroll</td>
-              <td style={tdStyle}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <select style={inputStyle} value={payrollMonth} onChange={(e) => setPayrollMonth(e.target.value)}>
-                    {Array.from({ length: 12 }, (_, i) => (
-                      <option key={i+1} value={i+1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
-                    ))}
-                  </select>
-                  <select style={inputStyle} value={payrollYear} onChange={(e) => setPayrollYear(e.target.value)}>
-                    <option value="2025">2025</option>
-                    <option value="2026">2026</option>
-                    <option value="2027">2027</option>
-                  </select>
-                </div>
-              </td>
-              <td style={tdStyle}>
-                <button onClick={() => handleMockGenerate("Payroll")} style={primaryBtn}>Generate</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Expenses</td>
-              <td style={tdStyle}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <input type="date" style={inputStyle} value={expensesFrom} onChange={(e) => setExpensesFrom(e.target.value)} />
-                  <span style={{ color: "#94a3b8" }}>to</span>
-                  <input type="date" style={inputStyle} value={expensesTo} onChange={(e) => setExpensesTo(e.target.value)} />
-                </div>
-              </td>
-              <td style={tdStyle}>
-                <button onClick={() => handleMockGenerate("Expenses")} style={primaryBtn}>Generate</button>
-              </td>
-            </tr>
-
-            <tr>
-              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Help Center</td>
-              <td style={tdStyle}>
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <select style={inputStyle} value={helpCenterStatus} onChange={(e) => setHelpCenterStatus(e.target.value)}>
-                    <option value="">All Statuses</option>
-                    <option value="Open">Open</option>
-                    <option value="In Progress">In Progress</option>
-                    <option value="Resolved">Resolved</option>
-                    <option value="Closed">Closed</option>
-                  </select>
-                </div>
-              </td>
-              <td style={tdStyle}>
-                <button onClick={() => handleMockGenerate("Help Center")} style={primaryBtn}>Generate</button>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "16px" }}>
+              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px" }}>
+                <i className={`bi ${card.icon}`}></i>
+              </div>
+              <div>
+                <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#0f172a", margin: "0 0 4px 0" }}>{card.label}</h3>
+                <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>Last generated: {card.date}</p>
+              </div>
+            </div>
+            
+            <p style={{ fontSize: "14px", color: "#475569", marginBottom: "24px", flexGrow: 1 }}>{card.desc}</p>
+            
+            <button onClick={() => openModal(card.key)} style={{ width: "100%", padding: "10px", borderRadius: "6px", border: "1px solid #bfdbfe", background: "#fff", color: "#2563eb", fontWeight: "600", fontSize: "14px", cursor: "pointer" }} onMouseEnter={e => {e.target.style.background = "#eff6ff";}} onMouseLeave={e => {e.target.style.background = "#fff";}}>
+              Generate Report
+            </button>
+          </div>
+        ))}
       </div>
 
-      <div style={{ marginBottom: "24px" }}>
-        <h3 style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", margin: 0 }}>Generated Reports</h3>
-      </div>
-
-      <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
-          <thead>
-            <tr>
-              <th style={thStyle}>Report Name</th>
-              <th style={thStyle}>Generated On</th>
-              <th style={thStyle}>Format</th>
-              <th style={thStyle}>Action</th>
-            </tr>
-          </thead>
-          <tbody>
-            {generatedReports.map((report) => (
-              <tr key={report.id}>
-                <td style={{ ...tdStyle, fontWeight: "500", color: "#334155" }}>{report.name}</td>
-                <td style={tdStyle}>{report.date}</td>
-                <td style={tdStyle}>
-                  <span style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "600", background: report.format === "PDF" ? "#fee2e2" : "#dcfce7", color: report.format === "PDF" ? "#b91c1c" : "#16a34a" }}>
-                    {report.format}
-                  </span>
-                </td>
-                <td style={tdStyle}>
-                  <button onClick={() => alert("Downloading past report...")} style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", fontSize: "14px", fontWeight: "500", padding: 0 }}>
-                    Download
-                  </button>
-                </td>
-              </tr>
-            ))}
-            {generatedReports.length === 0 && (
-              <tr>
-                <td colSpan="4" style={{ padding: "32px", textAlign: "center", color: "#64748b" }}>No generated reports found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      {modalType && (
+        <ReportModal 
+          type={modalType}
+          isAdmin={true}
+          filters={filters}
+          setFilters={setFilters}
+          onClose={() => setModalType(null)}
+          onLaunch={handleLaunch}
+        />
+      )}
+      
+      {loading && (
+        <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(255,255,255,0.7)", zIndex: 2000, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ padding: "16px 32px", background: "#1e3a8a", color: "#fff", borderRadius: "8px", fontWeight: "600" }}>Generating...</div>
+        </div>
+      )}
     </div>
   );
 };
