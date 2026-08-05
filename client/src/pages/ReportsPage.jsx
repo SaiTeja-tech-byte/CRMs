@@ -78,31 +78,24 @@ const ReportsPage = () => {
             key={card.key} 
             className="report-card"
           >
-            {/* Top Row */}
-            <div style={{ display: "flex", alignItems: "center", gap: "16px", marginBottom: "20px" }}>
-              <div style={{ width: "56px", height: "56px", borderRadius: "50%", background: "#eff6ff", color: "#2563eb", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "24px", flexShrink: 0 }}>
-                <i className={`bi ${card.icon}`}></i>
-              </div>
-              <div>
-                <h3 style={{ fontSize: "16px", fontWeight: "600", color: "#0f172a", margin: "0 0 4px 0" }}>{card.label}</h3>
-                <p style={{ fontSize: "12px", color: "#94a3b8", margin: 0 }}>Last generated: {card.date}</p>
-              </div>
-            </div>
-            
-            {/* Middle */}
-            <div style={{ flexGrow: 1, marginBottom: "24px" }}>
-              <p style={{ fontSize: "14px", color: "#475569", margin: 0, lineHeight: "1.5", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
+            {/* Content */}
+            <div style={{ marginBottom: "16px" }}>
+              <h3 style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", margin: "0 0 8px 0" }}>{card.label}</h3>
+              <p style={{ fontSize: "14px", color: "#6b7280", margin: "0 0 12px 0", lineHeight: "1.5", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>
                 {card.desc}
               </p>
+              <p style={{ fontSize: "12px", color: "#9ca3af", margin: 0 }}>Last generated: {card.date}</p>
             </div>
             
-            {/* Bottom */}
-            <button 
-              onClick={() => openModal(card.key)} 
-              className="generate-btn"
-            >
-              Generate Report
-            </button>
+            {/* Button */}
+            <div style={{ marginTop: "auto" }}>
+              <button 
+                onClick={() => openModal(card.key)} 
+                className="generate-btn"
+              >
+                Generate Report
+              </button>
+            </div>
           </div>
         ))}
       </div>
@@ -137,32 +130,32 @@ const ReportsPage = () => {
         .report-card {
           background: #fff;
           border-radius: 12px;
-          border: 1px solid #e2e8f0;
+          border: 1px solid #E5E7EB;
           padding: 24px;
           display: flex;
           flex-direction: column;
-          box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-          transition: all 0.2s ease;
+          box-shadow: 0 1px 2px rgba(0,0,0,0.02);
+          transition: box-shadow 0.2s ease;
+          height: 100%;
         }
         .report-card:hover {
-          box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -2px rgba(0,0,0,0.05);
-          transform: translateY(-2px);
+          box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
         }
 
         .generate-btn {
           width: 100%;
           padding: 10px;
           border-radius: 6px;
-          border: 1px solid #2563eb;
-          background: #fff;
-          color: #2563eb;
-          font-weight: 600;
+          background: #2563eb;
+          color: #fff;
+          border: none;
+          font-weight: 500;
           font-size: 14px;
           cursor: pointer;
           transition: background 0.2s;
         }
         .generate-btn:hover {
-          background: #eff6ff;
+          background: #1d4ed8;
         }
       `}</style>
     </div>
