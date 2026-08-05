@@ -20,6 +20,7 @@ import PlannerPage from "../components/employee/PlannerPage";
 import AttendanceWidget from "../components/attendance/AttendanceWidget";
 import HelpCenterPage from "./HelpCenterPage";
 import PayrollPage from "./PayrollPage";
+import ReportsPage from "./ReportsPage";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -7598,6 +7599,11 @@ body {
           {/* VIEW: PAYROLL TAB */}
           {activeMenu === "payroll" && (
             <PayrollPage />
+          )}
+
+          {/* VIEW: REPORTS TAB */}
+          {activeMenu === "reports" && (
+            <ReportsPage />
           )}
 
           {/* VIEW: CHAT TAB */}
