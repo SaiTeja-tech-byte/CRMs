@@ -38,6 +38,14 @@ const reportService = {
     const response = await axios.get(`${API_BASE}/reports/tasks`, { ...authHeaders(), params: getParams(params) });
     return response.data;
   },
+  getEmployeesReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/employees`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
+  },
+  getOrganizationReport: async (params = {}) => {
+    const response = await axios.get(`${API_BASE}/reports/organization`, { ...authHeaders(), params: getParams(params) });
+    return response.data;
+  },
 };
 
 export default reportService;

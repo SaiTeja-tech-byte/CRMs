@@ -6,7 +6,9 @@ const {
   getPayrollReport,
   getExpensesReport,
   getHelpCenterReport,
-  getTasksReport
+  getTasksReport,
+  getEmployeesReport,
+  getOrganizationReport
 } = require("../controllers/reportController");
 
 router.use(requireAuth);
@@ -16,5 +18,7 @@ router.get("/payroll", getPayrollReport);
 router.get("/expenses", getExpensesReport);
 router.get("/help-center", getHelpCenterReport);
 router.get("/tasks", getTasksReport);
+router.get("/employees", getEmployeesReport);
+router.get("/organization", getOrganizationReport);
 
 module.exports = router;

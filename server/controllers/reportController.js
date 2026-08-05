@@ -233,10 +233,67 @@ const getTasksReport = async (req, res) => {
   }
 };
 
+// --- Employees Report (Admin Only) ---
+const getEmployeesReport = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false, message: "Forbidden" });
+    
+    const records = await User.findAll({ order: [["fullName", "ASC"]] });
+    let rows = records.map((r) => ({
+      id: r.id,
+      employeeId: r.employeeId || "—",
+      employeeName: r.fullName,
+      department: r.department || "—",
+      designation: r.designation || "—",
+      employmentStatus: r.employmentStatus || "Active",
+      joinedDate: r.joiningDate || "—"
+    }));
+
+    rows = applyAdminFilters(rows, req);
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Employees report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+// --- Organization Report (Admin Only) ---
+const getOrganizationReport = async (req, res) => {
+  try {
+    if (req.user.role !== "admin") return res.status(403).json({ success: false, message: "Forbidden" });
+    
+    const users = await User.findAll();
+    const active = users.filter(u => u.employmentStatus !== "Inactive" && u.employmentStatus !== "Terminated").length;
+    const inactive = users.length - active;
+    
+    const departments = {};
+    users.forEach(u => {
+      const d = u.department || "Unassigned";
+      departments[d] = (departments[d] || 0) + 1;
+    });
+
+    const rows = [
+      { id: 1, metric: "Total Headcount", value: users.length },
+      { id: 2, metric: "Active Employees", value: active },
+      { id: 3, metric: "Inactive Employees", value: inactive },
+      ...Object.keys(departments).map((d, i) => ({
+        id: 4 + i, metric: `Department: ${d}`, value: departments[d]
+      }))
+    ];
+
+    return res.status(200).json({ success: true, rows });
+  } catch (error) {
+    console.error("Organization report error:", error);
+    return res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
 module.exports = {
   getAttendanceReport,
   getPayrollReport,
   getExpensesReport,
   getHelpCenterReport,
-  getTasksReport
+  getTasksReport,
+  getEmployeesReport,
+  getOrganizationReport
 };

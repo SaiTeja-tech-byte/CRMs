@@ -1,18 +1,31 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 
 const DEPARTMENTS = ["Engineering", "HR", "Sales", "Marketing", "Finance", "Product"];
 const TICKET_STATUSES = ["Open", "In Progress", "Resolved", "Closed"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 
 const ReportModal = ({
-  type, // "attendance" | "payroll" | "expenses" | "helpCenter" | "tasks"
+  type, // "attendance" | "payroll" | "expenses" | "helpCenter" | "tasks" | "employees" | "organization"
   isAdmin,
   filters,
   setFilters,
   onClose,
-  onLaunch
+  onLaunch,
+  loading
 }) => {
+  const [show, setShow] = useState(false);
+
+  useEffect(() => {
+    // trigger animation
+    setTimeout(() => setShow(true), 10);
+  }, []);
+
   if (!type) return null;
+
+  const handleClose = () => {
+    setShow(false);
+    setTimeout(onClose, 200);
+  };
 
   const handleChange = (e) => {
     setFilters({ ...filters, [e.target.name]: e.target.value });
@@ -25,24 +38,36 @@ const ReportModal = ({
       case "expenses": return "Expenses Report";
       case "helpCenter": return "Help Center Report";
       case "tasks": return "Tasks Report";
+      case "employees": return "Employee Report";
+      case "organization": return "Organization Report";
       default: return "Report";
     }
   };
 
+  const needsDateRange = !["payroll", "employees", "organization"].includes(type);
+
   return (
     <>
-      <div style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1040 }} onClick={onClose} />
-      <div style={{ position: "fixed", top: "50%", left: "50%", transform: "translate(-50%, -50%)", background: "#fff", padding: "24px", borderRadius: "12px", width: "100%", maxWidth: "500px", zIndex: 1050, boxShadow: "0 10px 25px rgba(0,0,0,0.1)" }}>
+      <div 
+        style={{ position: "fixed", top: 0, left: 0, right: 0, bottom: 0, background: "rgba(0,0,0,0.5)", zIndex: 1040, opacity: show ? 1 : 0, transition: "opacity 0.2s ease" }} 
+        onClick={handleClose} 
+      />
+      <div 
+        style={{ 
+          position: "fixed", top: "50%", left: "50%", transform: `translate(-50%, -50%) scale(${show ? 1 : 0.95})`, 
+          background: "#fff", padding: "24px", borderRadius: "12px", width: "100%", maxWidth: "500px", zIndex: 1050, 
+          boxShadow: "0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+          opacity: show ? 1 : 0, transition: "opacity 0.2s ease, transform 0.2s ease"
+        }}>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", borderBottom: "1px solid #e2e8f0", paddingBottom: "16px", marginBottom: "20px" }}>
           <h4 style={{ margin: 0, fontSize: "18px", fontWeight: "600", color: "#0f172a" }}>{getTitle()}</h4>
-          <button onClick={onClose} style={{ background: "none", border: "none", fontSize: "20px", color: "#64748b", cursor: "pointer" }}>×</button>
+          <button onClick={handleClose} style={{ background: "none", border: "none", fontSize: "20px", color: "#64748b", cursor: "pointer" }}>×</button>
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
           
-          {/* Date Range (Used for most reports except Payroll) */}
-          {type !== "payroll" && (
+          {needsDateRange && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>From Date</label>
@@ -55,7 +80,6 @@ const ReportModal = ({
             </>
           )}
 
-          {/* Month / Year for Payroll */}
           {type === "payroll" && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
@@ -77,8 +101,7 @@ const ReportModal = ({
             </>
           )}
 
-          {/* Admin Specific Filters */}
-          {isAdmin && (
+          {isAdmin && type !== "organization" && (
             <>
               <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "8px", borderTop: "1px dashed #e2e8f0", paddingTop: "16px" }}>
                 <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Employee Name</label>
@@ -94,7 +117,6 @@ const ReportModal = ({
             </>
           )}
 
-          {/* Type Specific Additional Filters */}
           {type === "helpCenter" && (
             <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
               <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Ticket Status</label>
@@ -115,14 +137,43 @@ const ReportModal = ({
             </div>
           )}
 
+          <div style={{ marginTop: "16px" }}>
+            <label style={{ display: "block", fontSize: "14px", fontWeight: "500", color: "#475569", marginBottom: "8px" }}>Export Format</label>
+            <div style={{ display: "flex", gap: "16px" }}>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: "#334155" }}>
+                <input type="radio" name="format" value="pdf" checked={filters.format === "pdf"} onChange={handleChange} /> PDF
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: "#334155" }}>
+                <input type="radio" name="format" value="excel" checked={filters.format === "excel"} onChange={handleChange} /> Excel
+              </label>
+              <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", color: "#334155" }}>
+                <input type="radio" name="format" value="csv" checked={filters.format === "csv"} onChange={handleChange} /> CSV
+              </label>
+            </div>
+          </div>
+
         </div>
 
         <div style={{ display: "flex", justifyContent: "flex-end", gap: "12px", marginTop: "32px" }}>
-          <button onClick={onClose} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#f1f5f9", color: "#475569", fontWeight: "500", cursor: "pointer" }}>Cancel</button>
-          <button onClick={onLaunch} style={{ padding: "8px 24px", borderRadius: "6px", border: "none", background: "#2563eb", color: "#fff", fontWeight: "600", cursor: "pointer" }}>Launch</button>
+          <button onClick={handleClose} disabled={loading} style={{ padding: "8px 16px", borderRadius: "6px", border: "none", background: "#f1f5f9", color: "#475569", fontWeight: "500", cursor: loading ? "not-allowed" : "pointer" }}>
+            Cancel
+          </button>
+          <button onClick={onLaunch} disabled={loading} style={{ padding: "8px 24px", borderRadius: "6px", border: "none", background: loading ? "#93c5fd" : "#2563eb", color: "#fff", fontWeight: "600", cursor: loading ? "not-allowed" : "pointer", display: "flex", alignItems: "center", gap: "8px" }}>
+            {loading ? (
+              <>
+                <i className="bi bi-arrow-repeat" style={{ animation: "spin 1s linear infinite" }}></i> Generating...
+              </>
+            ) : "Generate"}
+          </button>
         </div>
 
       </div>
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 };
