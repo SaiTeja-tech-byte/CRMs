@@ -146,16 +146,18 @@ const ReportsPage = () => {
           width: 100%;
           padding: 10px;
           border-radius: 6px;
-          background: #2563eb;
-          color: #fff;
-          border: none;
+          background: #FFFFFF;
+          color: #374151;
+          border: 1px solid #D1D5DB;
           font-weight: 500;
           font-size: 14px;
           cursor: pointer;
-          transition: background 0.2s;
+          transition: all 0.2s ease;
         }
         .generate-btn:hover {
-          background: #1d4ed8;
+          background: #F9FAFB;
+          border-color: #2563EB;
+          color: #2563EB;
         }
       `}</style>
     </div>
