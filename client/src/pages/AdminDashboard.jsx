@@ -27,6 +27,7 @@ import AdminFeedback from './AdminFeedback';
 import AdminExpensesPage from './AdminExpensesPage';
 import AdminHelpCenterPage from './AdminHelpCenterPage';
 import AdminPayrollPage from './AdminPayrollPage';
+import AdminReportsPage from './AdminReportsPage';
 import AdminEmployeesPage from './AdminEmployeesPage';
 import AdminEmployeeProfilePage from './AdminEmployeeProfilePage';
 
@@ -3762,6 +3763,9 @@ const AdminDashboard = () => {
 
       case "payroll":
         return <AdminPayrollPage />;
+
+      case "reports":
+        return <AdminReportsPage />;
 
       case "help-center":
         return <AdminHelpCenterPage />;
