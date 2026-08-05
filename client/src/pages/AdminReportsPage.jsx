@@ -1,229 +1,225 @@
 import React, { useState } from "react";
-import jsPDF from "jspdf";
-import autoTable from "jspdf-autotable";
 import reportService from "../services/reportService";
 
-const REPORT_CARDS = [
-  { key: "attendance", label: "Attendance Report", icon: "bi-calendar-check", desc: "Search any employee's attendance, or pull a company-wide view.", active: true },
-  { key: "working-hours", label: "Working Hours", icon: "bi-clock-history", desc: "Daily working & break time breakdown.", active: false },
-  { key: "task", label: "Task Report", icon: "bi-check2-square", desc: "Assigned vs completed vs pending tasks.", active: false },
-  { key: "expense", label: "Expense Report", icon: "bi-receipt", desc: "Available under the Expenses tab.", active: false },
-  { key: "payroll", label: "Payroll Report", icon: "bi-cash-coin", desc: "Available under the Payroll tab.", active: false },
-  { key: "leave", label: "Leave Report", icon: "bi-airplane", desc: "Company-wide leave history.", active: false },
-  { key: "department", label: "Department Report", icon: "bi-diagram-3", desc: "Attendance % and avg. working hours by department.", active: false },
-];
-
-const DEPARTMENTS = ["Engineering", "Product", "Marketing", "Sales", "HR", "Finance"];
-
+const today = () => new Date().toISOString().slice(0, 10);
 const firstDayOfMonth = () => {
   const d = new Date();
   return new Date(d.getFullYear(), d.getMonth(), 1).toISOString().slice(0, 10);
 };
-const today = () => new Date().toISOString().slice(0, 10);
-
-const StatusBadge = ({ status }) => {
-  const map = {
-    Working: "bg-primary", "On Break": "bg-info text-dark", Completed: "bg-success",
-    Absent: "bg-secondary", Late: "bg-warning text-dark",
-  };
-  return <span className={`badge rounded-pill ${map[status] || "bg-light text-dark border"}`}>{status}</span>;
+const currentMonth = () => {
+  const d = new Date();
+  return d.getMonth() + 1;
+};
+const currentYear = () => {
+  const d = new Date();
+  return d.getFullYear();
 };
 
+const DEPARTMENTS = ["Engineering", "HR", "Sales", "Marketing", "Finance", "Product"];
+const STATUSES = ["Active", "Inactive", "On Leave", "Suspended"];
+
 const AdminReportsPage = () => {
-  const [view, setView] = useState("hub"); // "hub" | "attendance"
-  const [from, setFrom] = useState(firstDayOfMonth());
-  const [to, setTo] = useState(today());
-  const [name, setName] = useState("");
-  const [employeeId, setEmployeeId] = useState("");
-  const [department, setDepartment] = useState("");
-  const [rows, setRows] = useState([]);
-  const [summary, setSummary] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [generated, setGenerated] = useState(false);
+  // Employee Filters
+  const [empDepartment, setEmpDepartment] = useState("");
+  const [empStatus, setEmpStatus] = useState("");
 
-  const filters = { from, to, name: name || undefined, employeeId: employeeId || undefined, department: department || undefined };
+  // Attendance Filters
+  const [attendanceFrom, setAttendanceFrom] = useState(firstDayOfMonth());
+  const [attendanceTo, setAttendanceTo] = useState(today());
 
-  const generate = async () => {
+  // Payroll Filters
+  const [payrollMonth, setPayrollMonth] = useState(currentMonth());
+  const [payrollYear, setPayrollYear] = useState(currentYear());
+
+  // Expenses Filters
+  const [expensesFrom, setExpensesFrom] = useState(firstDayOfMonth());
+  const [expensesTo, setExpensesTo] = useState(today());
+
+  // Help Center Filters
+  const [helpCenterStatus, setHelpCenterStatus] = useState("");
+
+  const [generatedReports, setGeneratedReports] = useState([
+    { id: 1, name: "Employees Report", date: "05 Aug 2026", format: "Excel" },
+    { id: 2, name: "Attendance Report", date: "04 Aug 2026", format: "PDF" },
+    { id: 3, name: "Payroll Report", date: "01 Aug 2026", format: "Excel" },
+    { id: 4, name: "Expense Report", date: "01 Aug 2026", format: "PDF" },
+  ]);
+
+  const [loadingType, setLoadingType] = useState("");
+
+  const handleGenerateAttendance = async () => {
     try {
-      setLoading(true);
-      const res = await reportService.getAttendanceReport(filters);
-      if (res.success) {
-        setRows(res.rows);
-        setSummary(res.summary);
-        setGenerated(true);
-      }
+      setLoadingType("attendance");
+      await reportService.downloadAttendanceCsv({ from: attendanceFrom, to: attendanceTo });
+      
+      const newReport = {
+        id: Date.now(),
+        name: "Attendance Report",
+        date: new Date().toLocaleDateString("en-GB", { day: '2-digit', month: 'short', year: 'numeric' }),
+        format: "Excel"
+      };
+      setGeneratedReports([newReport, ...generatedReports]);
     } catch (err) {
-      console.error("Failed to generate attendance report", err);
+      console.error(err);
+      alert("Failed to generate attendance report");
     } finally {
-      setLoading(false);
+      setLoadingType("");
     }
   };
 
-  const downloadCsv = () => reportService.downloadAttendanceCsv(filters);
-
-  const downloadPdf = () => {
-    const doc = new jsPDF();
-    doc.setFontSize(14);
-    doc.text("Attendance Report", 14, 16);
-    doc.setFontSize(10);
-    doc.text(`Period: ${from} to ${to}`, 14, 23);
-    autoTable(doc, {
-      startY: 28,
-      head: [["Emp ID", "Name", "Dept", "Date", "Check In", "Check Out", "Working Hrs", "Status"]],
-      body: rows.map((r) => [r.employeeId, r.employeeName, r.department, r.date, r.checkIn, r.checkOut, r.workingHours, r.status]),
-      styles: { fontSize: 7 },
-      headStyles: { fillColor: [37, 99, 235] },
-    });
-    doc.save(`attendance-report-${Date.now()}.pdf`);
+  const handleMockGenerate = (type) => {
+    alert(`${type} report generation will be available soon.`);
   };
 
-  if (view === "hub") {
-    return (
-      <div className="container-fluid p-4">
-        <div className="mb-4">
-          <h4 className="fw-bold mb-1">Reports</h4>
-          <p className="text-muted mb-0 small">Search and generate reports for any employee or department.</p>
-        </div>
-        <div className="row g-3">
-          {REPORT_CARDS.map((c) => (
-            <div className="col-12 col-sm-6 col-lg-4" key={c.key}>
-              <div className={`card border-0 shadow-sm rounded-3 h-100 ${!c.active ? "opacity-75" : ""}`}>
-                <div className="card-body p-3 d-flex flex-column">
-                  <div className="d-flex align-items-center gap-2 mb-2">
-                    <span className="d-inline-flex align-items-center justify-content-center rounded-circle bg-primary bg-opacity-10 text-primary" style={{ width: 36, height: 36 }}>
-                      <i className={`bi ${c.icon}`}></i>
-                    </span>
-                    <h6 className="fw-bold mb-0">{c.label}</h6>
-                  </div>
-                  <p className="small text-muted flex-grow-1">{c.desc}</p>
-                  <button
-                    className={`btn btn-sm ${c.active ? "btn-primary" : "btn-light border text-muted"}`}
-                    disabled={!c.active}
-                    onClick={() => c.active && setView(c.key)}
-                  >
-                    {c.active ? "Generate Report" : "Coming soon"}
-                  </button>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </div>
-    );
-  }
+  const thStyle = { padding: "16px 24px", fontWeight: "600", color: "#64748b", background: "#f8fafc", borderBottom: "1px solid #e2e8f0" };
+  const tdStyle = { padding: "16px 24px", borderBottom: "1px solid #f1f5f9", verticalAlign: "middle" };
+  const inputStyle = { padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", fontSize: "14px", outline: "none", color: "#0f172a" };
+  const primaryBtn = { padding: "8px 16px", borderRadius: "6px", fontSize: "14px", fontWeight: "500", cursor: "pointer", border: "1px solid transparent", background: "#2563eb", color: "#fff" };
 
   return (
-    <div className="container-fluid p-4">
-      <div className="d-flex justify-content-between align-items-center mb-4">
-        <div>
-          <button className="btn btn-sm btn-light border mb-2" onClick={() => setView("hub")}>
-            <i className="bi-arrow-left me-1"></i> Back to Reports
-          </button>
-          <h4 className="fw-bold mb-1">Attendance Report</h4>
-          <p className="text-muted mb-0 small">Leave the search fields empty to pull attendance for every employee.</p>
-        </div>
+    <div style={{ padding: "32px", maxWidth: "1200px", margin: "0 auto", background: "#f5f7fb", minHeight: "100vh" }}>
+      <div style={{ marginBottom: "32px" }}>
+        <h2 style={{ fontSize: "24px", fontWeight: "700", color: "#0f172a", marginBottom: "8px" }}>Reports</h2>
+        <p style={{ color: "#64748b", fontSize: "15px", margin: 0 }}>Generate organization reports.</p>
       </div>
 
-      <div className="card border-0 shadow-sm rounded-3 mb-3">
-        <div className="card-body p-3 d-flex flex-wrap align-items-end gap-3">
-          <div>
-            <label className="form-label small text-muted mb-1">Employee Name</label>
-            <input type="text" className="form-control form-control-sm" style={{ width: 180 }} placeholder="e.g. Sai Teja" value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
-          <div>
-            <label className="form-label small text-muted mb-1">Employee ID</label>
-            <input type="text" className="form-control form-control-sm" style={{ width: 140 }} placeholder="e.g. EMP001" value={employeeId} onChange={(e) => setEmployeeId(e.target.value)} />
-          </div>
-          <div>
-            <label className="form-label small text-muted mb-1">Department</label>
-            <select className="form-select form-select-sm" style={{ width: 160 }} value={department} onChange={(e) => setDepartment(e.target.value)}>
-              <option value="">All Departments</option>
-              {DEPARTMENTS.map((d) => <option key={d} value={d}>{d}</option>)}
-            </select>
-          </div>
-          <div>
-            <label className="form-label small text-muted mb-1">From</label>
-            <input type="date" className="form-control form-control-sm" value={from} onChange={(e) => setFrom(e.target.value)} />
-          </div>
-          <div>
-            <label className="form-label small text-muted mb-1">To</label>
-            <input type="date" className="form-control form-control-sm" value={to} onChange={(e) => setTo(e.target.value)} />
-          </div>
-          <button className="btn btn-sm btn-primary" onClick={generate} disabled={loading}>
-            {loading ? "Generating..." : "Generate Report"}
-          </button>
-          {generated && rows.length > 0 && (
-            <div className="ms-auto d-flex gap-2">
-              <button className="btn btn-sm btn-light border" onClick={downloadCsv}>
-                <i className="bi-filetype-csv me-1"></i> CSV
-              </button>
-              <button className="btn btn-sm btn-light border" onClick={downloadPdf}>
-                <i className="bi-file-earmark-pdf me-1"></i> PDF
-              </button>
-            </div>
-          )}
-        </div>
-      </div>
-
-      {summary && (
-        <div className="row g-3 mb-3">
-          {[
-            { label: "Total Records", value: summary.totalRecords },
-            { label: "Present", value: summary.present },
-            { label: "Absent", value: summary.absent },
-            { label: "Late", value: summary.late },
-          ].map((s, i) => (
-            <div className="col-6 col-md-3" key={i}>
-              <div className="card border-0 shadow-sm rounded-2">
-                <div className="card-body p-3">
-                  <div className="text-muted small">{s.label}</div>
-                  <div className="fs-5 fw-bold">{s.value}</div>
+      <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden", marginBottom: "32px" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Report Type</th>
+              <th style={thStyle}>Filters</th>
+              <th style={thStyle}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Employees</td>
+              <td style={tdStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <select style={inputStyle} value={empDepartment} onChange={(e) => setEmpDepartment(e.target.value)}>
+                    <option value="">All Departments</option>
+                    {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+                  </select>
+                  <select style={inputStyle} value={empStatus} onChange={(e) => setEmpStatus(e.target.value)}>
+                    <option value="">All Statuses</option>
+                    {STATUSES.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
                 </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+              </td>
+              <td style={tdStyle}>
+                <button onClick={() => handleMockGenerate("Employees")} style={primaryBtn}>Generate</button>
+              </td>
+            </tr>
 
-      <div className="card border-0 shadow-sm rounded-3">
-        <div className="card-body p-0">
-          <div className="table-responsive">
-            <table className="table table-hover align-middle mb-0">
-              <thead className="table-light text-muted small">
-                <tr>
-                  <th className="ps-4 fw-medium border-0">Emp ID</th>
-                  <th className="fw-medium border-0">Name</th>
-                  <th className="fw-medium border-0">Department</th>
-                  <th className="fw-medium border-0">Date</th>
-                  <th className="fw-medium border-0">Check In</th>
-                  <th className="fw-medium border-0">Check Out</th>
-                  <th className="fw-medium border-0">Working Hours</th>
-                  <th className="pe-4 fw-medium border-0">Status</th>
-                </tr>
-              </thead>
-              <tbody>
-                {generated && rows.length === 0 && (
-                  <tr><td colSpan="8" className="text-center py-5 text-muted small">No attendance records match these filters.</td></tr>
-                )}
-                {!generated && (
-                  <tr><td colSpan="8" className="text-center py-5 text-muted small">Set your filters and click Generate Report.</td></tr>
-                )}
-                {rows.map((r) => (
-                  <tr key={r.id}>
-                    <td className="ps-4 small">{r.employeeId}</td>
-                    <td className="small fw-medium">{r.employeeName}</td>
-                    <td className="small">{r.department}</td>
-                    <td className="small">{r.date}</td>
-                    <td className="small">{r.checkIn}</td>
-                    <td className="small">{r.checkOut}</td>
-                    <td className="small fw-medium">{r.workingHours}</td>
-                    <td className="pe-4"><StatusBadge status={r.status} /></td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+            <tr>
+              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Attendance</td>
+              <td style={tdStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <input type="date" style={inputStyle} value={attendanceFrom} onChange={(e) => setAttendanceFrom(e.target.value)} />
+                  <span style={{ color: "#94a3b8" }}>to</span>
+                  <input type="date" style={inputStyle} value={attendanceTo} onChange={(e) => setAttendanceTo(e.target.value)} />
+                </div>
+              </td>
+              <td style={tdStyle}>
+                <button onClick={handleGenerateAttendance} style={primaryBtn} disabled={loadingType === "attendance"}>Generate</button>
+              </td>
+            </tr>
+            
+            <tr>
+              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Payroll</td>
+              <td style={tdStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <select style={inputStyle} value={payrollMonth} onChange={(e) => setPayrollMonth(e.target.value)}>
+                    {Array.from({ length: 12 }, (_, i) => (
+                      <option key={i+1} value={i+1}>{new Date(0, i).toLocaleString('default', { month: 'long' })}</option>
+                    ))}
+                  </select>
+                  <select style={inputStyle} value={payrollYear} onChange={(e) => setPayrollYear(e.target.value)}>
+                    <option value="2025">2025</option>
+                    <option value="2026">2026</option>
+                    <option value="2027">2027</option>
+                  </select>
+                </div>
+              </td>
+              <td style={tdStyle}>
+                <button onClick={() => handleMockGenerate("Payroll")} style={primaryBtn}>Generate</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Expenses</td>
+              <td style={tdStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <input type="date" style={inputStyle} value={expensesFrom} onChange={(e) => setExpensesFrom(e.target.value)} />
+                  <span style={{ color: "#94a3b8" }}>to</span>
+                  <input type="date" style={inputStyle} value={expensesTo} onChange={(e) => setExpensesTo(e.target.value)} />
+                </div>
+              </td>
+              <td style={tdStyle}>
+                <button onClick={() => handleMockGenerate("Expenses")} style={primaryBtn}>Generate</button>
+              </td>
+            </tr>
+
+            <tr>
+              <td style={{ ...tdStyle, fontWeight: "600", color: "#334155" }}>Help Center</td>
+              <td style={tdStyle}>
+                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
+                  <select style={inputStyle} value={helpCenterStatus} onChange={(e) => setHelpCenterStatus(e.target.value)}>
+                    <option value="">All Statuses</option>
+                    <option value="Open">Open</option>
+                    <option value="In Progress">In Progress</option>
+                    <option value="Resolved">Resolved</option>
+                    <option value="Closed">Closed</option>
+                  </select>
+                </div>
+              </td>
+              <td style={tdStyle}>
+                <button onClick={() => handleMockGenerate("Help Center")} style={primaryBtn}>Generate</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div style={{ marginBottom: "24px" }}>
+        <h3 style={{ fontSize: "18px", fontWeight: "600", color: "#0f172a", margin: 0 }}>Generated Reports</h3>
+      </div>
+
+      <div style={{ background: "#fff", borderRadius: "12px", border: "1px solid #e2e8f0", overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse", fontSize: "14px", textAlign: "left" }}>
+          <thead>
+            <tr>
+              <th style={thStyle}>Report Name</th>
+              <th style={thStyle}>Generated On</th>
+              <th style={thStyle}>Format</th>
+              <th style={thStyle}>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            {generatedReports.map((report) => (
+              <tr key={report.id}>
+                <td style={{ ...tdStyle, fontWeight: "500", color: "#334155" }}>{report.name}</td>
+                <td style={tdStyle}>{report.date}</td>
+                <td style={tdStyle}>
+                  <span style={{ padding: "4px 8px", borderRadius: "4px", fontSize: "12px", fontWeight: "600", background: report.format === "PDF" ? "#fee2e2" : "#dcfce7", color: report.format === "PDF" ? "#b91c1c" : "#16a34a" }}>
+                    {report.format}
+                  </span>
+                </td>
+                <td style={tdStyle}>
+                  <button onClick={() => alert("Downloading past report...")} style={{ background: "none", border: "none", color: "#2563eb", cursor: "pointer", fontSize: "14px", fontWeight: "500", padding: 0 }}>
+                    Download
+                  </button>
+                </td>
+              </tr>
+            ))}
+            {generatedReports.length === 0 && (
+              <tr>
+                <td colSpan="4" style={{ padding: "32px", textAlign: "center", color: "#64748b" }}>No generated reports found.</td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
     </div>
   );
