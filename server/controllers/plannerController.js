@@ -14,7 +14,7 @@ const createRegularizationRequest = async (req, res) => {
       return res.status(400).json({ success: false, message: "date, timeIn and timeOut are required" });
     }
 
-    const existingAttendance = await Attendance.findOne({ where: { employeeId: req.user.id, date } });
+    const existingAttendance = await Attendance.findOne({ where: { employeeId: req.user.id, attendanceDate: date } });
     if (existingAttendance) {
       return res.status(400).json({ success: false, message: "Attendance already exists for this date" });
     }
@@ -49,7 +49,11 @@ const createRegularizationRequest = async (req, res) => {
     return res.status(201).json({ success: true, request });
   } catch (error) {
     console.error("Create regularization request error:", error);
-    return res.status(500).json({ success: false, message: "Server error submitting regularization request" });
+    return res.status(500).json({
+      success: false,
+      message: error.message || "Server error submitting regularization request",
+      stack: process.env.NODE_ENV === "development" ? error.stack : undefined,
+    });
   }
 };
 
@@ -81,15 +85,22 @@ const getMyAttendance = async (req, res) => {
       const start = `${y}-${String(m).padStart(2, "0")}-01`;
       const lastDay = new Date(y, m, 0).getDate();
       const end = `${y}-${String(m).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
-      where.date = { [Op.between]: [start, end] };
+      where.attendanceDate = { [Op.between]: [start, end] };
     }
 
-    const records = await Attendance.findAll({ where, order: [["date", "ASC"]] });
+    const rawRecords = await Attendance.findAll({ where, order: [["attendanceDate", "ASC"]] });
+    const records = rawRecords.map((r) => ({
+      id: r.id,
+      date: r.attendanceDate,
+      timeIn: r.morningCheckIn,
+      timeOut: r.finalCheckOut,
+      status: r.status,
+    }));
 
     // Pending/rejected requests too, so the Planner can show a status badge
     // on days the employee already asked to regularize.
     const pendingWhere = { employeeId: req.user.id };
-    if (where.date) pendingWhere.date = where.date;
+    if (where.attendanceDate) pendingWhere.date = where.attendanceDate;
     const pendingRequests = await AttendanceRegularization.findAll({
       where: { ...pendingWhere, status: "Pending" },
     });
@@ -140,16 +151,16 @@ const updateRegularizationStatus = async (req, res) => {
     if (status === "Approved") {
       const [inH, inM] = request.timeIn.split(":").map(Number);
       const [outH, outM] = request.timeOut.split(":").map(Number);
-      const totalHours = Math.max(0, (outH * 60 + outM - (inH * 60 + inM)) / 60);
+      const totalWorkingMinutes = Math.max(0, (outH * 60 + outM) - (inH * 60 + inM));
 
       await Attendance.create({
         employeeId: request.employeeId,
         employeeName: request.employeeName,
-        date: request.date,
-        timeIn: request.timeIn,
-        timeOut: request.timeOut,
-        totalHours,
-        status: "Approved",
+        attendanceDate: request.date,
+        morningCheckIn: request.timeIn,
+        finalCheckOut: request.timeOut,
+        totalWorkingMinutes,
+        status: "Completed",
         source: "regularization",
         regularizationId: request.id,
       });
