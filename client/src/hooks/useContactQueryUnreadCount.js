@@ -4,11 +4,15 @@ import { onSocketEvent } from "../services/socketService";
 
 // Same shape as useNotificationUnreadCount / useChatUnreadCount - poll as a
 // fallback, but update instantly on the relevant socket events.
-const useContactQueryUnreadCount = () => {
+const useContactQueryUnreadCount = (enabled = true) => {
   const [count, setCount] = useState(0);
   const mountedRef = useRef(true);
 
   useEffect(() => {
+    if (!enabled) {
+      setCount(0);
+      return;
+    }
     mountedRef.current = true;
 
     const refresh = () => {
@@ -31,7 +35,7 @@ const useContactQueryUnreadCount = () => {
       window.removeEventListener("crm_queries_updated", refresh);
       unsubscribers.forEach((unsub) => unsub && unsub());
     };
-  }, []);
+  }, [enabled]);
 
   return count;
 };

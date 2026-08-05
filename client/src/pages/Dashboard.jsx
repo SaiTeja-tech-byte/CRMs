@@ -21,6 +21,7 @@ import AttendanceWidget from "../components/attendance/AttendanceWidget";
 import HelpCenterPage from "./HelpCenterPage";
 import PayrollPage from "./PayrollPage";
 import ReportsPage from "./ReportsPage";
+import Sidebar from "../components/layout/Sidebar";
 
 const TODAY_STR = new Date().toISOString().slice(0, 10);
 
@@ -164,97 +165,7 @@ const SalesChartComponent = () => {
   );
 };
 
-// ----------------------------------------------------
-// SIDEBAR MENU
-// ----------------------------------------------------
-const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive }) => {
-  const navigate = useNavigate();
-  const chatUnread = useChatUnreadCount();
-  const notifUnread = useNotificationUnreadCount();
-  const docsUnread = useNotificationUnreadCount("document");
-  const menuItems = [
-    { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
-    { key: "me", label: "Me", icon: "bi-person" },
-    { key: "news", label: "News", icon: "bi-newspaper" },
-    { key: "calendar", label: "Calendar", icon: "bi-calendar-event" },
-    { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
-    { key: "expenses", label: "Expenses", icon: "bi-wallet2" },
-    { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
-    { key: "team", label: "Team", icon: "bi-people" },
-    { key: "chat", label: "Chat", icon: "bi-chat-dots" },
-    { key: "documents", label: "Documents", icon: "bi-file-earmark-text" },
-    { key: "help-center", label: "Help Center", icon: "bi-life-preserver" },
-    { key: "notifications", label: "Notifications", icon: "bi-bell" },
-    { key: "settings", label: "Settings", icon: "bi-gear" },
-    { key: "orgchart", label: "Organization Chart", icon: "bi-diagram-3" }
-  ];
-
-  const handleItemClick = (item) => {
-    setMobileActive(false);
-    
-    // Explicitly ensure Chat always renders inside the dashboard layout
-    // bypassing any potential legacy 'to' properties
-    if (item.key === "chat") {
-      setActiveMenu(item.key);
-      return;
-    }
-    
-    if (item.to) {
-      navigate(item.to);
-    } else {
-      setActiveMenu(item.key);
-    }
-  };
-
-  return (
-    <aside className="crm-sidebar-menu">
-      <ul className="sidebar-links-stack">
-        {menuItems.map(item => (
-          <li className={activeMenu === item.key ? "active" : ""} key={item.key}>
-            <button
-              title={item.label}
-              onClick={() => handleItemClick(item)}
-              style={{ position: "relative" }}
-            >
-              <i className={`bi ${item.icon}`}></i>
-              <span className="sidebar-nav-label">{item.label}</span>
-              {item.key === "chat" && chatUnread > 0 && (
-                <span
-                  className="badge rounded-pill bg-danger"
-                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
-                >
-                  {chatUnread > 99 ? "99+" : chatUnread}
-                </span>
-              )}
-              {item.key === "documents" && docsUnread > 0 && (
-                <span
-                  className="badge rounded-pill bg-danger"
-                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
-                >
-                  {docsUnread > 99 ? "99+" : docsUnread}
-                </span>
-              )}
-              {item.key === "notifications" && notifUnread > 0 && (
-                <span
-                  className="badge rounded-pill bg-danger"
-                  style={{ position: "absolute", top: "4px", right: "10px", fontSize: "10px" }}
-                >
-                  {notifUnread > 99 ? "99+" : notifUnread}
-                </span>
-              )}
-            </button>
-          </li>
-        ))}
-        <li className="sidebar-logout-item">
-          <button title="Logout" onClick={onLogout}>
-            <i className="bi bi-box-arrow-right"></i>
-            <span className="sidebar-nav-label">Logout</span>
-          </button>
-        </li>
-      </ul>
-    </aside>
-  );
-};
+// Local Sidebar component removed to use the shared layout Sidebar.jsx component.
 
 const AvatarRenderer = ({ profile, size }) => {
   if (profile && profile.avatar) {
@@ -7262,9 +7173,7 @@ body {
                 }
               `}</style>
 
-              <div style={{ width: "100%", marginBottom: "20px" }}>
-                <AttendanceWidget profile={profile} />
-              </div>
+              {/* Detailed Attendance Widget moved to dedicated Attendance tab */}
               <div className="ew-root">
 
                 <div className="ew-left">
@@ -7604,6 +7513,13 @@ body {
           {/* VIEW: REPORTS TAB */}
           {activeMenu === "reports" && (
             <ReportsPage />
+          )}
+
+          {/* VIEW: ATTENDANCE TAB */}
+          {activeMenu === "attendance" && (
+            <div style={{ width: "100%", marginBottom: "20px" }}>
+              <AttendanceWidget profile={profile} />
+            </div>
           )}
 
           {/* VIEW: CHAT TAB */}

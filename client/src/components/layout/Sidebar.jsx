@@ -9,7 +9,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
   const chatUnread = useChatUnreadCount();
   const notifUnread = useNotificationUnreadCount();
   const docsUnread = useNotificationUnreadCount("document");
-  const queriesUnread = useContactQueryUnreadCount();
+  const queriesUnread = useContactQueryUnreadCount(isAdmin);
 
   const employeeMenuItems = [
     { key: "dashboard", label: "Dashboard", icon: "bi-speedometer2" },
@@ -19,6 +19,7 @@ const Sidebar = ({ activeMenu, setActiveMenu, onLogout, setMobileActive, isAdmin
     { key: "tasks", label: "Tasks", icon: "bi-check2-square" },
     { key: "expenses", label: "Expenses", icon: "bi-wallet2" },
     { key: "payroll", label: "Payroll", icon: "bi-cash-coin" },
+    { key: "attendance", label: "Attendance", icon: "bi-clock-history" },
     { key: "reports", label: "Reports", icon: "bi-file-earmark-bar-graph" },
     { key: "team", label: "Team", icon: "bi-people" },
     // Chat lives at its own route (/chat), not a tab inside Dashboard.jsx's
