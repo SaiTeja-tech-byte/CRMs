@@ -29,7 +29,7 @@ import AdminHelpCenterPage from './AdminHelpCenterPage';
 import AdminPayrollPage from './AdminPayrollPage';
 import AdminEmployeesPage from './AdminEmployeesPage';
 import AdminEmployeeProfilePage from './AdminEmployeeProfilePage';
-import EmployeesDashboardWidgets from '../components/admin/employees/EmployeesDashboardWidgets';
+
 // =========================
 // AdminHome
 // =========================
@@ -79,7 +79,6 @@ const AdminHome = () => {
 
   return (
     <>
-      <EmployeesDashboardWidgets stats={stats} />
       <style>{`
         /* ── Employee Workspace Dashboard ── */
         .ew-root {
