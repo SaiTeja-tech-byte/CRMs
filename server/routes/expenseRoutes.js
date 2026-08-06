@@ -6,19 +6,22 @@ const {
   createExpense,
   getMyExpenses,
   getAllExpenses,
+  getExpenseById,
   updateExpenseStatus,
 } = require("../controllers/expenseController");
 
 router.use(requireAuth);
 
-// Employee: submit a request, view own requests.
+
 router.post("/", createExpense);
 router.get("/mine", getMyExpenses);
 
-// Admin: see every request
+
 router.get("/", requireAdmin, getAllExpenses);
 
-// Both: Employee can withdraw (patch own to Withdrawn), Admin can Approve/Reject.
+router.get("/:id", getExpenseById);
+
+
 router.patch("/:id", updateExpenseStatus);
 
 module.exports = router;
