@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-import reportService from "../services/reportService";
 import ReportModal from "../components/admin/reports/ReportModal";
 import ReportViewer from "../components/admin/reports/ReportViewer";
 
@@ -12,11 +11,9 @@ const REPORT_CARDS = [
 ];
 
 const ReportsPage = () => {
-  const [view, setView] = useState("hub"); // "hub" | "viewer"
-  const [modalType, setModalType] = useState(null); // "attendance" | "payroll" | ...
+  const [view, setView] = useState("hub"); 
+  const [modalType, setModalType] = useState(null); 
   const [filters, setFilters] = useState({});
-  const [reportData, setReportData] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [activeReport, setActiveReport] = useState(null);
 
   const openModal = (type) => {
@@ -32,26 +29,11 @@ const ReportsPage = () => {
     }
   };
 
-  const handleLaunch = async () => {
-    setLoading(true);
-    try {
-      let data = [];
-      if (modalType === "attendance") data = await reportService.getAttendanceReport(filters);
-      if (modalType === "payroll") data = await reportService.getPayrollReport(filters);
-      if (modalType === "expenses") data = await reportService.getExpensesReport(filters);
-      if (modalType === "helpCenter") data = await reportService.getHelpCenterReport(filters);
-      if (modalType === "tasks") data = await reportService.getTasksReport(filters);
-      
-      setReportData(data.rows || []);
-      setActiveReport(modalType);
-      setView("viewer");
-      setModalType(null);
-    } catch (err) {
-      console.error(err);
-      alert("Failed to generate report.");
-    } finally {
-      setLoading(false);
-    }
+  const handleLaunch = () => {
+    // ReportViewer fetches its own (sorted, paginated) data once mounted.
+    setActiveReport(modalType);
+    setView("viewer");
+    setModalType(null);
   };
 
   if (view === "viewer") {
@@ -59,7 +41,6 @@ const ReportsPage = () => {
       <ReportViewer 
         type={activeReport} 
         filters={filters} 
-        data={reportData} 
         onBack={() => setView("hub")} 
       />
     );
@@ -108,7 +89,7 @@ const ReportsPage = () => {
           setFilters={setFilters}
           onClose={() => setModalType(null)}
           onLaunch={handleLaunch}
-          loading={loading}
+          loading={false}
         />
       )}
       
