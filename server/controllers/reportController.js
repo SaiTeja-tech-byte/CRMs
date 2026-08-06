@@ -5,8 +5,18 @@ const Expense = require("../models/Expense");
 const Ticket = require("../models/Ticket");
 const Task = require("../models/Task");
 const User = require("../models/User");
+const { sortAndPaginateReport } = require("../utils/pagination");
 
-// Helpers
+const SORT_MAPS = {
+  attendance: { name: "employeeName", newest: "date", oldest: "date", size: "_workingMinutes" },
+  payroll: { name: "employeeName", newest: "_createdAt", oldest: "_createdAt", size: "netSalary" },
+  expenses: { name: "employeeName", newest: "date", oldest: "date", size: "amount" },
+  helpCenter: { name: "employeeName", newest: "_createdAt", oldest: "_createdAt" },
+  tasks: { name: "employeeName", newest: "_createdAt", oldest: "_createdAt" },
+  employees: { name: "employeeName", newest: "joinedDate", oldest: "joinedDate" },
+};
+
+
 const buildDateWhere = (from, to, dateField) => {
   const where = {};
   if (from && to) where[dateField] = { [Op.between]: [from, to] };
@@ -83,11 +93,13 @@ const getAttendanceReport = async (req, res) => {
         workingHours: minutesToHrsMin(r.totalWorkingMinutes),
         breakTime: minutesToHrsMin(r.totalBreakMinutes),
         status: r.status,
+        _workingMinutes: r.totalWorkingMinutes || 0,
       };
     });
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.attendance);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Attendance report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -120,10 +132,12 @@ const getPayrollReport = async (req, res) => {
       deductions: (r.tax || 0) + (r.pf || 0) + (r.esi || 0) + (r.professionalTax || 0) + (r.otherDeductions || 0),
       netSalary: r.netSalary,
       status: r.status,
+      _createdAt: r.createdAt,
     }));
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.payroll);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Payroll report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -155,7 +169,8 @@ const getExpensesReport = async (req, res) => {
     }));
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.expenses);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Expenses report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -185,10 +200,12 @@ const getHelpCenterReport = async (req, res) => {
       status: r.status,
       createdDate: new Date(r.createdAt).toISOString().slice(0, 10),
       closedDate: r.status === "Closed" || r.status === "Resolved" ? new Date(r.updatedAt).toISOString().slice(0, 10) : "-",
+      _createdAt: r.createdAt,
     }));
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.helpCenter);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Help Center report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -223,10 +240,12 @@ const getTasksReport = async (req, res) => {
       dueDate: r.dueDate || "—",
       status: r.status,
       completion: r.completed ? "100%" : "0%",
+      _createdAt: r.createdAt,
     }));
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.tasks);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Tasks report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
@@ -250,7 +269,8 @@ const getEmployeesReport = async (req, res) => {
     }));
 
     rows = applyAdminFilters(rows, req);
-    return res.status(200).json({ success: true, rows });
+    const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.employees);
+    return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
     console.error("Employees report error:", error);
     return res.status(500).json({ success: false, message: "Server error" });
