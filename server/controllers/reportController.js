@@ -153,6 +153,13 @@ const getExpensesReport = async (req, res) => {
 
     const records = await Expense.findAll({
       where,
+      // The report output below only ever uses id/name/department/title/
+      // category/amount/date/status — never the receipt files — so exclude
+      // `receipts` here too. Without this, every base64 receipt file gets
+      // pulled over the network for every row, which is what was making
+      // this report time out / appear broken for accounts with any
+      // meaningful number of expense claims.
+      attributes: { exclude: ["receipts"] },
       order: [["date", "DESC"]],
     });
 
