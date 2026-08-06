@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import expenseService from "../services/expenseService";
 import { onSocketEvent } from "../services/socketService";
+import { previewFile, downloadFile } from "../utils/fileActions";
 
 const AdminExpensesPage = () => {
   // Empty state by default
@@ -32,6 +33,7 @@ const AdminExpensesPage = () => {
   const [rejectReason, setRejectReason] = useState("");
   const [toastMessage, setToastMessage] = useState("");
   const [selectedExpense, setSelectedExpense] = useState(null);
+  const [detailsLoading, setDetailsLoading] = useState(false);
 
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState("All");
@@ -40,8 +42,19 @@ const AdminExpensesPage = () => {
   const [dateRange, setDateRange] = useState("");
 
   const openDetails = (expense) => {
+    // The list only carries a receiptsCount, not the actual receipt files
+    // (that's what keeps the list fast to load) — so fetch the full record
+    // with receipts on demand when the admin actually opens details.
     setSelectedExpense(expense);
+    setDetailsLoading(true);
     setShowDetailsModal(true);
+    expenseService
+      .getExpenseById(expense.id)
+      .then((res) => {
+        if (res.success) setSelectedExpense(res.expense);
+      })
+      .catch((error) => console.error("Error fetching expense details:", error))
+      .finally(() => setDetailsLoading(false));
   };
 
   const handleApprove = async () => {
@@ -350,14 +363,16 @@ const AdminExpensesPage = () => {
 
                 <div className="mt-2">
                   <h6 className="fw-bold mb-3 small text-muted text-uppercase tracking-wide" style={{ letterSpacing: '0.5px' }}>Uploaded Receipts</h6>
-                  {selectedExpense.receipts && selectedExpense.receipts.length > 0 ? (
+                  {detailsLoading ? (
+                    <p className="text-muted small mb-0"><i className="bi-arrow-repeat me-2"></i>Loading receipts...</p>
+                  ) : selectedExpense.receipts && selectedExpense.receipts.length > 0 ? (
                     <div className="d-flex flex-column gap-2">
                       {selectedExpense.receipts.map((file, idx) => (
                         <div key={idx} className="d-flex align-items-center small p-2 rounded-2 border">
                           <i className="bi-file-earmark-pdf text-muted me-2"></i>
                           <span className="fw-medium text-dark me-auto">{file.name}</span>
-                          <button className="btn btn-link text-primary p-0 text-decoration-none small me-3 border-0">Preview</button>
-                          <button className="btn btn-link text-primary p-0 text-decoration-none small border-0">Download</button>
+                          <button type="button" className="btn btn-link text-primary p-0 text-decoration-none small me-3 border-0" onClick={() => previewFile(file)}>Preview</button>
+                          <button type="button" className="btn btn-link text-primary p-0 text-decoration-none small border-0" onClick={() => downloadFile(file)}>Download</button>
                         </div>
                       ))}
                     </div>
