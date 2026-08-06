@@ -1,7 +1,21 @@
+const { sequelize } = require("../config/db");
 const Expense = require("../models/Expense");
 const Notification = require("../models/Notification");
 const User = require("../models/User");
 const { emitToUser, emitToAdmins } = require("../utils/socket");
+
+const LIST_ATTRIBUTES = {
+  exclude: ["receipts"],
+  include: [
+    [
+      sequelize.fn(
+        "json_array_length",
+        sequelize.fn("coalesce", sequelize.col("receipts"), sequelize.literal("'[]'::json"))
+      ),
+      "receiptsCount",
+    ],
+  ],
+};
 
 const createExpense = async (req, res) => {
   try {
@@ -45,6 +59,7 @@ const getMyExpenses = async (req, res) => {
   try {
     const expenses = await Expense.findAll({
       where: { employeeId: req.user.id },
+      attributes: LIST_ATTRIBUTES,
       order: [["createdAt", "DESC"]],
     });
     return res.status(200).json({ success: true, expenses });
@@ -57,12 +72,34 @@ const getMyExpenses = async (req, res) => {
 const getAllExpenses = async (req, res) => {
   try {
     const expenses = await Expense.findAll({
+      attributes: LIST_ATTRIBUTES,
       order: [["createdAt", "DESC"]],
     });
     return res.status(200).json({ success: true, expenses });
   } catch (error) {
     console.error("Get all expenses error:", error);
     return res.status(500).json({ success: false, message: "Server error fetching all expenses" });
+  }
+};
+
+// GET /api/expenses/:id — full record including receipts (with fileUrl),
+// fetched on demand when the employee or admin opens the details/preview
+// modal for one specific expense. Kept separate from the list endpoints
+// above so loading the list never has to pull receipt file data.
+const getExpenseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const expense = await Expense.findByPk(id);
+    if (!expense) {
+      return res.status(404).json({ success: false, message: "Expense not found" });
+    }
+    if (req.user.role !== "admin" && expense.employeeId !== req.user.id) {
+      return res.status(403).json({ success: false, message: "Unauthorized" });
+    }
+    return res.status(200).json({ success: true, expense });
+  } catch (error) {
+    console.error("Get expense by id error:", error);
+    return res.status(500).json({ success: false, message: "Server error fetching expense" });
   }
 };
 
@@ -135,5 +172,6 @@ module.exports = {
   createExpense,
   getMyExpenses,
   getAllExpenses,
+  getExpenseById,
   updateExpenseStatus,
 };
