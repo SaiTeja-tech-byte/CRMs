@@ -15,7 +15,7 @@ const serializeProfile = (user) => {
   };
 };
 
-// GET /api/profile
+
 const getProfile = async (req, res) => {
   try {
     const user = await User.findByPk(req.user.id);
@@ -38,6 +38,11 @@ const updateProfile = async (req, res) => {
       return res.status(404).json({ success: false, message: "User not found" });
     }
 
+    // NOTE: "employeeId" and "company" (companyName) are intentionally left
+    // out of this list. They're shown read-only on the employee's own Me
+    // page — only an admin can set them, from the Employees section
+    // (see adminController.updateUser) — so they must never be accepted
+    // here, even if a request happens to include them.
     const editableFields = [
       // Personal Information
       "firstName",
@@ -47,7 +52,6 @@ const updateProfile = async (req, res) => {
       "gender",
       "nationality",
       // Work Information
-      "employeeId",
       "designation",
       "department",
       "officeLocation",
@@ -86,11 +90,6 @@ const updateProfile = async (req, res) => {
         user[field] = req.body[field] === "" && ["dob", "joiningDate"].includes(field) ? null : req.body[field];
       }
     });
-
-    // "company" comes in from the frontend form but is stored as companyName.
-    if (req.body.company !== undefined) {
-      user.companyName = req.body.company;
-    }
 
     // Keep fullName (used elsewhere — team lists, headers) in sync when the
     // person edits their first/last name on the Me page.
