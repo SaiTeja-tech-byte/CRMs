@@ -148,20 +148,31 @@ const AdminReportsPage = () => {
 
         .generate-btn {
           width: 100%;
-          padding: 10px;
-          border-radius: 6px;
-          background: #FFFFFF;
-          color: #374151;
-          border: 1px solid #D1D5DB;
-          font-weight: 500;
+          height: 42px;
+          border-radius: 8px;
+          background: #EEF4FF;
+          color: #2563EB;
+          border: 1px solid #D6E4FF;
+          font-weight: 600;
           font-size: 14px;
           cursor: pointer;
           transition: all 0.2s ease;
+          box-shadow: none;
         }
         .generate-btn:hover {
-          background: #F9FAFB;
-          border-color: #2563EB;
-          color: #2563EB;
+          background: #DBEAFE;
+          border-color: #93C5FD;
+          color: #1D4ED8;
+        }
+        .generate-btn:active {
+          background: #BFDBFE;
+          border-color: #60A5FA;
+        }
+        .generate-btn:disabled {
+          background: #F8FAFC;
+          border-color: #E5E7EB;
+          color: #9CA3AF;
+          cursor: not-allowed;
         }
       `}</style>
     </div>
