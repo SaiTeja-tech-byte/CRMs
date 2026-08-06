@@ -38,6 +38,15 @@ const expenseService = {
     return response.data;
   },
 
+  
+  getExpenseById: async (id) => {
+    const response = await axios.get(`${API_BASE}/expenses/${id}`, authHeaders());
+    if (response.data.success && response.data.expense) {
+      response.data.expense = mapExpense(response.data.expense);
+    }
+    return response.data;
+  },
+
   updateExpenseStatus: async (id, status, rejectReason = "") => {
     const response = await axios.patch(`${API_BASE}/expenses/${id}`, { status, rejectReason }, authHeaders());
     if (response.data.success && response.data.expense) {
