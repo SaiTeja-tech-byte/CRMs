@@ -18,8 +18,7 @@ const ReportsPage = () => {
 
   const openModal = (type) => {
     setModalType(type);
-    
-    // Set default filters
+  
     if (type === "payroll") {
       setFilters({ month: new Date().getMonth() + 1, year: new Date().getFullYear(), format: "pdf" });
     } else {
@@ -30,7 +29,7 @@ const ReportsPage = () => {
   };
 
   const handleLaunch = () => {
-    // ReportViewer fetches its own (sorted, paginated) data once mounted.
+   
     setActiveReport(modalType);
     setView("viewer");
     setModalType(null);
