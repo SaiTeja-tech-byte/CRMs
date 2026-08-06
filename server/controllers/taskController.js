@@ -2,13 +2,6 @@ const Task = require("../models/Task");
 const { emitToAdmins } = require("../utils/socket");
 const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
-// GET /api/tasks — every task assigned to (or created by) the logged-in
-// employee, including ones an admin assigned to them.
-// Pagination is opt-in here: the employee Tasks tab computes its
-// Overdue/Pending/Today/etc. category counts from the full list client-side,
-// so the default limit is intentionally high (500) rather than the normal
-// 20 — pass ?limit=20&page=2 explicitly once that tab is rearchitected to
-// fetch per-category from the server instead.
 const getTasks = async (req, res) => {
   try {
     const { page, limit, offset, order } = parsePagination(req.query, {
