@@ -740,8 +740,6 @@ const Features = () => {
 }
 `}</style>
       <FeaturesSection />
-      <CtaBannerSection />
-      <HowItWorksSection />
     </>
   );
 };
