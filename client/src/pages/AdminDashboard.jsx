@@ -1864,6 +1864,9 @@ const AdminTasks = () => {
   const [error, setError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
   const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("");
+  const [departmentFilter, setDepartmentFilter] = useState("");
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -1880,14 +1883,23 @@ const AdminTasks = () => {
 
   useEffect(() => {
     setPage(1);
-  }, [debouncedSearch, sort.sortBy, sort.sortDir]);
+  }, [debouncedSearch, sort.sortBy, sort.sortDir, statusFilter, priorityFilter, departmentFilter]);
 
   const loadData = async () => {
     try {
       setLoading(true);
       setError("");
       const [{ tasks: taskList, pagination: meta }, employeeList] = await Promise.all([
-        adminGetAllTasks({ page, limit: 20, sortBy: sort.sortBy, sortDir: sort.sortDir, search: debouncedSearch || undefined }),
+        adminGetAllTasks({
+          page,
+          limit: 20,
+          sortBy: sort.sortBy,
+          sortDir: sort.sortDir,
+          search: debouncedSearch || undefined,
+          status: statusFilter || undefined,
+          priority: priorityFilter || undefined,
+          department: departmentFilter || undefined,
+        }),
         adminGetEmployees(),
       ]);
       setTasks(taskList);
@@ -1910,7 +1922,7 @@ const AdminTasks = () => {
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page, sort.sortBy, sort.sortDir, debouncedSearch]);
+  }, [page, sort.sortBy, sort.sortDir, debouncedSearch, statusFilter, priorityFilter, departmentFilter]);
 
   const departments = [...new Set(employees.map(e => e.department).filter(Boolean))];
 
@@ -1980,6 +1992,31 @@ const AdminTasks = () => {
               <i className="bi bi-search position-absolute top-50 translate-middle-y text-muted" style={{ left: "12px" }}></i>
               <input type="text" className="form-control ps-5" placeholder="Search tasks or assignees..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: "8px" }} />
             </div>
+            <select className="form-select" style={{ borderRadius: "8px", width: "150px" }} value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
+              <option value="">All Statuses</option>
+              <option value="Pending">Pending</option>
+              <option value="In Progress">In Progress</option>
+              <option value="Completed">Completed</option>
+            </select>
+            <select className="form-select" style={{ borderRadius: "8px", width: "150px" }} value={priorityFilter} onChange={(e) => setPriorityFilter(e.target.value)}>
+              <option value="">All Priorities</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            <select className="form-select" style={{ borderRadius: "8px", width: "170px" }} value={departmentFilter} onChange={(e) => setDepartmentFilter(e.target.value)}>
+              <option value="">All Departments</option>
+              {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+            </select>
+            {(statusFilter || priorityFilter || departmentFilter || searchTerm) && (
+              <button
+                className="btn btn-sm btn-light border"
+                style={{ borderRadius: "8px" }}
+                onClick={() => { setStatusFilter(""); setPriorityFilter(""); setDepartmentFilter(""); setSearchTerm(""); }}
+              >
+                Reset
+              </button>
+            )}
           </div>
           <button className="btn btn-primary px-3" style={{ borderRadius: "8px" }} onClick={() => setShowCreateModal(true)} disabled={loading}>
             <i className="bi bi-plus-lg me-2"></i>Assign Task
@@ -3449,12 +3486,20 @@ const AdminNews = () => {
   const [newNews, setNewNews] = useState({
     title: "", content: "", category: "Announcement"
   });
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [newsSortDir, setNewsSortDir] = useState("desc"); // desc = Latest first
 
   const fetchAnnouncements = async (showLoading = true) => {
     if (showLoading) setLoading(true);
     setError("");
     try {
-      const data = await getNews({ page, limit: 10 });
+      const data = await getNews({
+        page,
+        limit: 10,
+        department: categoryFilter || undefined,
+        sortBy: "createdAt",
+        sortDir: newsSortDir,
+      });
       setAnnouncements(data.announcements || []);
       setPagination(data.pagination || null);
     } catch (err) {
@@ -3465,6 +3510,10 @@ const AdminNews = () => {
   };
 
   useEffect(() => {
+    setPage(1);
+  }, [categoryFilter, newsSortDir]);
+
+  useEffect(() => {
     fetchAnnouncements(true);
     const unsubscribers = [
       onSocketEvent("news:new", () => fetchAnnouncements(false)),
@@ -3472,7 +3521,7 @@ const AdminNews = () => {
     ];
     return () => unsubscribers.forEach((unsub) => unsub());
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [page]);
+  }, [page, categoryFilter, newsSortDir]);
 
   const handleCreateSubmit = async () => {
     if (!newNews.title || !newNews.content) {
@@ -3484,7 +3533,7 @@ const AdminNews = () => {
       await createNews({
         title: newNews.title,
         content: newNews.content,
-        type: newNews.category
+        department: newNews.category
       });
       setShowCreateModal(false);
       setNewNews({ title: "", content: "", category: "Announcement" });
@@ -3535,6 +3584,23 @@ const AdminNews = () => {
         <button className="btn btn-primary btn-sm d-flex align-items-center gap-2" style={{ fontWeight: "700", padding: "8px 16px", borderRadius: "8px" }} onClick={() => setShowCreateModal(true)}>
           <i className="bi bi-megaphone-fill"></i> Publish News
         </button>
+      </div>
+
+      <div className="d-flex flex-wrap align-items-center gap-2 mt-3">
+        <select className="form-select form-select-sm" style={{ width: "170px", borderRadius: "8px" }} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+          <option value="">All Categories</option>
+          <option value="Announcement">Announcement</option>
+          <option value="Newsletter">Newsletter</option>
+          <option value="Event">Event</option>
+          <option value="Policy Update">Policy Update</option>
+        </select>
+        <select className="form-select form-select-sm" style={{ width: "140px", borderRadius: "8px" }} value={newsSortDir} onChange={(e) => setNewsSortDir(e.target.value)}>
+          <option value="desc">Latest</option>
+          <option value="asc">Oldest</option>
+        </select>
+        {categoryFilter && (
+          <button className="btn btn-sm btn-light border" style={{ borderRadius: "8px" }} onClick={() => setCategoryFilter("")}>Reset</button>
+        )}
       </div>
 
       {loading && (
