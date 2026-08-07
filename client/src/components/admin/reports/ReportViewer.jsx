@@ -62,6 +62,24 @@ const ReportViewer = ({ type, filters, onBack }) => {
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
+  // In-report search — lets the admin narrow the already-generated report
+  // by name/ID without reopening the launch modal (useful when the report
+  // was generated for "All Departments" and now needs narrowing down).
+  const [nameSearch, setNameSearch] = useState(filters.name || "");
+  const [idSearch, setIdSearch] = useState(filters.employeeId || "");
+  const [debouncedNameSearch, setDebouncedNameSearch] = useState(nameSearch);
+  const [debouncedIdSearch, setDebouncedIdSearch] = useState(idSearch);
+
+  useEffect(() => {
+    const t = setTimeout(() => {
+      setDebouncedNameSearch(nameSearch);
+      setDebouncedIdSearch(idSearch);
+    }, 350);
+    return () => clearTimeout(t);
+  }, [nameSearch, idSearch]);
+
+  const effectiveFilters = { ...filters, name: debouncedNameSearch, employeeId: debouncedIdSearch };
+
   const sortOptions = SORT_OPTIONS[type] || [];
   const isPaginated = sortOptions.length > 0; // false only for "organization"
   const [sortBy, setSortBy] = useState(sortOptions[0]?.value || "name");
@@ -73,7 +91,8 @@ const ReportViewer = ({ type, filters, onBack }) => {
     setTimeout(() => setShow(true), 10);
   }, []);
 
-  // Refetch this page of the report whenever sort or page changes.
+  // Refetch this page of the report whenever sort, page, or the in-report
+  // name/ID search changes.
   useEffect(() => {
     if (!fetcher) return;
     let active = true;
@@ -82,8 +101,8 @@ const ReportViewer = ({ type, filters, onBack }) => {
       setLoading(true);
       try {
         const params = isPaginated
-          ? { ...filters, sortBy, page, limit: PAGE_SIZE }
-          : { ...filters };
+          ? { ...effectiveFilters, sortBy, page, limit: PAGE_SIZE }
+          : { ...effectiveFilters };
         const data = await fetcher(params);
         if (!active) return;
         const fetchedRows = data.rows || [];
@@ -105,9 +124,14 @@ const ReportViewer = ({ type, filters, onBack }) => {
     // filters is set once when the report is launched and doesn't change
     // while this viewer is open, so it's intentionally left out of deps.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, sortBy, page]);
+  }, [type, sortBy, page, debouncedNameSearch, debouncedIdSearch]);
 
-  // Changing the sort order always jumps back to page 1.
+  // Changing the sort order or the in-report search always jumps back to page 1.
+  useEffect(() => {
+    setPage(1);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [debouncedNameSearch, debouncedIdSearch]);
+
   useEffect(() => {
     setPage(1);
   }, [sortBy]);
@@ -172,7 +196,7 @@ const ReportViewer = ({ type, filters, onBack }) => {
   // full report" implies.
   const fetchAllForExport = async () => {
     if (!fetcher) return [];
-    const params = isPaginated ? { ...filters, sortBy, limit: "all" } : { ...filters };
+    const params = isPaginated ? { ...effectiveFilters, sortBy, limit: "all" } : { ...effectiveFilters };
     const data = await fetcher(params);
     return data.rows || [];
   };
@@ -256,9 +280,33 @@ const ReportViewer = ({ type, filters, onBack }) => {
         </div>
       </div>
 
-      {/* Sort control */}
+      {/* In-report search + sort control */}
       {isPaginated && (
-        <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: "16px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: "12px", marginBottom: "16px", flexWrap: "wrap" }}>
+          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+            <input
+              type="text"
+              placeholder="Search by employee name…"
+              value={nameSearch}
+              onChange={(e) => setNameSearch(e.target.value)}
+              style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid #cbd5e1", fontSize: "13px", width: "220px" }}
+            />
+            <input
+              type="text"
+              placeholder="Search by employee ID…"
+              value={idSearch}
+              onChange={(e) => setIdSearch(e.target.value)}
+              style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid #cbd5e1", fontSize: "13px", width: "180px" }}
+            />
+            {(nameSearch || idSearch) && (
+              <button
+                onClick={() => { setNameSearch(""); setIdSearch(""); }}
+                style={{ padding: "6px 12px", borderRadius: "4px", border: "1px solid #e2e8f0", background: "#f8fafc", color: "#475569", cursor: "pointer", fontSize: "13px" }}
+              >
+                Clear
+              </button>
+            )}
+          </div>
           <SortDropdown options={sortOptions} value={sortBy} onChange={setSortBy} disabled={loading} />
         </div>
       )}
