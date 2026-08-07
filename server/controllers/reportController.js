@@ -32,13 +32,28 @@ const minutesToHrsMin = (mins = 0) => {
   return `${h}h ${m}m`;
 };
 
-const applyAdminFilters = (rows, req) => {
+const applyAdminFilters = async (rows, req) => {
   if (req.user.role !== "admin") return rows;
   let filtered = rows;
-  const { employeeId, name, department, status, category, priority } = req.query;
+  const { employeeId, name, department, status, category, priority, email } = req.query;
 
   if (employeeId) {
-    filtered = filtered.filter((r) => r.employeeId && r.employeeId.toLowerCase() === String(employeeId).toLowerCase());
+    const s = String(employeeId).toLowerCase();
+    // Attendance/Employees rows already carry the human-readable employeeId
+    // code. Other report types (payroll, expenses, tasks, helpCenter) only
+    // carry the internal employeeUuid, so resolve the code against Users
+    // first and match on that instead.
+    const hasCodeField = rows.length > 0 && Object.prototype.hasOwnProperty.call(rows[0], "employeeId");
+    if (hasCodeField) {
+      filtered = filtered.filter((r) => r.employeeId && r.employeeId.toLowerCase().includes(s));
+    } else {
+      const matches = await User.findAll({
+        where: { employeeId: { [Op.iLike]: `%${employeeId}%` } },
+        attributes: ["id"],
+      });
+      const matchIds = new Set(matches.map((u) => u.id));
+      filtered = filtered.filter((r) => matchIds.has(r.employeeUuid));
+    }
   }
   if (name) {
     const s = String(name).toLowerCase();
@@ -55,6 +70,17 @@ const applyAdminFilters = (rows, req) => {
   }
   if (priority) {
     filtered = filtered.filter((r) => r.priority && r.priority.toLowerCase() === String(priority).toLowerCase());
+  }
+  // Report rows don't carry officialEmail directly, so resolve matching
+  // users first, then keep only rows tied to one of their UUIDs (via
+  // `employeeUuid` on most report types, or `id` on the employees report).
+  if (email) {
+    const matches = await User.findAll({
+      where: { officialEmail: { [Op.iLike]: `%${email}%` } },
+      attributes: ["id"],
+    });
+    const matchIds = new Set(matches.map((u) => u.id));
+    filtered = filtered.filter((r) => matchIds.has(r.employeeUuid || r.id));
   }
   return filtered;
 };
@@ -97,7 +123,7 @@ const getAttendanceReport = async (req, res) => {
       };
     });
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.attendance);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
@@ -135,7 +161,7 @@ const getPayrollReport = async (req, res) => {
       _createdAt: r.createdAt,
     }));
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.payroll);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
@@ -175,7 +201,7 @@ const getExpensesReport = async (req, res) => {
       status: r.status,
     }));
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.expenses);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
@@ -210,7 +236,7 @@ const getHelpCenterReport = async (req, res) => {
       _createdAt: r.createdAt,
     }));
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.helpCenter);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
@@ -250,7 +276,7 @@ const getTasksReport = async (req, res) => {
       _createdAt: r.createdAt,
     }));
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.tasks);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
@@ -275,7 +301,7 @@ const getEmployeesReport = async (req, res) => {
       joinedDate: r.joiningDate || "—"
     }));
 
-    rows = applyAdminFilters(rows, req);
+    rows = await applyAdminFilters(rows, req);
     const { rows: pageRows, pagination } = sortAndPaginateReport(rows, req.query, SORT_MAPS.employees);
     return res.status(200).json({ success: true, rows: pageRows, pagination });
   } catch (error) {
