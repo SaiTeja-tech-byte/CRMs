@@ -6,6 +6,7 @@ const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 
 const ReportModal = ({
   type, 
+  isAdmin,
   filters,
   setFilters,
   onClose,
