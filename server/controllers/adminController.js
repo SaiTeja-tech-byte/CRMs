@@ -139,10 +139,12 @@ const updateUser = async (req, res) => {
       "officeLocation", "reportingManager", "employeeId", "phoneNumber",
       "employmentType", "joiningDate", "officialEmail", "salary", "workMode"
     ];
+    // Empty strings blow up non-text Postgres columns (DATEONLY, INTEGER) —
+    // store null instead for those fields.
+    const nullableIfEmpty = ["joiningDate", "salary"];
     for (const field of editable) {
       if (req.body[field] !== undefined) {
-        // Empty-string dates blow up Postgres DATEONLY columns — store as null instead.
-        user[field] = req.body[field] === "" && field === "joiningDate" ? null : req.body[field];
+        user[field] = req.body[field] === "" && nullableIfEmpty.includes(field) ? null : req.body[field];
       }
     }
 
