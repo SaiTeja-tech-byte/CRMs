@@ -6,7 +6,7 @@ import Features from '../components/Features';
 import About from '../components/About';
 import PricingSection from '../components/PricingSection';
 import CtaSection from '../components/CtaSection';
-import Chatbot from '../components/Chatbot';
+
 import ProductTourModal from '../components/ProductTourModal';
 import Footer from '../components/Footer';
 
@@ -20,7 +20,7 @@ const Landing = () => {
       <About />
       <PricingSection />
       <CtaSection />
-      <Chatbot />
+
       <ProductTourModal />
       <Footer />
     </main>
