@@ -1,7 +1,6 @@
 import React from 'react';
 import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
-import Companies from '../components/Companies';
 import Solutions from '../components/Solutions';
 import Features from '../components/Features';
 import DashboardSection from '../components/DashboardSection';
@@ -17,7 +16,6 @@ const Landing = () => {
     <main>
       <Navbar />
       <Hero />
-      <Companies />
       <Solutions />
       <Features />
       <DashboardSection />
