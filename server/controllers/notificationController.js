@@ -4,6 +4,22 @@ const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 // GET /api/notifications
 const getNotifications = async (req, res) => {
   try {
+    // The notification bell/list fetches its own full working set and does
+    // client-side pagination on top of it, so `?limit=all` bypasses the
+    // normal page size cap entirely instead of silently truncating to
+    // parsePagination's default of 5.
+    if (String(req.query.limit).toLowerCase() === "all") {
+      const rows = await Notification.findAll({
+        where: { userId: req.user.id },
+        order: [["createdAt", "DESC"]],
+      });
+      return res.status(200).json({
+        success: true,
+        notifications: rows,
+        pagination: { page: 1, limit: rows.length || 1, total: rows.length, totalPages: 1 },
+      });
+    }
+
     const { page, limit, offset, order } = parsePagination(req.query, {
       sortableFields: ["createdAt"],
       defaultSort: "createdAt",
@@ -60,11 +76,6 @@ const markAllNotificationsRead = async (req, res) => {
   }
 };
 
-// GET /api/notifications/unread-count — powers the badge shown next to the
-// "Notifications" tab from anywhere in the app (sidebar, not just the tab
-// itself), the same way the Chat tab's unread badge works. Optional ?type=
-// scopes the count to one section (e.g. "document") for that section's own
-// badge instead of the combined bell count.
 const getUnreadCount = async (req, res) => {
   try {
     const where = { userId: req.user.id, read: false };
