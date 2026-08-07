@@ -7,7 +7,7 @@ const authHeaders = () => ({
 });
 
 export const getNotifications = async () => {
-  const res = await axios.get(`${API_BASE}/notifications`, authHeaders());
+  const res = await axios.get(`${API_BASE}/notifications?limit=all`, authHeaders());
   return res.data.notifications;
 };
 
