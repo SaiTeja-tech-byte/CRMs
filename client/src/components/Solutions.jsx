@@ -7,11 +7,8 @@ import {
   Rocket, 
   Store, 
   Building2, 
-  BarChart3, 
   Users, 
-  GitFork, 
-  Sparkles, 
-  CheckSquare, 
+  Activity, 
   FileText 
 } from "lucide-react";
 
@@ -91,73 +88,57 @@ const SolutionsSection = () => {
   );
 }
 
-
-
-
-const productCards = [
+const howItWorksCards = [
   {
-    title: "Dashboard",
-    description: "Track revenue, leads and customer activity from one clean dashboard.",
-    Icon: BarChart3,
-  },
-  {
-    title: "Customers",
-    description: "Manage customer details, notes, history and files from one place.",
+    step: "01",
+    title: "Manage Employees",
+    description: "Add employees, assign departments, define roles, and maintain employee information from a centralized workspace.",
     Icon: Users,
   },
   {
-    title: "Sales Pipeline",
-    description: "Move deals through every stage with an intuitive pipeline.",
-    Icon: GitFork,
+    step: "02",
+    title: "Manage Daily Operations",
+    description: "Employees can mark attendance, manage tasks, submit expenses, access documents, and collaborate with their teams in one place.",
+    Icon: Activity,
   },
   {
-    title: "AI Assistant",
-    description: "Generate emails, summaries and smart recommendations.",
-    Icon: Sparkles,
-  },
-  {
-    title: "Tasks",
-    description: "Assign work, track progress and never miss deadlines.",
-    Icon: CheckSquare,
-  },
-  {
-    title: "Reports",
-    description: "Visualize sales and performance using real-time reports.",
+    step: "03",
+    title: "Monitor & Generate Reports",
+    description: "Administrators can monitor attendance, payroll, employee activities, expenses, and generate reports for better organizational management.",
     Icon: FileText,
   },
 ];
 
-const ProductSection = () => {
+const HowItWorksSection = () => {
   return (
-    <section className="product-section" id="product">
-      <div className="container product-inner">
-        <div className="product-header animate-fade-up">
-          <span className="product-eyebrow">PRODUCT</span>
-          <h2>Everything you need to manage your customers.</h2>
+    <section className="hiw-section" id="how-it-works">
+      <div className="container hiw-inner">
+        <div className="hiw-header animate-fade-up">
+          <span className="hiw-eyebrow">HOW IT WORKS</span>
+          <h2>Manage your workforce in three simple steps</h2>
           <p>
-            CRM Platform gives your team all the tools required to track leads,
-            manage customers, automate tasks and grow revenue from one dashboard.
+            Our CRM Platform streamlines employee management, attendance, payroll, tasks, documents, and internal operations through one centralized workspace for administrators and employees.
           </p>
         </div>
 
-        <div className="product-grid-wrapper">
-          <div className="product-grid">
-            {productCards.map((item, index) => {
+        <div className="hiw-grid-wrapper">
+          <div className="hiw-grid">
+            {howItWorksCards.map((item, index) => {
               const IconComponent = item.Icon;
               return (
                 <article
                   key={item.title}
-                  className="product-card animate-fade-up"
+                  className="hiw-card animate-fade-up"
                   style={{ animationDelay: `${index * 80}ms` }}
                 >
-                  <span className="product-icon-wrapper">
-                    <IconComponent size={20} className="text-primary" />
-                  </span>
+                  <div className="hiw-card-header">
+                    <span className="hiw-icon-wrapper">
+                      <IconComponent size={20} className="text-primary" />
+                    </span>
+                    <span className="hiw-step-number">{item.step}</span>
+                  </div>
                   <h3>{item.title}</h3>
                   <p>{item.description}</p>
-                  <a href="#" className="product-link">
-                    Learn more →
-                  </a>
                 </article>
               );
             })}
@@ -168,411 +149,333 @@ const ProductSection = () => {
   );
 }
 
-
-
 const Solutions = () => {
   return (
     <>
-      <style>{`.product-section {
-  padding: 80px 0;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
-  position: relative;
-}
+      <style>{`
+        /* How It Works Section */
+        .hiw-section {
+          padding: 100px 0;
+          background: var(--bg-color, #FFFFFF);
+          border-bottom: 1px solid var(--border-color, #E2E8F0);
+          position: relative;
+          transition: background-color 0.3s ease;
+        }
 
-.product-inner {
-  display: grid;
-  gap: 2.5rem;
-  max-width: 1280px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
+        .hiw-inner {
+          display: flex;
+          flex-direction: column;
+          gap: 4rem;
+          max-width: 1280px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+          align-items: center;
+        }
 
-.product-header {
-  max-width: 720px;
-  text-align: left;
-}
+        .hiw-header {
+          max-width: 800px;
+          text-align: center;
+        }
 
-.product-eyebrow {
-  display: inline-flex;
-  margin-bottom: 0.75rem;
-  color: #2563EB;
-  font-size: 0.85rem;
-  font-weight: 700;
-  letter-spacing: 0.15em;
-  text-transform: uppercase;
-}
+        .hiw-eyebrow {
+          display: inline-flex;
+          margin-bottom: 1rem;
+          color: #2563EB;
+          font-size: 0.85rem;
+          font-weight: 750;
+          letter-spacing: 0.15em;
+          text-transform: uppercase;
+        }
 
-.product-header h2 {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(26px, 4.5vw, 38px);
-  line-height: 1.2;
-  font-weight: 800;
-  color: #0F172A;
-  margin-bottom: 0.75rem;
-}
+        .hiw-header h2 {
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: clamp(28px, 4vw, 42px);
+          line-height: 1.2;
+          font-weight: 800;
+          color: var(--text-primary, #0F172A);
+          margin-bottom: 1.25rem;
+        }
 
-.product-header p {
-  color: #64748B;
-  font-size: 16px;
-  line-height: 1.6;
-}
+        .hiw-header p {
+          color: var(--text-secondary, #64748B);
+          font-size: 17px;
+          line-height: 1.6;
+          margin: 0 auto;
+          max-width: 680px;
+        }
 
-.product-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-}
+        .hiw-grid-wrapper {
+          width: 100%;
+        }
 
-.product-card {
-  background: #ffffff;
-  border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 18px 20px;
-  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
-  position: relative;
-  overflow: hidden;
-}
+        .hiw-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 32px;
+          width: 100%;
+        }
 
-/* Glowing top border on hover */
-.product-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #2563EB, #60A5FA);
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
+        .hiw-card {
+          background: var(--card-bg, #ffffff);
+          border: 1px solid var(--border-color, #E2E8F0);
+          border-radius: 20px;
+          padding: 36px 32px;
+          transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+          display: flex;
+          flex-direction: column;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+          position: relative;
+        }
 
-.product-card:hover::before {
-  opacity: 1;
-}
+        .hiw-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+          border-color: #BFDBFE;
+        }
 
-.product-card:hover {
-  transform: translateY(-6px);
-  border-color: #2563EB;
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
-}
+        .hiw-card-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: flex-start;
+          margin-bottom: 28px;
+        }
 
-.product-icon-wrapper {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  background: #F1F5F9;
-  color: #2563EB;
-  margin-bottom: 16px;
-  transition: all 300ms ease;
-  border: 1px solid #E2E8F0;
-}
+        .hiw-icon-wrapper {
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          width: 52px;
+          height: 52px;
+          border-radius: 14px;
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563EB;
+        }
 
-.product-card:hover .product-icon-wrapper {
-  background: #EFF6FF;
-  border-color: #BFDBFE;
-  transform: scale(1.08);
-}
+        .hiw-step-number {
+          font-size: 42px;
+          font-weight: 800;
+          color: var(--border-color, #E2E8F0);
+          font-family: 'Inter', system-ui, sans-serif;
+          line-height: 1;
+        }
 
-.product-icon {
-  display: block;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-}
+        .hiw-card h3 {
+          font-size: 1.35rem;
+          line-height: 1.3;
+          margin-bottom: 12px;
+          color: var(--text-primary, #0F172A);
+          font-weight: 750;
+        }
 
-.product-card h3 {
-  font-size: 1.2rem;
-  line-height: 1.3;
-  margin-bottom: 8px;
-  color: #0F172A;
-  font-weight: 750;
-}
+        .hiw-card p {
+          color: var(--text-secondary, #64748B);
+          font-size: 15px;
+          line-height: 1.6;
+          margin: 0;
+        }
 
-.product-card p {
-  color: #64748B;
-  font-size: 14.5px;
-  line-height: 1.55;
-  margin-bottom: 16px;
-}
+        /* Solutions Section */
+        .solutions-section {
+          padding: 100px 0;
+          background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.04), transparent 35%), var(--bg-color, #FFFFFF);
+          border-bottom: 1px solid var(--border-color, #E2E8F0);
+          position: relative;
+          transition: background-color 0.3s ease;
+        }
 
-.product-link {
-  display: inline-flex;
-  align-items: center;
-  gap: 4px;
-  color: #2563EB;
-  font-weight: 600;
-  text-decoration: none;
-  font-size: 14px;
-  transition: gap 200ms ease;
-  margin-top: auto;
-}
+        .solutions-inner {
+          display: grid;
+          gap: 3rem;
+          text-align: center;
+          max-width: 1280px;
+          margin: 0 auto;
+          position: relative;
+          z-index: 2;
+        }
 
-.product-link:hover {
-  gap: 8px;
-}
+        .solutions-header {
+          max-width: 620px;
+          margin: 0 auto;
+        }
 
-/* Animations */
-.animate-fade-up {
-  opacity: 0;
-  transform: translateY(15px);
-  animation: productFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+        .solutions-badge {
+          display: inline-flex;
+          padding: 6px 14px;
+          border-radius: 999px;
+          background: rgba(37, 99, 235, 0.1);
+          border: 1px solid rgba(37, 99, 235, 0.2);
+          color: #2563EB;
+          font-size: 13px;
+          font-weight: 600;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          margin-bottom: 16px;
+        }
 
-@keyframes productFadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
+        .solutions-header h2 {
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: clamp(26px, 4.5vw, 38px);
+          line-height: 1.2;
+          color: var(--text-primary, #0F172A);
+          font-weight: 800;
+        }
 
-/* Responsive */
-@media (max-width: 1024px) {
-  .product-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
+        .solutions-header p {
+          max-width: 620px;
+          margin: 12px auto 0;
+          color: var(--text-secondary, #64748B);
+          font-size: 16px;
+          line-height: 1.6;
+        }
 
-@media (max-width: 640px) {
-  .product-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .product-card {
-    width: 100%;
-    padding: 20px;
-  }
-  .product-header h2 {
-    font-size: 28px;
-  }
-  .product-header p {
-    font-size: 15px;
-  }
-  .product-section {
-    padding: 60px 0;
-  }
-}
+        .solutions-grid {
+          display: grid;
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+          gap: 24px;
+          width: 100%;
+        }
 
-.solutions-section {
-  padding: 80px 0;
-  background: radial-gradient(circle at top left, rgba(37, 99, 235, 0.04), transparent 35%), #FFFFFF;
-  border-bottom: 1px solid #E2E8F0;
-  position: relative;
-}
+        .solution-card {
+          background: var(--card-bg, #ffffff);
+          border: 1px solid var(--border-color, #E2E8F0);
+          border-radius: 20px;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+          justify-content: space-between;
+          gap: 20px;
+          text-align: left;
+          box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+          transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
+          position: relative;
+          overflow: hidden;
+        }
 
-.solutions-inner {
-  display: grid;
-  gap: 2.5rem;
-  text-align: center;
-  max-width: 1280px;
-  margin: 0 auto;
-  position: relative;
-  z-index: 2;
-}
+        /* Glowing top border on hover */
+        .solution-card::before {
+          content: "";
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 3px;
+          background: linear-gradient(90deg, #2563EB, #60A5FA);
+          opacity: 0;
+          transition: opacity 300ms ease;
+        }
 
-.solutions-header {
-  max-width: 620px;
-  margin: 0 auto;
-}
+        .solution-card:hover::before {
+          opacity: 1;
+        }
 
-.solutions-badge {
-  display: inline-flex;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #2563EB;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  margin-bottom: 12px;
-}
+        .solution-card:hover {
+          transform: translateY(-6px);
+          box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
+          border-color: #2563EB;
+        }
 
-.solutions-header h2 {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(26px, 4.5vw, 38px);
-  line-height: 1.2;
-  color: #0F172A;
-  font-weight: 800;
-}
+        .solution-icon-wrapper {
+          width: 48px;
+          height: 48px;
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          border-radius: 14px;
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563EB;
+          border: 1px solid rgba(37, 99, 235, 0.2);
+          transition: all 300ms ease;
+        }
 
-.solutions-header p {
-  max-width: 620px;
-  margin: 8px auto 0;
-  color: #64748B;
-  font-size: 16px;
-  line-height: 1.6;
-}
+        .solution-card:hover .solution-icon-wrapper {
+          background: #2563EB;
+          color: #FFFFFF;
+          transform: scale(1.08);
+        }
 
-.solutions-grid {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  width: 100%;
-}
+        .solution-copy {
+          display: flex;
+          flex-direction: column;
+          gap: 8px;
+        }
 
-.solution-card {
-  background: #ffffff;
-  border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  text-align: left;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
-  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
+        .solution-copy h3 {
+          font-size: 1.2rem;
+          line-height: 1.3;
+          color: var(--text-primary, #0F172A);
+          font-weight: 750;
+        }
 
-/* Glowing top border on hover */
-.solution-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #2563EB, #60A5FA);
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
+        .solution-copy p {
+          color: var(--text-secondary, #64748B);
+          font-size: 14.5px;
+          line-height: 1.55;
+          margin: 0;
+        }
 
-.solution-card:hover::before {
-  opacity: 1;
-}
+        .solution-arrow {
+          width: 32px;
+          height: 32px;
+          border-radius: 50%;
+          background: var(--hover-bg, #F1F5F9);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          color: var(--text-secondary, #64748B);
+          transition: all 300ms ease;
+          margin-left: auto;
+          border: 1px solid var(--border-color, #E2E8F0);
+        }
 
-.solution-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
-  border-color: #2563EB;
-}
+        .solution-card:hover .solution-arrow {
+          background: #2563EB;
+          color: #FFFFFF;
+          border-color: #2563EB;
+          transform: translateX(4px);
+          box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
+        }
 
-.solution-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: #F1F5F9;
-  color: #2563EB;
-  border: 1px solid #E2E8F0;
-  overflow: hidden;
-  transition: all 300ms ease;
-}
+        .animate-fade-up {
+          opacity: 0;
+          transform: translateY(15px);
+          animation: solutionFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
 
-.solution-card:hover .solution-icon-wrapper {
-  background: #EFF6FF;
-  border-color: #BFDBFE;
-  transform: scale(1.08);
-}
+        @keyframes solutionFadeUp {
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
 
-.solution-icon {
-  display: block;
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-}
+        /* Responsive */
+        @media (max-width: 1024px) {
+          .hiw-grid, .solutions-grid {
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+          }
+        }
 
-.solution-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.solution-copy h3 {
-  font-size: 1.2rem;
-  line-height: 1.3;
-  color: #0F172A;
-  font-weight: 750;
-}
-
-.solution-copy p {
-  color: #64748B;
-  font-size: 14.5px;
-  line-height: 1.55;
-  margin: 0;
-}
-
-.solution-arrow {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #F1F5F9;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748B;
-  transition: all 300ms ease;
-  margin-left: auto;
-  border: 1px solid #E2E8F0;
-}
-
-.solution-card:hover .solution-arrow {
-  background: #2563EB;
-  color: #FFFFFF;
-  border-color: #2563EB;
-  transform: translateX(4px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
-}
-
-.animate-fade-up {
-  opacity: 0;
-  transform: translateY(15px);
-  animation: solutionFadeUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
-
-@keyframes solutionFadeUp {
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* Responsive */
-@media (max-width: 1024px) {
-  .solutions-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
-  }
-}
-
-@media (max-width: 640px) {
-  .solutions-grid {
-    grid-template-columns: 1fr;
-    gap: 16px;
-  }
-  .solution-card {
-    width: 100%;
-    padding: 20px;
-  }
-  .solutions-header h2 {
-    font-size: 28px;
-  }
-  .solutions-header p {
-    font-size: 15px;
-  }
-  .solutions-section {
-    padding: 60px 0;
-  }
-}
-`}</style>
-      <ProductSection />
+        @media (max-width: 768px) {
+          .hiw-grid, .solutions-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+          }
+          .hiw-card, .solution-card {
+            width: 100%;
+            padding: 24px;
+          }
+          .hiw-header h2, .solutions-header h2 {
+            font-size: 28px;
+          }
+          .hiw-section, .solutions-section {
+            padding: 60px 0;
+          }
+        }
+      `}</style>
+      <HowItWorksSection />
       <SolutionsSection />
     </>
   );
