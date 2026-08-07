@@ -366,7 +366,7 @@ const Footer = () => {
   }
 }
 `}</style>
-  <footer className="footer" id="footer">
+  <footer className="footer" id="contact">
     <div className="footer-upper">
       <div className="container footer-upper-inner">
         

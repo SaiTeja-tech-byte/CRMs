@@ -19,6 +19,26 @@ function Navbar() {
   // Helper to determine if link is active
   const isActive = (path) => location.pathname === path;
 
+  const handleScrollTo = (e, targetId) => {
+    if (location.pathname !== "/") {
+      return; // Let normal navigation happen if not on home
+    }
+    e.preventDefault();
+    setMobileMenuOpen(false);
+    
+    const element = document.getElementById(targetId);
+    if (element) {
+      const offset = 90; // 90px offset so fixed navbar doesn't cover heading
+      const elementPosition = element.getBoundingClientRect().top;
+      const offsetPosition = elementPosition + window.scrollY - offset;
+  
+      window.scrollTo({
+        top: offsetPosition,
+        behavior: "smooth"
+      });
+    }
+  };
+
   return (
     <>
       <style>{`
@@ -245,7 +265,7 @@ function Navbar() {
             <a href="#how-it-works" className="nav-link">How It Works</a>
             <a href="#features" className="nav-link">Features</a>
             <a href="#about" className="nav-link">About</a>
-            <a href="#contact" className="nav-link">Contact</a>
+            <a href="#contact" className="nav-link" onClick={(e) => handleScrollTo(e, 'contact')}>Contact</a>
           </div>
 
           {/* Right: Actions */}
@@ -272,7 +292,7 @@ function Navbar() {
           <a href="#how-it-works" className="nav-link" onClick={() => setMobileMenuOpen(false)}>How It Works</a>
           <a href="#features" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Features</a>
           <a href="#about" className="nav-link" onClick={() => setMobileMenuOpen(false)}>About</a>
-          <a href="#contact" className="nav-link" onClick={() => setMobileMenuOpen(false)}>Contact</a>
+          <a href="#contact" className="nav-link" onClick={(e) => handleScrollTo(e, 'contact')}>Contact</a>
           
           <div className="mobile-drawer-actions">
             <button className="theme-toggle-btn" onClick={toggleTheme} aria-label="Toggle Theme" style={{ margin: '0 auto 12px' }}>
