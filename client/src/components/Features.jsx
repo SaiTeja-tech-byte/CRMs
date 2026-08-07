@@ -1,37 +1,37 @@
 import React from "react";
-import { ArrowRight, Users, Zap, BarChart3, Shield, Link2, FileText, Calendar, Check, Cpu, Download, TrendingUp } from "lucide-react";
+import { ArrowRight, Users, Zap, BarChart3, Shield, Link2, FileText, Calendar, Check, Cpu, Download, TrendingUp, Clock, CheckSquare, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const features = [
   {
     Icon: Users,
-    title: 'Contact Management',
-    description: 'Keep every customer interaction organized in one place.',
+    title: 'Employee Management',
+    description: 'Add, organize, and manage employee profiles, departments, and roles from one centralized workspace.',
   },
   {
-    Icon: Zap,
-    title: 'Sales Automation',
-    description: 'Automate follow-ups and pipeline updates.',
+    Icon: Clock,
+    title: 'Attendance & Payroll',
+    description: 'Track attendance, working hours, leave records, and payroll efficiently.',
   },
   {
-    Icon: BarChart3,
-    title: 'Analytics',
-    description: 'Track performance with real-time dashboards.',
-  },
-  {
-    Icon: Shield,
-    title: 'Advanced Security',
-    description: 'Protect your sales data with enterprise-grade encryption.',
-  },
-  {
-    Icon: Link2,
-    title: 'Seamless Integrations',
-    description: 'Connect with Slack, Stripe, and other business tools instantly.',
+    Icon: CheckSquare,
+    title: 'Task & Team Collaboration',
+    description: 'Assign tasks, monitor progress, and improve collaboration across teams.',
   },
   {
     Icon: FileText,
-    title: 'Document Management',
-    description: 'Store, organize and share contracts and proposals securely.',
+    title: 'Documents & Expenses',
+    description: 'Securely manage documents and streamline expense submissions and approvals.',
+  },
+  {
+    Icon: BarChart3,
+    title: 'Reports & Analytics',
+    description: 'Generate attendance, payroll, expense, and organizational reports with a few clicks.',
+  },
+  {
+    Icon: Bell,
+    title: 'Notifications & Help Center',
+    description: 'Stay updated with announcements, notifications, support tickets, and employee communication.',
   },
 ];
 
@@ -39,9 +39,12 @@ const features = [
 const FeaturesSection = () => (
   <section className="features-section" id="features">
     <div className="container features-inner">
-      <div className="features-header">
-        <span className="features-badge">Features</span>
-        <h2>Powerful features that keep your pipeline moving.</h2>
+      <div className="features-header animate-fade-up">
+        <span className="features-badge">FEATURES</span>
+        <h2>Everything your organization needs in one platform</h2>
+        <p className="features-desc">
+          Manage employees, attendance, payroll, expenses, tasks, documents, communication, and reporting through a single, secure CRM Platform for administrators and employees.
+        </p>
       </div>
       <div className="features-grid-wrapper">
         <div className="features-grid">
@@ -61,8 +64,6 @@ const FeaturesSection = () => (
 );
 
 
-
-
 const FeatureCard = ({ Icon, title, description, index = 0 }) => {
   const isString = typeof Icon === "string";
 
@@ -75,7 +76,7 @@ const FeatureCard = ({ Icon, title, description, index = 0 }) => {
         {isString ? (
           <img src={Icon} alt={`${title} logo`} className="feature-icon" />
         ) : (
-          <Icon size={20} />
+          <Icon size={24} strokeWidth={1.5} />
         )}
       </span>
 
@@ -83,10 +84,6 @@ const FeatureCard = ({ Icon, title, description, index = 0 }) => {
         <h3>{title}</h3>
         <p>{description}</p>
       </div>
-
-      <span className="feature-arrow">
-        <ArrowRight size={16} />
-      </span>
     </article>
   );
 };
@@ -219,70 +216,128 @@ const Features = () => {
   return (
     <>
       <style>{`.features-section {
-  padding: 80px 0;
-  background: #F8FAFC;
-  border-bottom: 1px solid #E2E8F0;
+  padding: 100px 0;
+  background: var(--bg-color, #FFFFFF);
+  border-bottom: 1px solid var(--border-color, #E2E8F0);
   position: relative;
+  transition: background-color 0.3s ease;
 }
 
 .features-inner {
   display: grid;
-  gap: 2.5rem;
+  gap: 4rem;
   text-align: center;
   max-width: 1280px;
   margin: 0 auto;
 }
 
 .features-header {
-  max-width: 680px;
+  max-width: 800px;
   margin: 0 auto;
 }
 
 .features-badge {
   display: inline-flex;
-  padding: 6px 14px;
-  border-radius: 999px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
+  margin-bottom: 1rem;
   color: #2563EB;
-  font-size: 13px;
-  font-weight: 600;
-  letter-spacing: 0.08em;
+  font-size: 0.85rem;
+  font-weight: 750;
+  letter-spacing: 0.15em;
   text-transform: uppercase;
-  margin-bottom: 12px;
 }
 
 .features-header h2 {
   font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(26px, 4.5vw, 38px);
-  line-height: 1.25;
-  color: #0F172A;
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.2;
   font-weight: 800;
+  color: var(--text-primary, #0F172A);
+  margin-bottom: 1.25rem;
+}
+
+.features-desc {
+  color: var(--text-secondary, #64748B);
+  font-size: 17px;
+  line-height: 1.6;
+  margin: 0 auto;
+  max-width: 680px;
 }
 
 .features-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: 32px;
   width: 100%;
+}
+
+.feature-card {
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #E2E8F0);
+  border-radius: 20px;
+  padding: 32px 24px;
+  transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  position: relative;
+  text-align: left;
+}
+
+.feature-card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
+  border-color: #BFDBFE;
+}
+
+.feature-icon-wrapper {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 52px;
+  height: 52px;
+  border-radius: 12px;
+  background: rgba(37, 99, 235, 0.1);
+  color: #2563EB;
+  margin-bottom: 24px;
+}
+
+.feature-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.feature-copy h3 {
+  font-size: 1.35rem;
+  line-height: 1.3;
+  color: var(--text-primary, #0F172A);
+  font-weight: 750;
+  margin: 0;
+}
+
+.feature-copy p {
+  color: var(--text-secondary, #64748B);
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 /* Responsive */
 @media (max-width: 1024px) {
   .features-grid {
     grid-template-columns: repeat(2, 1fr);
-    gap: 20px;
+    gap: 24px;
   }
 }
 
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .features-grid {
     grid-template-columns: 1fr;
     gap: 16px;
   }
   .feature-card {
     width: 100%;
-    padding: 20px;
+    padding: 24px;
   }
   .features-header h2 {
     font-size: 28px;
@@ -290,116 +345,6 @@ const Features = () => {
   .features-section {
     padding: 60px 0;
   }
-}
-
-.feature-card {
-  background: #ffffff;
-  border: 1px solid #E2E8F0;
-  border-radius: 20px;
-  padding: 18px 20px;
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 16px;
-  text-align: left;
-  box-shadow: 0 4px 15px rgba(15, 23, 42, 0.02);
-  transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
-  position: relative;
-  overflow: hidden;
-}
-
-/* Glowing top border on hover */
-.feature-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #2563EB, #60A5FA);
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
-
-.feature-card:hover::before {
-  opacity: 1;
-}
-
-.feature-card:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
-  border-color: #2563EB;
-}
-
-.feature-icon-wrapper {
-  width: 48px;
-  height: 48px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 14px;
-  background: #F1F5F9;
-  color: #2563EB;
-  border: 1px solid #E2E8F0;
-  overflow: hidden;
-  transition: all 300ms ease;
-}
-
-.feature-card:hover .feature-icon-wrapper {
-  background: #EFF6FF;
-  border-color: #BFDBFE;
-  transform: scale(1.08);
-}
-
-.feature-icon {
-  width: 22px;
-  height: 22px;
-  object-fit: contain;
-  display: block;
-}
-
-.feature-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 4px;
-}
-
-.feature-copy h3 {
-  font-size: 1.2rem;
-  line-height: 1.3;
-  color: #0F172A;
-  font-weight: 750;
-}
-
-.feature-copy p {
-  color: #64748B;
-  font-size: 14.5px;
-  line-height: 1.55;
-  margin: 0;
-}
-
-.feature-arrow {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: #F1F5F9;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  color: #64748B;
-  transition: all 300ms ease;
-  margin-left: auto;
-  border: 1px solid #E2E8F0;
-}
-
-.feature-card:hover .feature-arrow {
-  background: #2563EB;
-  color: #FFFFFF;
-  border-color: #2563EB;
-  transform: translateX(4px);
-  box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3);
 }
 
 .animate-fade-up {
