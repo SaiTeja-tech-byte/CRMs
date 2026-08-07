@@ -1,3 +1,26 @@
+:root {
+  --bg-color: #f7f8fb;
+  --navbar-bg: #FFFFFF;
+  --card-bg: #FFFFFF;
+  --text-primary: #111827;
+  --text-secondary: #6B7280;
+  --text-color: #121212;
+  --border-color: #E5E7EB;
+  --hover-bg: #F3F4F6;
+  --primary-blue: #2563EB;
+}
+
+[data-theme="dark"] {
+  --bg-color: #0F172A;
+  --navbar-bg: #111827;
+  --card-bg: #1E293B;
+  --text-primary: #FFFFFF;
+  --text-secondary: #CBD5E1;
+  --text-color: #FFFFFF;
+  --border-color: #334155;
+  --hover-bg: #1E293B;
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
@@ -23,9 +46,10 @@ html, body, #root {
 body {
   font-family: system-ui, sans-serif;
   line-height: 1.5;
-  background: #f7f8fb;
-  color: #121212;
+  background: var(--bg-color);
+  color: var(--text-color);
   overflow-x: hidden;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 button {
@@ -90,9 +114,10 @@ button.secondary-btn {
 
 .step-card {
   padding: 1.7rem;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--border-color);
   border-radius: 22px;
-  background: #ffffff;
+  background: var(--card-bg);
+  transition: background-color 0.3s ease, border-color 0.3s ease;
 }
 
 .step-number {
