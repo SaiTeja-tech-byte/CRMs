@@ -2,7 +2,7 @@ const Announcement = require("../models/Announcement");
 const { emitToAll } = require("../utils/socket");
 const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
 
-// GET /api/news — supports ?page=&limit=&sortBy=&sortDir=, defaults to newest first
+
 const getAnnouncements = async (req, res) => {
   try {
     const { page, limit, offset, order } = parsePagination(req.query, {
@@ -10,7 +10,10 @@ const getAnnouncements = async (req, res) => {
       defaultSort: "createdAt",
       defaultOrder: "DESC",
     });
-    const { rows, count } = await Announcement.findAndCountAll({ order, limit, offset });
+    const where = {};
+    if (req.query.department) where.department = req.query.department;
+
+    const { rows, count } = await Announcement.findAndCountAll({ where, order, limit, offset });
     return res.status(200).json({ success: true, announcements: rows, pagination: buildPaginationMeta(count, page, limit) });
   } catch (error) {
     console.error("Get announcements error:", error);
@@ -40,7 +43,7 @@ const createAnnouncement = async (req, res) => {
   }
 };
 
-// DELETE /api/news/:id  — delete announcement
+
 const deleteAnnouncement = async (req, res) => {
   try {
     const { id } = req.params;
