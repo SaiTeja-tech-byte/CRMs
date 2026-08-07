@@ -65,19 +65,13 @@ const FeaturesSection = () => (
 
 
 const FeatureCard = ({ Icon, title, description, index = 0 }) => {
-  const isString = typeof Icon === "string";
-
   return (
     <article
       className="feature-card animate-fade-up"
       style={{ animationDelay: `${index * 80}ms` }}
     >
       <span className="feature-icon-wrapper">
-        {isString ? (
-          <img src={Icon} alt={`${title} logo`} className="feature-icon" />
-        ) : (
-          <Icon size={24} strokeWidth={1.5} />
-        )}
+        <Icon size={24} strokeWidth={1.5} />
       </span>
 
       <div className="feature-copy">

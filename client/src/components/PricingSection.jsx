@@ -326,23 +326,6 @@ const PricingSectionComponent = () => {
   text-align: left;
 }
 
-/* Glowing top border on hover */
-.price-card::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 3px;
-  background: linear-gradient(90deg, #2563EB, #60A5FA);
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
-
-.price-card:hover::before {
-  opacity: 1;
-}
-
 .price-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
@@ -454,12 +437,12 @@ const PricingSectionComponent = () => {
 }
 
 .btn-primary {
-  background: linear-gradient(135deg, #2563EB, #3B82F6);
+  background: var(--primary-blue, #2563EB);
   color: #ffffff;
 }
 
 .btn-primary:hover {
-  background: linear-gradient(135deg, #1D4ED8, #2563EB);
+  background: var(--hover-blue, #1D4ED8);
   transform: translateY(-1px);
 }
 
