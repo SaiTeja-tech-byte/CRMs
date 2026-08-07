@@ -1,13 +1,8 @@
 const Notification = require("../models/Notification");
 const { parsePagination, buildPaginationMeta } = require("../utils/pagination");
-
-// GET /api/notifications
 const getNotifications = async (req, res) => {
   try {
-    // The notification bell/list fetches its own full working set and does
-    // client-side pagination on top of it, so `?limit=all` bypasses the
-    // normal page size cap entirely instead of silently truncating to
-    // parsePagination's default of 5.
+    
     if (String(req.query.limit).toLowerCase() === "all") {
       const rows = await Notification.findAll({
         where: { userId: req.user.id },
@@ -75,6 +70,7 @@ const markAllNotificationsRead = async (req, res) => {
     return res.status(500).json({ success: false, message: "Server error updating notifications" });
   }
 };
+
 
 const getUnreadCount = async (req, res) => {
   try {
