@@ -4307,6 +4307,8 @@ const NewsPage = () => {
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+  const [newsSortDir, setNewsSortDir] = useState("desc"); // desc = Latest first
 
   const getApiBase = () => {
     const base = import.meta.env.VITE_API_URL || "http://localhost:5000/api/auth";
@@ -4358,6 +4360,16 @@ const NewsPage = () => {
   const deptColors = ["#2563eb", "#7c3aed", "#059669", "#d97706", "#dc2626", "#0891b2"];
   const getDeptColor = (dept = "") => deptColors[dept.charCodeAt(0) % deptColors.length];
 
+  const newsCategories = [...new Set((announcements || []).map(a => a.department).filter(Boolean))];
+
+  const visibleAnnouncements = (announcements || [])
+    .filter(a => !categoryFilter || a.department === categoryFilter)
+    .sort((a, b) => {
+      const aT = new Date(a.createdAt || 0).getTime();
+      const bT = new Date(b.createdAt || 0).getTime();
+      return newsSortDir === "asc" ? aT - bT : bT - aT;
+    });
+
   return (
     <div className="dashboard-card-flat">
       {/* Header */}
@@ -4369,6 +4381,23 @@ const NewsPage = () => {
           Company announcements and internal updates.
         </p>
       </div>
+
+      {/* Filters */}
+      {!loading && announcements.length > 0 && (
+        <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+          <select className="form-select form-select-sm" style={{ width: "170px", borderRadius: "8px" }} value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)}>
+            <option value="">All Categories</option>
+            {newsCategories.map((c) => <option key={c} value={c}>{c}</option>)}
+          </select>
+          <select className="form-select form-select-sm" style={{ width: "140px", borderRadius: "8px" }} value={newsSortDir} onChange={(e) => setNewsSortDir(e.target.value)}>
+            <option value="desc">Latest</option>
+            <option value="asc">Oldest</option>
+          </select>
+          {categoryFilter && (
+            <button className="btn btn-sm btn-light border" style={{ borderRadius: "8px" }} onClick={() => setCategoryFilter("")}>Reset</button>
+          )}
+        </div>
+      )}
 
       {/* Loading State */}
       {loading && (
@@ -4392,7 +4421,10 @@ const NewsPage = () => {
       {/* Announcements Feed */}
       {!loading && !error && announcements.length > 0 && (
         <div className="d-flex flex-column gap-3">
-          {announcements.map((item) => (
+          {visibleAnnouncements.length === 0 && (
+            <p className="text-muted text-center py-4" style={{ fontSize: "12px" }}>No news matches this category.</p>
+          )}
+          {visibleAnnouncements.map((item) => (
             <div
               key={item.id}
               style={{
