@@ -3,6 +3,7 @@ import Navbar from '../components/Navbar';
 import Hero from '../components/Hero';
 import HowItWorks from '../components/HowItWorks';
 import Features from '../components/Features';
+import SecuritySection from '../components/SecuritySection';
 import About from '../components/About';
 import PricingSection from '../components/PricingSection';
 import CtaSection from '../components/CtaSection';
@@ -17,6 +18,7 @@ const Landing = () => {
       <Hero />
       <HowItWorks />
       <Features />
+      <SecuritySection />
       <About />
       <PricingSection />
       <CtaSection />
