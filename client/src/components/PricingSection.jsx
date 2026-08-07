@@ -190,13 +190,17 @@ const PricingSectionComponent = () => {
   return (
     <>
       <style>{`.pricing-section {
-  padding: 80px 0;
+  padding: 100px 0;
   background: #fafafb;
 }
 
 .pricing-inner {
-  display: grid;
-  gap: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 24px;
   text-align: center;
 }
 
@@ -271,9 +275,10 @@ const PricingSectionComponent = () => {
 
 .pricing-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 24px;
-  margin-top: 1rem;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 32px;
+  width: 100%;
+  margin-top: 48px;
 }
 
 .pricing-note {
@@ -284,12 +289,17 @@ const PricingSectionComponent = () => {
 }
 
 /* Responsive */
-@media (max-width: 860px) {
+@media (max-width: 1024px) {
+  .pricing-grid {
+    grid-template-columns: repeat(2, 1fr);
+    max-width: 800px;
+  }
+}
+
+@media (max-width: 768px) {
   .pricing-grid {
     grid-template-columns: 1fr;
-    max-width: 400px;
-    margin: 1.5rem auto 0 auto;
-    gap: 20px;
+    max-width: 480px;
   }
 
   .pricing-section {
@@ -305,15 +315,14 @@ const PricingSectionComponent = () => {
   background: #ffffff;
   border: 1px solid #e5e7eb;
   border-radius: 20px;
-  padding: 18px 20px;
-  min-height: auto;
+  padding: 40px;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: 20px;
   transition: all 400ms cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
   overflow: hidden;
+  height: 100%;
+  text-align: left;
 }
 
 /* Glowing top border on hover */
@@ -351,11 +360,15 @@ const PricingSectionComponent = () => {
   margin-bottom: 12px;
 }
 
+.price-head {
+  min-height: 160px;
+}
+
 .price-head h4 {
   font-family: 'Inter', sans-serif;
   font-size: 1.125rem;
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0 0 16px 0;
   color: #0F172A;
 }
 
@@ -395,17 +408,19 @@ const PricingSectionComponent = () => {
 
 .price-desc {
   color: #64748B;
-  font-size: 14px;
-  line-height: 1.5;
-  margin: 0 0 16px 0;
+  font-size: 15px;
+  line-height: 1.6;
+  margin: 0;
 }
 
 .price-features {
   list-style: none;
   padding: 0;
   margin: 0;
-  display: grid;
-  gap: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  flex: 1;
 }
 
 .price-features li {
@@ -417,10 +432,11 @@ const PricingSectionComponent = () => {
 
 .price-features .check-icon {
   color: #10b981;
+  flex-shrink: 0;
 }
 
 .price-cta {
-  margin-top: 12px;
+  margin-top: 32px;
   width: 100%;
 }
 
