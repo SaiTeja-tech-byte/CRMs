@@ -4,6 +4,9 @@ import adminEmployeeService from "../../../services/adminEmployeeService";
 const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
   const [formData, setFormData] = useState({
     fullName: "",
+    employeeId: "",
+    company: "",
+    officialEmail: "",
     department: "",
     designation: "",
     role: "employee",
@@ -13,6 +16,7 @@ const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
     workMode: "Office",
     employmentStatus: "Active",
     employmentType: "Full-Time",
+    joiningDate: "",
     phoneNumber: ""
   });
   const [loading, setLoading] = useState(false);
@@ -22,6 +26,9 @@ const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
     if (employee) {
       setFormData({
         fullName: employee.fullName || "",
+        employeeId: employee.employeeId || "",
+        company: employee.companyName || "",
+        officialEmail: employee.officialEmail || "",
         department: employee.department || "",
         designation: employee.designation || "",
         role: employee.role || "employee",
@@ -31,6 +38,7 @@ const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
         workMode: employee.workMode || "Office",
         employmentStatus: employee.employmentStatus || "Active",
         employmentType: employee.employmentType || "Full-Time",
+        joiningDate: employee.joiningDate || "",
         phoneNumber: employee.phoneNumber || ""
       });
     }
@@ -69,6 +77,13 @@ const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
           <div style={gridStyle}>
             <div><label style={labelStyle}>Full Name *</label><input required type="text" name="fullName" value={formData.fullName} onChange={handleChange} style={inputStyle} /></div>
             <div><label style={labelStyle}>Phone</label><input type="text" name="phoneNumber" value={formData.phoneNumber} onChange={handleChange} style={inputStyle} /></div>
+            <div><label style={labelStyle}>Official Email</label><input type="email" name="officialEmail" value={formData.officialEmail} onChange={handleChange} style={inputStyle} /></div>
+          </div>
+
+          <h3 style={{ ...sectionHeaderStyle, marginTop: "24px" }}>Company Details</h3>
+          <div style={gridStyle}>
+            <div><label style={labelStyle}>Employee ID</label><input type="text" name="employeeId" value={formData.employeeId} onChange={handleChange} style={inputStyle} placeholder="e.g. EMP-1042" /></div>
+            <div><label style={labelStyle}>Company Name</label><input type="text" name="company" value={formData.company} onChange={handleChange} style={inputStyle} /></div>
           </div>
 
           <h3 style={{ ...sectionHeaderStyle, marginTop: "24px" }}>Work Details</h3>
@@ -102,6 +117,7 @@ const EditEmployeeModal = ({ employee, onClose, onSuccess }) => {
                 <option value="Intern">Intern</option>
               </select>
             </div>
+            <div><label style={labelStyle}>Joining Date</label><input type="date" name="joiningDate" value={formData.joiningDate} onChange={handleChange} style={inputStyle} /></div>
           </div>
 
           <h3 style={{ ...sectionHeaderStyle, marginTop: "24px" }}>System Details</h3>
