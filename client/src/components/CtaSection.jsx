@@ -9,7 +9,7 @@ const CtaSection = () => {
       <style>{`
         .cta-section {
           padding: 120px 24px;
-          background: #F8FAFF;
+          background: var(--section-alt-bg);
           display: flex;
           justify-content: center;
           align-items: center;
@@ -28,7 +28,7 @@ const CtaSection = () => {
           padding: 6px 16px;
           border-radius: 999px;
           background: rgba(37, 99, 235, 0.1);
-          color: #2563EB;
+          color: var(--primary-blue);
           font-size: 13px;
           font-weight: 700;
           letter-spacing: 0.1em;
@@ -40,7 +40,7 @@ const CtaSection = () => {
           font-family: 'Inter', system-ui, sans-serif;
           font-size: clamp(32px, 5vw, 48px);
           font-weight: 800;
-          color: #0F172A;
+          color: var(--text-heading);
           line-height: 1.2;
           margin: 0 0 24px 0;
           letter-spacing: -0.02em;
@@ -48,7 +48,7 @@ const CtaSection = () => {
 
         .cta-description {
           font-size: clamp(16px, 2vw, 18px);
-          color: #475569;
+          color: var(--text-body);
           line-height: 1.6;
           margin: 0 0 40px 0;
           max-width: 680px;
@@ -77,43 +77,45 @@ const CtaSection = () => {
         }
 
         .cta-btn-primary {
-          background: #2563EB;
+          background: var(--primary-blue);
           color: #FFFFFF;
         }
 
         .cta-btn-primary:hover {
-          background: #1D4ED8;
+          background: var(--hover-blue);
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(37, 99, 235, 0.2);
         }
 
         .cta-btn-secondary {
-          background: #FFFFFF;
-          color: #2563EB;
-          border-color: #2563EB;
+          background: var(--card-bg);
+          color: var(--text-heading);
+          border-color: var(--border-color);
         }
 
         .cta-btn-secondary:hover {
-          background: #EFF6FF;
+          background: var(--hover-bg);
+          border-color: var(--primary-blue);
+          color: var(--primary-blue);
           transform: translateY(-2px);
           box-shadow: 0 8px 20px rgba(37, 99, 235, 0.1);
         }
 
         .cta-login-text {
           font-size: 14px;
-          color: #64748B;
+          color: var(--text-secondary);
           margin: 0;
         }
 
         .cta-login-link {
-          color: #2563EB;
+          color: var(--primary-blue);
           font-weight: 700;
           text-decoration: none;
           transition: color 200ms ease;
         }
 
         .cta-login-link:hover {
-          color: #1D4ED8;
+          color: var(--hover-blue);
           text-decoration: underline;
         }
 

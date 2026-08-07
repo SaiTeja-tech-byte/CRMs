@@ -191,7 +191,7 @@ const PricingSectionComponent = () => {
     <>
       <style>{`.pricing-section {
   padding: 100px 0;
-  background: #fafafb;
+  background: var(--section-bg);
 }
 
 .pricing-inner {
@@ -213,9 +213,9 @@ const PricingSectionComponent = () => {
   display: inline-flex;
   padding: 6px 14px;
   border-radius: 999px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #2563EB;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--primary-blue);
   font-size: 13px;
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -227,12 +227,12 @@ const PricingSectionComponent = () => {
   font-family: 'Inter', system-ui, sans-serif;
   font-size: clamp(24px, 4vw, 32px);
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-heading);
   margin-bottom: 8px;
 }
 
 .pricing-header p {
-  color: #64748B;
+  color: var(--text-body);
   font-size: 16px;
   line-height: 1.6;
   margin: 0;
@@ -248,8 +248,8 @@ const PricingSectionComponent = () => {
 
 .toggle {
   display: inline-flex;
-  background: #fff;
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 999px;
   padding: 4px;
 }
@@ -260,11 +260,12 @@ const PricingSectionComponent = () => {
   background: transparent;
   border: none;
   font-weight: 700;
+  color: var(--text-heading);
   cursor: pointer;
 }
 
 .toggle-option.active {
-  background: #2563EB;
+  background: var(--primary-blue);
   color: #fff;
 }
 
@@ -312,8 +313,8 @@ const PricingSectionComponent = () => {
 }
 
 .price-card {
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 40px;
   display: flex;
@@ -345,16 +346,16 @@ const PricingSectionComponent = () => {
 .price-card:hover {
   transform: translateY(-6px);
   box-shadow: 0 20px 40px rgba(37, 99, 235, 0.08);
-  border-color: #2563EB;
+  border-color: var(--primary-blue);
 }
 
 .price-card .popular-badge {
   display: inline-block;
   padding: 6px 14px;
   border-radius: 999px;
-  background: #EFF6FF;
-  border: 1px solid #BFDBFE;
-  color: #2563EB;
+  background: rgba(37, 99, 235, 0.1);
+  border: 1px solid rgba(37, 99, 235, 0.2);
+  color: var(--primary-blue);
   font-weight: 700;
   font-size: 0.75rem;
   margin-bottom: 12px;
@@ -369,7 +370,7 @@ const PricingSectionComponent = () => {
   font-size: 1.125rem;
   font-weight: 700;
   margin: 0 0 16px 0;
-  color: #0F172A;
+  color: var(--text-heading);
 }
 
 .price-value {
@@ -382,13 +383,13 @@ const PricingSectionComponent = () => {
 .price-value .currency {
   font-size: 1.25rem;
   font-weight: 600;
-  color: #64748B;
+  color: var(--text-secondary);
 }
 
 .price-value .amount {
   font-size: 2.2rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-heading);
   letter-spacing: -0.02em;
   font-family: 'Inter', sans-serif;
 }
@@ -396,18 +397,18 @@ const PricingSectionComponent = () => {
 .price-value .custom-price {
   font-size: 1.6rem;
   font-weight: 800;
-  color: #0F172A;
+  color: var(--text-heading);
   letter-spacing: 0;
 }
 
 .price-value .period {
-  color: #64748B;
+  color: var(--text-secondary);
   font-size: 0.95rem;
   font-weight: 500;
 }
 
 .price-desc {
-  color: #64748B;
+  color: var(--text-secondary);
   font-size: 15px;
   line-height: 1.6;
   margin: 0;
@@ -427,7 +428,7 @@ const PricingSectionComponent = () => {
   display: flex;
   gap: 10px;
   align-items: center;
-  color: #374151;
+  color: var(--text-body);
 }
 
 .price-features .check-icon {
@@ -464,19 +465,19 @@ const PricingSectionComponent = () => {
 
 .btn-outline {
   background: transparent;
-  color: #111827;
-  border-color: #e5e7eb;
+  color: var(--text-heading);
+  border-color: var(--border-color);
 }
 
 .btn-outline:hover {
-  background: #F8FAFC;
-  border-color: #2563EB;
-  color: #2563EB;
+  background: var(--hover-bg);
+  border-color: var(--primary-blue);
+  color: var(--primary-blue);
 }
 
 .featured {
   border-width: 2px;
-  border-color: #2563EB;
+  border-color: var(--primary-blue);
   box-shadow: 0 16px 40px rgba(37, 99, 235, 0.15);
 }
 

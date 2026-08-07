@@ -217,8 +217,8 @@ const Features = () => {
     <>
       <style>{`.features-section {
   padding: 100px 0;
-  background: var(--bg-color, #FFFFFF);
-  border-bottom: 1px solid var(--border-color, #E2E8F0);
+  background: var(--section-alt-bg);
+  border-bottom: 1px solid var(--border-color);
   position: relative;
   transition: background-color 0.3s ease;
 }
@@ -239,7 +239,7 @@ const Features = () => {
 .features-badge {
   display: inline-flex;
   margin-bottom: 1rem;
-  color: #2563EB;
+  color: var(--primary-blue);
   font-size: 0.85rem;
   font-weight: 750;
   letter-spacing: 0.15em;
@@ -251,12 +251,12 @@ const Features = () => {
   font-size: clamp(28px, 4vw, 42px);
   line-height: 1.2;
   font-weight: 800;
-  color: var(--text-primary, #0F172A);
+  color: var(--text-heading);
   margin-bottom: 1.25rem;
 }
 
 .features-desc {
-  color: var(--text-secondary, #64748B);
+  color: var(--text-body);
   font-size: 17px;
   line-height: 1.6;
   margin: 0 auto;
@@ -271,8 +271,8 @@ const Features = () => {
 }
 
 .feature-card {
-  background: var(--card-bg, #ffffff);
-  border: 1px solid var(--border-color, #E2E8F0);
+  background: var(--card-bg);
+  border: 1px solid var(--border-color);
   border-radius: 20px;
   padding: 32px 24px;
   transition: all 300ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -286,7 +286,7 @@ const Features = () => {
 .feature-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
-  border-color: #BFDBFE;
+  border-color: var(--primary-blue);
 }
 
 .feature-icon-wrapper {
@@ -297,7 +297,7 @@ const Features = () => {
   height: 52px;
   border-radius: 12px;
   background: rgba(37, 99, 235, 0.1);
-  color: #2563EB;
+  color: var(--primary-blue);
   margin-bottom: 24px;
 }
 
@@ -310,13 +310,13 @@ const Features = () => {
 .feature-copy h3 {
   font-size: 1.35rem;
   line-height: 1.3;
-  color: var(--text-primary, #0F172A);
+  color: var(--text-heading);
   font-weight: 750;
   margin: 0;
 }
 
 .feature-copy p {
-  color: var(--text-secondary, #64748B);
+  color: var(--text-secondary);
   font-size: 15px;
   line-height: 1.6;
   margin: 0;

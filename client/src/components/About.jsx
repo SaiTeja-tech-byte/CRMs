@@ -31,8 +31,8 @@ const About = () => {
       <style>{`
         .about-section {
           padding: 100px 0;
-          background: var(--bg-color, #FFFFFF);
-          border-bottom: 1px solid var(--border-color, #E2E8F0);
+          background: var(--page-bg);
+          border-bottom: 1px solid var(--border-color);
           position: relative;
         }
 
@@ -54,7 +54,7 @@ const About = () => {
         .about-badge {
           display: inline-flex;
           align-self: flex-start;
-          color: #2563EB;
+          color: var(--primary-blue);
           font-size: 0.85rem;
           font-weight: 750;
           letter-spacing: 0.15em;
@@ -66,12 +66,12 @@ const About = () => {
           font-size: clamp(32px, 4vw, 48px);
           line-height: 1.2;
           font-weight: 800;
-          color: var(--text-primary, #0F172A);
+          color: var(--text-heading);
           margin: 0;
         }
 
         .about-desc {
-          color: var(--text-secondary, #64748B);
+          color: var(--text-body);
           font-size: 17px;
           line-height: 1.6;
           margin: 0;
@@ -88,16 +88,16 @@ const About = () => {
           display: flex;
           align-items: center;
           gap: 12px;
-          background: #F8FAFC;
+          background: var(--hover-bg);
           padding: 12px 16px;
           border-radius: 12px;
-          color: var(--text-primary, #0F172A);
+          color: var(--text-heading);
           font-size: 15px;
           font-weight: 500;
         }
 
         .about-check-icon {
-          color: #2563EB;
+          color: var(--primary-blue);
           flex-shrink: 0;
         }
 
@@ -108,8 +108,8 @@ const About = () => {
         }
 
         .about-card {
-          background: var(--card-bg, #ffffff);
-          border: 1px solid var(--border-color, #E2E8F0);
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
           border-radius: 20px;
           padding: 28px 24px;
           display: flex;
@@ -122,7 +122,7 @@ const About = () => {
         .about-card:hover {
           transform: translateY(-4px);
           box-shadow: 0 16px 32px rgba(0, 0, 0, 0.06);
-          border-color: #BFDBFE;
+          border-color: var(--primary-blue);
         }
 
         .about-card-icon {
@@ -133,7 +133,7 @@ const About = () => {
           height: 48px;
           border-radius: 12px;
           background: rgba(37, 99, 235, 0.1);
-          color: #2563EB;
+          color: var(--primary-blue);
           flex-shrink: 0;
           transition: transform 300ms ease;
         }
@@ -151,12 +151,12 @@ const About = () => {
         .about-card-content h3 {
           font-size: 1.25rem;
           font-weight: 750;
-          color: var(--text-primary, #0F172A);
+          color: var(--text-heading);
           margin: 0;
         }
 
         .about-card-content p {
-          color: var(--text-secondary, #64748B);
+          color: var(--text-secondary);
           font-size: 15px;
           line-height: 1.6;
           margin: 0;

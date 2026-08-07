@@ -34,9 +34,9 @@ const Footer = () => {
     <>
         <style>{`.footer {
   position: relative;
-  background: #FFFFFF;
-  border-top: 1px solid #E5E7EB;
-  color: #181818;
+  background: var(--page-bg);
+  border-top: 1px solid var(--border-color);
+  color: var(--text-heading);
   font-family: 'Inter', system-ui, sans-serif;
   overflow: hidden;
   width: 100%;
@@ -46,7 +46,7 @@ const Footer = () => {
 
 /* Upper Footer: White Background */
 .footer-upper {
-  background: #FFFFFF;
+  background: var(--page-bg);
   padding: 50px 0 40px;
 }
 
@@ -75,20 +75,20 @@ const Footer = () => {
 }
 
 .logo-cloud-icon {
-  color: #0176D3;
+  color: var(--primary-blue);
 }
 
 .footer-logo .brand-strong {
   font-size: 26px;
   font-weight: 800;
-  color: #181818;
+  color: var(--text-heading);
   letter-spacing: -0.02em;
 }
 
 .footer-logo .brand-light {
   font-size: 26px;
   font-weight: 500;
-  color: #0176D3;
+  color: var(--primary-blue);
   margin-left: 2px;
 }
 
@@ -105,20 +105,20 @@ const Footer = () => {
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  background: #F3F4F6;
-  color: #4B5563;
+  background: var(--hover-bg);
+  color: var(--text-secondary);
   transition: all 200ms ease;
 }
 
 .footer-social-icons a:hover {
-  background: #E5E7EB;
-  color: #0176D3;
+  background: rgba(37, 99, 235, 0.1);
+  color: var(--primary-blue);
 }
 
 .footer-call-us {
   font-size: 14.5px;
   font-weight: 700;
-  color: #181818;
+  color: var(--text-heading);
   margin-top: 4px;
 }
 
@@ -130,7 +130,7 @@ const Footer = () => {
 }
 
 .footer-links-column h4 {
-  color: #181818;
+  color: var(--text-heading);
   margin-bottom: 16px;
   font-size: 14.5px;
   font-weight: 700;
@@ -144,7 +144,7 @@ const Footer = () => {
 .footer-links-column a {
   display: inline-flex;
   align-items: center;
-  color: #0176D3;
+  color: var(--primary-blue);
   margin-bottom: 10px;
   font-size: 13.5px;
   text-decoration: none;
@@ -153,7 +153,7 @@ const Footer = () => {
 }
 
 .footer-links-column a:hover {
-  color: #014486;
+  color: var(--hover-blue);
   text-decoration: underline;
 }
 
@@ -315,7 +315,7 @@ const Footer = () => {
     display: flex;
     flex-direction: column;
     width: 100%;
-    border-bottom: 1px solid #E5E7EB;
+    border-bottom: 1px solid var(--border-color);
     padding-bottom: 8px;
     align-items: flex-start;
   }
@@ -334,7 +334,7 @@ const Footer = () => {
   .accordion-chevron {
     display: block;
     transition: transform 200ms ease;
-    color: #475569;
+    color: var(--text-secondary);
   }
   
   .footer-links-column.open .accordion-chevron {

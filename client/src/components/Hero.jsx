@@ -9,7 +9,7 @@ const Hero = () => {
       <style>{`
         .hero {
           position: relative;
-          background: var(--bg-color, #fafbfc);
+          background: var(--section-bg);
           padding: 100px 0 120px;
           min-height: calc(100vh - 80px);
           display: flex;
@@ -36,14 +36,14 @@ const Hero = () => {
         .hero-badge {
           display: inline-flex;
           align-items: center;
-          background: var(--hover-bg, #f1f5f9);
+          background: var(--hover-bg);
           border-radius: 99px;
           padding: 6px 14px;
           font-size: 13px;
           font-weight: 500;
-          color: var(--text-secondary, #475569);
+          color: var(--text-secondary);
           margin-bottom: 24px;
-          border: 1px solid var(--border-color, #E5E7EB);
+          border: 1px solid var(--border-color);
         }
 
         .hero-copy h1 {
@@ -51,7 +51,7 @@ const Hero = () => {
           font-size: clamp(32px, 4.5vw, 48px);
           font-weight: 800;
           line-height: 1.15;
-          color: var(--text-primary, #0f172a);
+          color: var(--text-heading);
           letter-spacing: -0.02em;
           margin-bottom: 20px;
         }
@@ -59,7 +59,7 @@ const Hero = () => {
         .hero-description {
           font-size: 18px;
           line-height: 1.6;
-          color: var(--text-secondary, #475569);
+          color: var(--text-body);
           margin-bottom: 36px;
           max-width: 520px;
         }
@@ -70,7 +70,7 @@ const Hero = () => {
         }
 
         .hero-primary-btn {
-          background: #2563EB;
+          background: var(--primary-blue);
           color: #ffffff;
           border: none;
           border-radius: 8px;
@@ -85,13 +85,13 @@ const Hero = () => {
         }
 
         .hero-primary-btn:hover {
-          background: #1D4ED8;
+          background: var(--hover-blue);
         }
 
         .hero-secondary-btn {
-          background: var(--card-bg, #ffffff);
-          color: var(--text-primary, #0f172a);
-          border: 1px solid var(--border-color, #e2e8f0);
+          background: var(--card-bg);
+          color: var(--text-heading);
+          border: 1px solid var(--border-color);
           border-radius: 8px;
           padding: 14px 28px;
           font-weight: 600;
@@ -101,7 +101,7 @@ const Hero = () => {
         }
 
         .hero-secondary-btn:hover {
-          background: var(--hover-bg, #f8fafc);
+          background: var(--hover-bg);
         }
 
         /* Right Side - Browser Mockup */
@@ -112,8 +112,8 @@ const Hero = () => {
 
         .dashboard-browser-frame {
           width: 100%;
-          background: var(--card-bg, #ffffff);
-          border: 1px solid var(--border-color, #e2e8f0);
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
           border-radius: 16px;
           box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
           overflow: hidden;
@@ -122,8 +122,8 @@ const Hero = () => {
         }
 
         .browser-header {
-          background: var(--hover-bg, #f8fafc);
-          border-bottom: 1px solid var(--border-color, #e2e8f0);
+          background: var(--hover-bg);
+          border-bottom: 1px solid var(--border-color);
           height: 40px;
           display: flex;
           align-items: center;
@@ -151,14 +151,14 @@ const Hero = () => {
         .browser-content {
           display: flex;
           height: 420px;
-          background: var(--bg-color, #f8fafc);
+          background: var(--page-bg);
         }
 
         /* Sidebar */
         .crm-sidebar {
           width: 180px;
-          border-right: 1px solid var(--border-color, #f1f5f9);
-          background: var(--card-bg, #ffffff);
+          border-right: 1px solid var(--border-color);
+          background: var(--card-bg);
           padding: 20px 12px;
           display: flex;
           flex-direction: column;
@@ -168,7 +168,7 @@ const Hero = () => {
         .crm-logo {
           font-weight: 700;
           font-size: 15px;
-          color: var(--text-primary, #0f172a);
+          color: var(--text-heading);
           padding-left: 8px;
           letter-spacing: 0.5px;
         }
@@ -182,7 +182,7 @@ const Hero = () => {
         .nav-item {
           font-size: 13px;
           font-weight: 500;
-          color: var(--text-secondary, #64748b);
+          color: var(--text-secondary);
           padding: 8px 10px;
           border-radius: 6px;
           display: flex;
@@ -192,7 +192,7 @@ const Hero = () => {
 
         .nav-item.active {
           background: rgba(37, 99, 235, 0.1);
-          color: #2563EB;
+          color: var(--primary-blue);
         }
 
         /* Main Content Workspace */
@@ -214,12 +214,12 @@ const Hero = () => {
         .crm-main-title {
           font-size: 18px;
           font-weight: 700;
-          color: var(--text-primary, #0f172a);
+          color: var(--text-heading);
         }
         
         .crm-main-subtitle {
           font-size: 13px;
-          color: var(--text-secondary, #64748b);
+          color: var(--text-secondary);
         }
 
         /* Module Grid */
@@ -231,8 +231,8 @@ const Hero = () => {
         }
 
         .module-card {
-          background: var(--card-bg, #ffffff);
-          border: 1px solid var(--border-color, #e2e8f0);
+          background: var(--card-bg);
+          border: 1px solid var(--border-color);
           border-radius: 10px;
           padding: 16px;
           display: flex;
@@ -246,7 +246,7 @@ const Hero = () => {
           height: 36px;
           border-radius: 8px;
           background: rgba(37, 99, 235, 0.1);
-          color: #2563EB;
+          color: var(--primary-blue);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -260,12 +260,12 @@ const Hero = () => {
         .module-title {
           font-size: 13px;
           font-weight: 600;
-          color: var(--text-primary, #0f172a);
+          color: var(--text-heading);
         }
         
         .module-desc {
           font-size: 11px;
-          color: var(--text-secondary, #64748b);
+          color: var(--text-secondary);
         }
 
         /* Responsiveness */
@@ -302,7 +302,7 @@ const Hero = () => {
           .crm-sidebar {
             width: 100%;
             border-right: none;
-            border-bottom: 1px solid var(--border-color, #f1f5f9);
+            border-bottom: 1px solid var(--border-color);
             padding: 12px;
             flex-direction: row;
             justify-content: space-between;

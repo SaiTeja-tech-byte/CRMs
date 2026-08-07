@@ -1,24 +1,31 @@
 :root {
-  --bg-color: #f7f8fb;
-  --navbar-bg: #FFFFFF;
+  --page-bg: #FFFFFF;
+  --section-bg: #FFFFFF;
+  --section-alt-bg: #F8FAFF;
   --card-bg: #FFFFFF;
-  --text-primary: #111827;
-  --text-secondary: #6B7280;
-  --text-color: #121212;
   --border-color: #E5E7EB;
-  --hover-bg: #F3F4F6;
+  --text-heading: #0F172A;
+  --text-body: #475569;
+  --text-secondary: #64748B;
   --primary-blue: #2563EB;
+  --hover-blue: #1D4ED8;
+  --hover-bg: #F3F4F6;
+  --navbar-bg: #FFFFFF;
 }
 
 [data-theme="dark"] {
-  --bg-color: #0F172A;
-  --navbar-bg: #111827;
-  --card-bg: #1E293B;
-  --text-primary: #FFFFFF;
-  --text-secondary: #CBD5E1;
-  --text-color: #FFFFFF;
+  --page-bg: #0F172A;
+  --section-bg: #111827;
+  --section-alt-bg: #1E293B;
+  --card-bg: #1F2937;
   --border-color: #334155;
+  --text-heading: #F8FAFC;
+  --text-body: #CBD5E1;
+  --text-secondary: #94A3B8;
+  --primary-blue: #2563EB;
+  --hover-blue: #3B82F6;
   --hover-bg: #1E293B;
+  --navbar-bg: #111827;
 }
 
 * {
@@ -46,8 +53,8 @@ html, body, #root {
 body {
   font-family: system-ui, sans-serif;
   line-height: 1.5;
-  background: var(--bg-color);
-  color: var(--text-color);
+  background: var(--page-bg);
+  color: var(--text-body);
   overflow-x: hidden;
   transition: background-color 0.3s ease, color 0.3s ease;
 }

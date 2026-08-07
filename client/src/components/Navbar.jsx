@@ -74,7 +74,7 @@ function Navbar() {
         .nav-logo .brand-strong {
           font-size: 16px;
           font-weight: 700;
-          color: var(--text-primary, #111827);
+          color: var(--text-heading);
           letter-spacing: 0.5px;
           line-height: 1.2;
           transition: color 0.3s ease;
@@ -83,7 +83,7 @@ function Navbar() {
         .nav-logo .brand-light {
           font-size: 12px;
           font-weight: 500;
-          color: var(--text-secondary, #6B7280);
+          color: var(--text-secondary);
           text-transform: uppercase;
           letter-spacing: 0.05em;
           line-height: 1.2;
@@ -100,7 +100,7 @@ function Navbar() {
         .nav-link {
           font-size: 15px;
           font-weight: 500;
-          color: var(--text-color, #374151);
+          color: var(--text-body);
           text-decoration: none;
           padding: 24px 0;
           transition: color 0.2s ease;
@@ -108,11 +108,11 @@ function Navbar() {
         }
 
         .nav-link:hover {
-          color: #2563EB;
+          color: var(--primary-blue);
         }
 
         .nav-link.active {
-          color: #2563EB;
+          color: var(--primary-blue);
         }
 
         .nav-link.active::after {
@@ -122,15 +122,15 @@ function Navbar() {
           left: 0;
           width: 100%;
           height: 2px;
-          background-color: #2563EB;
+          background-color: var(--primary-blue);
           border-radius: 2px 2px 0 0;
         }
 
         /* Theme Toggle */
         .theme-toggle-btn {
           background: transparent;
-          border: 1px solid var(--border-color, #E5E7EB);
-          color: var(--text-color, #374151);
+          border: 1px solid var(--border-color);
+          color: var(--text-body);
           cursor: pointer;
           width: 40px;
           height: 40px;
@@ -142,7 +142,7 @@ function Navbar() {
         }
 
         .theme-toggle-btn:hover {
-          background: var(--hover-bg, #F3F4F6);
+          background: var(--hover-bg);
         }
 
         /* Right Section */
@@ -155,7 +155,7 @@ function Navbar() {
         .nav-login {
           font-size: 15px;
           font-weight: 500;
-          color: var(--text-color, #374151);
+          color: var(--text-body);
           background: transparent;
           border: none;
           text-decoration: none;
@@ -165,14 +165,14 @@ function Navbar() {
         }
 
         .nav-login:hover {
-          color: #2563EB;
+          color: var(--primary-blue);
         }
 
         .nav-get-started {
           font-size: 15px;
           font-weight: 500;
           color: #FFFFFF;
-          background: #2563EB;
+          background: var(--primary-blue);
           text-decoration: none;
           padding: 12px 24px;
           border-radius: 8px;
@@ -180,7 +180,7 @@ function Navbar() {
         }
 
         .nav-get-started:hover {
-          background: #1D4ED8;
+          background: var(--hover-blue);
         }
 
         /* Mobile Menu Button */
@@ -188,7 +188,7 @@ function Navbar() {
           display: none;
           background: none;
           border: none;
-          color: var(--text-color, #374151);
+          color: var(--text-body);
           cursor: pointer;
           padding: 8px;
           transition: color 0.3s ease;
@@ -197,8 +197,8 @@ function Navbar() {
         /* Mobile Drawer */
         .mobile-drawer {
           display: none;
-          background: var(--navbar-bg, #FFFFFF);
-          border-bottom: 1px solid var(--border-color, #E5E7EB);
+          background: var(--navbar-bg);
+          border-bottom: 1px solid var(--border-color);
           padding: 16px 24px;
           flex-direction: column;
           gap: 16px;
@@ -214,7 +214,7 @@ function Navbar() {
         }
         
         .mobile-drawer .nav-link.active {
-          color: #2563EB;
+          color: var(--primary-blue);
           font-weight: 600;
         }
 
@@ -224,7 +224,7 @@ function Navbar() {
           gap: 12px;
           margin-top: 8px;
           padding-top: 16px;
-          border-top: 1px solid var(--border-color, #E5E7EB);
+          border-top: 1px solid var(--border-color);
           transition: border-color 0.3s ease;
         }
         
