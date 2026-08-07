@@ -1,631 +1,449 @@
 import React from "react";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Users, Clock, DollarSign, Receipt, CheckSquare, FileText, HelpCircle, Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const Hero = () => {
   const navigate = useNavigate();
   return (
-      <>
-        <style>{`.hero {
-  position: relative;
-  background: #fafbfc;
-  padding: 100px 0 120px;
-  min-height: calc(100vh - 80px);
-  display: flex;
-  align-items: center;
-  overflow: hidden;
-}
+    <>
+      <style>{`
+        .hero {
+          position: relative;
+          background: var(--bg-color, #fafbfc);
+          padding: 100px 0 120px;
+          min-height: calc(100vh - 80px);
+          display: flex;
+          align-items: center;
+          overflow: hidden;
+          transition: background-color 0.3s ease;
+        }
 
-.hero-content {
-  display: grid;
-  grid-template-columns: 48% 52%;
-  gap: 48px;
-  align-items: center;
-  width: 100%;
-}
+        .hero-content {
+          display: grid;
+          grid-template-columns: 48% 52%;
+          gap: 48px;
+          align-items: center;
+          width: 100%;
+        }
 
-/* Left Side Styling */
-.hero-copy {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-}
+        /* Left Side Styling */
+        .hero-copy {
+          display: flex;
+          flex-direction: column;
+          align-items: flex-start;
+        }
 
-.hero-badge {
-  display: inline-flex;
-  align-items: center;
-  background: #f1f5f9;
-  border-radius: 99px;
-  padding: 6px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-  margin-bottom: 24px;
-}
+        .hero-badge {
+          display: inline-flex;
+          align-items: center;
+          background: var(--hover-bg, #f1f5f9);
+          border-radius: 99px;
+          padding: 6px 14px;
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary, #475569);
+          margin-bottom: 24px;
+          border: 1px solid var(--border-color, #E5E7EB);
+        }
 
-.hero-copy h1 {
-  font-family: 'Inter', system-ui, sans-serif;
-  font-size: clamp(32px, 5vw, 52px);
-  font-weight: 800;
-  line-height: 1.15;
-  color: #0f172a;
-  letter-spacing: -0.02em;
-  margin-bottom: 20px;
-}
+        .hero-copy h1 {
+          font-family: 'Inter', system-ui, sans-serif;
+          font-size: clamp(32px, 4.5vw, 48px);
+          font-weight: 800;
+          line-height: 1.15;
+          color: var(--text-primary, #0f172a);
+          letter-spacing: -0.02em;
+          margin-bottom: 20px;
+        }
 
-.hero-description {
-  font-size: 18px;
-  line-height: 1.6;
-  color: #475569;
-  margin-bottom: 32px;
-  max-width: 520px;
-}
+        .hero-description {
+          font-size: 18px;
+          line-height: 1.6;
+          color: var(--text-secondary, #475569);
+          margin-bottom: 36px;
+          max-width: 520px;
+        }
 
-/* Email Signup Form styling */
-.hero-signup-container {
-  margin-bottom: 40px;
-  width: 100%;
-  max-width: 480px;
-}
+        .hero-buttons {
+          display: flex;
+          gap: 16px;
+        }
 
-.hero-signup-form {
-  display: flex;
-  gap: 12px;
-  background: #ffffff;
-  padding: 6px;
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
-}
+        .hero-primary-btn {
+          background: #2563EB;
+          color: #ffffff;
+          border: none;
+          border-radius: 8px;
+          padding: 14px 28px;
+          font-weight: 600;
+          font-size: 15px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          cursor: pointer;
+          transition: background 0.2s ease;
+        }
 
-.hero-email-input {
-  flex: 1;
-  border: none;
-  outline: none;
-  padding: 12px 16px;
-  font-size: 15px;
-  color: #0f172a;
-  background: transparent;
-}
+        .hero-primary-btn:hover {
+          background: #1D4ED8;
+        }
 
-.hero-email-input::placeholder {
-  color: #94a3b8;
-}
+        .hero-secondary-btn {
+          background: var(--card-bg, #ffffff);
+          color: var(--text-primary, #0f172a);
+          border: 1px solid var(--border-color, #e2e8f0);
+          border-radius: 8px;
+          padding: 14px 28px;
+          font-weight: 600;
+          font-size: 15px;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
 
-.hero-submit-btn {
-  background: #0f172a;
-  color: #ffffff;
-  border: none;
-  border-radius: 8px;
-  padding: 0 20px;
-  font-weight: 600;
-  font-size: 14px;
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  cursor: pointer;
-  transition: background 0.2s ease;
-}
+        .hero-secondary-btn:hover {
+          background: var(--hover-bg, #f8fafc);
+        }
 
-.hero-submit-btn:hover {
-  background: #1e293b;
-}
+        /* Right Side - Browser Mockup */
+        .hero-dashboard-container {
+          width: 100%;
+          position: relative;
+        }
 
-.hero-form-hint {
-  font-size: 12px;
-  color: #64748b;
-  margin-top: 8px;
-  padding-left: 6px;
-}
+        .dashboard-browser-frame {
+          width: 100%;
+          background: var(--card-bg, #ffffff);
+          border: 1px solid var(--border-color, #e2e8f0);
+          border-radius: 16px;
+          box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
+          overflow: hidden;
+          display: flex;
+          flex-direction: column;
+        }
 
-/* Social Proof (Trust Section) */
-.hero-trust {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
+        .browser-header {
+          background: var(--hover-bg, #f8fafc);
+          border-bottom: 1px solid var(--border-color, #e2e8f0);
+          height: 40px;
+          display: flex;
+          align-items: center;
+          padding: 0 16px;
+          position: relative;
+        }
 
-.avatar-group {
-  display: flex;
-}
+        .window-dots {
+          display: flex;
+          gap: 6px;
+          position: absolute;
+          left: 16px;
+        }
 
-.avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  border: 2px solid #ffffff;
-  font-size: 10px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-left: -8px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
+        .dot {
+          width: 8px;
+          height: 8px;
+          border-radius: 50%;
+        }
 
-.avatar:first-child {
-  margin-left: 0;
-}
+        .dot-red { background: #ef4444; }
+        .dot-yellow { background: #f59e0b; }
+        .dot-green { background: #10b981; }
 
-.avatar:nth-child(1) { background: #dbeafe; color: #1e40af; }
-.avatar:nth-child(2) { background: #fee2e2; color: #991b1b; }
-.avatar:nth-child(3) { background: #d1fae5; color: #065f46; }
-.avatar:nth-child(4) { background: #fef3c7; color: #92400e; }
+        .browser-content {
+          display: flex;
+          height: 420px;
+          background: var(--bg-color, #f8fafc);
+        }
 
-.trust-text {
-  font-size: 13px;
-  font-weight: 500;
-  color: #475569;
-}
+        /* Sidebar */
+        .crm-sidebar {
+          width: 180px;
+          border-right: 1px solid var(--border-color, #f1f5f9);
+          background: var(--card-bg, #ffffff);
+          padding: 20px 12px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+        }
 
-/* Right Side - Browser Mockup */
-.hero-dashboard-container {
-  width: 100%;
-  position: relative;
-}
+        .crm-logo {
+          font-weight: 700;
+          font-size: 15px;
+          color: var(--text-primary, #0f172a);
+          padding-left: 8px;
+          letter-spacing: 0.5px;
+        }
 
-.dashboard-browser-frame {
-  width: 100%;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 16px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.04);
-  overflow: hidden;
-  display: flex;
-  flex-direction: column;
-}
+        .crm-nav {
+          display: flex;
+          flex-direction: column;
+          gap: 6px;
+        }
 
-.browser-header {
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  padding: 0 16px;
-  position: relative;
-}
+        .nav-item {
+          font-size: 13px;
+          font-weight: 500;
+          color: var(--text-secondary, #64748b);
+          padding: 8px 10px;
+          border-radius: 6px;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+        }
 
-.window-dots {
-  display: flex;
-  gap: 6px;
-  position: absolute;
-  left: 16px;
-}
+        .nav-item.active {
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563EB;
+        }
 
-.dot {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-}
+        /* Main Content Workspace */
+        .crm-main {
+          flex: 1;
+          padding: 24px;
+          display: flex;
+          flex-direction: column;
+          gap: 24px;
+          overflow: hidden;
+        }
+        
+        .crm-main-header {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+        }
+        
+        .crm-main-title {
+          font-size: 18px;
+          font-weight: 700;
+          color: var(--text-primary, #0f172a);
+        }
+        
+        .crm-main-subtitle {
+          font-size: 13px;
+          color: var(--text-secondary, #64748b);
+        }
 
-.dot-red { background: #ef4444; }
-.dot-yellow { background: #f59e0b; }
-.dot-green { background: #10b981; }
+        /* Module Grid */
+        .module-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 16px;
+          height: 100%;
+        }
 
-.browser-address {
-  margin: 0 auto;
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 4px;
-  font-size: 11px;
-  color: #64748b;
-  padding: 2px 24px;
-  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-}
+        .module-card {
+          background: var(--card-bg, #ffffff);
+          border: 1px solid var(--border-color, #e2e8f0);
+          border-radius: 10px;
+          padding: 16px;
+          display: flex;
+          align-items: center;
+          gap: 12px;
+          box-shadow: 0 1px 3px rgba(0,0,0,0.02);
+        }
+        
+        .module-icon {
+          width: 36px;
+          height: 36px;
+          border-radius: 8px;
+          background: rgba(37, 99, 235, 0.1);
+          color: #2563EB;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        }
+        
+        .module-info {
+          display: flex;
+          flex-direction: column;
+        }
 
-.browser-content {
-  display: flex;
-  height: 380px;
-  background: #ffffff;
-}
+        .module-title {
+          font-size: 13px;
+          font-weight: 600;
+          color: var(--text-primary, #0f172a);
+        }
+        
+        .module-desc {
+          font-size: 11px;
+          color: var(--text-secondary, #64748b);
+        }
 
-/* Sidebar */
-.crm-sidebar {
-  width: 130px;
-  border-right: 1px solid #f1f5f9;
-  background: #f8fafc;
-  padding: 16px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-}
+        /* Responsiveness */
+        @media (max-width: 1024px) {
+          .hero {
+            padding: 80px 0;
+          }
+        }
 
-.crm-logo {
-  font-weight: 700;
-  font-size: 14px;
-  color: #0f172a;
-  padding-left: 8px;
-}
+        @media (max-width: 920px) {
+          .hero-content {
+            grid-template-columns: 1fr;
+            gap: 48px;
+          }
+          .hero-copy {
+            align-items: center;
+            text-align: center;
+          }
+          .hero-description {
+            margin-left: auto;
+            margin-right: auto;
+          }
+          .hero-dashboard-container {
+            max-width: 720px;
+            margin: 0 auto;
+          }
+        }
 
-.crm-nav {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
+        @media (max-width: 768px) {
+          .browser-content {
+            height: auto;
+            flex-direction: column;
+          }
+          .crm-sidebar {
+            width: 100%;
+            border-right: none;
+            border-bottom: 1px solid var(--border-color, #f1f5f9);
+            padding: 12px;
+            flex-direction: row;
+            justify-content: space-between;
+            align-items: center;
+          }
+          .crm-nav {
+            flex-direction: row;
+            gap: 8px;
+            overflow-x: auto;
+          }
+          .nav-item span {
+            display: none;
+          }
+          .module-grid {
+            grid-template-columns: 1fr;
+          }
+        }
 
-.nav-item {
-  font-size: 12px;
-  font-weight: 500;
-  color: #64748b;
-  padding: 6px 8px;
-  border-radius: 6px;
-  cursor: pointer;
-}
+        @media (max-width: 480px) {
+          .hero-buttons {
+            flex-direction: column;
+            width: 100%;
+          }
+          .hero-primary-btn, .hero-secondary-btn {
+            width: 100%;
+            justify-content: center;
+          }
+        }
+      `}</style>
+      
+      <section className="hero" id="home">
+        <div className="container hero-content">
+          <div className="hero-copy">
+            <div className="hero-badge">
+              <span>Modern Workforce Management</span>
+            </div>
 
-.nav-item.active {
-  background: #e2e8f0;
-  color: #0f172a;
-}
+            <h1>
+              Manage your entire workforce from one secure CRM platform.
+            </h1>
 
-/* Main Content Workspace */
-.crm-main {
-  flex: 1;
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  overflow: hidden;
-}
+            <p className="hero-description">
+              Simplify employee management, attendance, payroll, expenses, documents, support requests, and team collaboration through one centralized platform built for modern organizations.
+            </p>
 
-.crm-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.crm-title {
-  font-size: 14px;
-  font-weight: 700;
-  color: #0f172a;
-}
-
-.crm-add-btn {
-  background: #0f172a;
-  color: #ffffff;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 11px;
-  font-weight: 600;
-  cursor: pointer;
-}
-
-/* Board */
-.pipeline-board {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-  height: 100%;
-}
-
-.pipeline-column {
-  background: #f8fafc;
-  border-radius: 8px;
-  padding: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.column-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  font-size: 11px;
-  font-weight: 600;
-  color: #475569;
-  margin-bottom: 4px;
-}
-
-.column-count {
-  background: #e2e8f0;
-  color: #475569;
-  border-radius: 99px;
-  padding: 1px 6px;
-  font-size: 10px;
-}
-
-.column-cards {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  overflow-y: auto;
-}
-
-.deal-card {
-  background: #ffffff;
-  border: 1px solid #e2e8f0;
-  border-radius: 8px;
-  padding: 10px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-.deal-card.highlight-card {
-  border-color: #3b82f6;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.04);
-}
-
-.deal-title {
-  font-size: 12px;
-  font-weight: 600;
-  color: #0f172a;
-}
-
-.deal-value {
-  font-size: 12px;
-  font-weight: 700;
-  color: #475569;
-}
-
-.deal-footer {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-top: 2px;
-}
-
-.deal-tag {
-  font-size: 9px;
-  font-weight: 600;
-  padding: 2px 6px;
-  border-radius: 4px;
-}
-
-.tag-blue { background: #dbeafe; color: #1e40af; }
-.tag-purple { background: #f3e8ff; color: #6b21a8; }
-.tag-orange { background: #ffedd5; color: #9a3412; }
-.tag-green { background: #dcfce7; color: #166534; }
-
-.deal-avatar {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: #e2e8f0;
-  font-size: 8px;
-  font-weight: 700;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #475569;
-}
-
-/* Responsiveness */
-@media (max-width: 1024px) {
-  .hero {
-    padding: 80px 0;
-  }
-  .hero-copy h1 {
-    font-size: 42px;
-  }
-}
-
-@media (max-width: 920px) {
-  .hero-content {
-    grid-template-columns: 1fr;
-    gap: 48px;
-  }
-  .hero-copy {
-    align-items: center;
-    text-align: center;
-  }
-  .hero-description {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero-signup-container {
-    margin-left: auto;
-    margin-right: auto;
-  }
-  .hero-trust {
-    justify-content: center;
-  }
-  .hero-dashboard-container {
-    max-width: 720px;
-    margin: 0 auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .browser-content {
-    height: auto;
-    flex-direction: column;
-  }
-  .crm-sidebar {
-    width: 100%;
-    border-right: none;
-    border-bottom: 1px solid #f1f5f9;
-    padding: 10px;
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-  .crm-nav {
-    flex-direction: row;
-    gap: 8px;
-  }
-  .pipeline-board {
-    grid-template-columns: 1fr;
-    height: auto;
-    gap: 16px;
-  }
-}
-
-@media (max-width: 480px) {
-  .hero {
-    padding: 60px 0;
-  }
-  .hero-copy h1 {
-    font-size: 32px;
-  }
-  .hero-signup-form {
-    flex-direction: column;
-    padding: 8px;
-    gap: 8px;
-  }
-  .hero-email-input {
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 10px;
-  }
-  .hero-submit-btn {
-    width: 100%;
-    justify-content: center;
-    padding: 12px;
-  }
-  .hero-dashboard-container {
-    max-width: 100%;
-    margin: 0 auto;
-  }
-}
-`}</style>
-    <section className="hero" id="home">
-      {/* Responsive Unified Hero Layout */}
-      <div className="container hero-content">
-        <div className="hero-copy">
-          <div className="hero-badge">
-            <span>Built for growing sales teams</span>
-          </div>
-
-          <h1>
-            The simple CRM sales teams actually love using.
-          </h1>
-
-          <p className="hero-description">
-            CRM Platform keeps your pipeline organized, automates repetitive follow-ups, and helps you close deals without the bloated enterprise complexity.
-          </p>
-
-          <div className="hero-signup-container">
-            <form className="hero-signup-form" onSubmit={(e) => e.preventDefault()}>
-              <input 
-                type="email" 
-                placeholder="Enter your work email" 
-                required 
-                className="hero-email-input" 
-              />
-              <button type="submit" className="primary-btn hero-submit-btn" onClick={(e) => { e.preventDefault(); navigate("/login"); }}>
-                Start Free Trial
-                <ArrowRight size={16} />
+            <div className="hero-buttons">
+              <button className="hero-primary-btn" onClick={() => navigate("/register")}>
+                Get Started
               </button>
-            </form>
-            <p className="hero-form-hint">No credit card required. 14-day trial.</p>
-          </div>
-
-          {/* Social Proof */}
-          <div className="hero-trust">
-            <div className="avatar-group">
-              <div className="avatar">JD</div>
-              <div className="avatar">AS</div>
-              <div className="avatar">MK</div>
-              <div className="avatar">EL</div>
+              <button className="hero-secondary-btn" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>
+                Explore Platform
+              </button>
             </div>
-            <span className="trust-text">Loved by 10,000+ reps at startups and scale-ups</span>
           </div>
-        </div>
 
-        <div className="hero-dashboard-container">
-          <div className="dashboard-browser-frame">
-            <div className="browser-header">
-              <div className="window-dots">
-                <span className="dot dot-red"></span>
-                <span className="dot dot-yellow"></span>
-                <span className="dot dot-green"></span>
+          <div className="hero-dashboard-container">
+            <div className="dashboard-browser-frame">
+              <div className="browser-header">
+                <div className="window-dots">
+                  <span className="dot dot-red"></span>
+                  <span className="dot dot-yellow"></span>
+                  <span className="dot dot-green"></span>
+                </div>
               </div>
-              <div className="browser-address">app.crmplatform.com</div>
-            </div>
-            
-            <div className="browser-content">
-              {/* Mock CRM Sidebar */}
-              <aside className="crm-sidebar">
-                <div className="crm-logo">CRM</div>
-                <nav className="crm-nav">
-                  <span className="nav-item active">Pipeline</span>
-                  <span className="nav-item">Contacts</span>
-                  <span className="nav-item">Deals</span>
-                  <span className="nav-item">Reports</span>
-                </nav>
-              </aside>
+              
+              <div className="browser-content">
+                {/* Mock CRM Sidebar */}
+                <aside className="crm-sidebar">
+                  <div className="crm-logo">HRMS Portal</div>
+                  <nav className="crm-nav">
+                    <div className="nav-item active"><Users size={16} /> <span>Dashboard</span></div>
+                    <div className="nav-item"><CheckSquare size={16} /> <span>Tasks</span></div>
+                    <div className="nav-item"><FileText size={16} /> <span>Documents</span></div>
+                    <div className="nav-item"><HelpCircle size={16} /> <span>Support</span></div>
+                  </nav>
+                </aside>
 
-              {/* Mock CRM Main Workspace */}
-              <main className="crm-main">
-                <div className="crm-header">
-                  <h3 className="crm-title">Sales Pipeline</h3>
-                  <button className="crm-add-btn">+ Add Deal</button>
-                </div>
-                
-                <div className="pipeline-board">
-                  {/* Stage 1: Leads */}
-                  <div className="pipeline-column">
-                    <div className="column-header">
-                      <span>Leads</span>
-                      <span className="column-count">2</span>
-                    </div>
-                    <div className="column-cards">
-                      <div className="deal-card">
-                        <div className="deal-title">Acme Corp</div>
-                        <div className="deal-value">$12,000</div>
-                        <div className="deal-footer">
-                          <span className="deal-tag tag-blue">Inbound</span>
-                          <span className="deal-avatar">JD</span>
-                        </div>
+                {/* Mock CRM Main Workspace */}
+                <main className="crm-main">
+                  <div className="crm-main-header">
+                    <h3 className="crm-main-title">Workspace Overview</h3>
+                    <span className="crm-main-subtitle">Access all organizational modules</span>
+                  </div>
+                  
+                  <div className="module-grid">
+                    <div className="module-card">
+                      <div className="module-icon"><Users size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Employee Management</span>
+                        <span className="module-desc">Directory & Profiles</span>
                       </div>
-                      <div className="deal-card">
-                        <div className="deal-title">Globex Ltd</div>
-                        <div className="deal-value">$8,500</div>
-                        <div className="deal-footer">
-                          <span className="deal-tag tag-purple">Referral</span>
-                          <span className="deal-avatar">AS</span>
-                        </div>
+                    </div>
+                    
+                    <div className="module-card">
+                      <div className="module-icon"><Clock size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Attendance</span>
+                        <span className="module-desc">Time & Leave</span>
+                      </div>
+                    </div>
+                    
+                    <div className="module-card">
+                      <div className="module-icon"><DollarSign size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Payroll</span>
+                        <span className="module-desc">Salary & Payslips</span>
+                      </div>
+                    </div>
+                    
+                    <div className="module-card">
+                      <div className="module-icon"><Receipt size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Expenses</span>
+                        <span className="module-desc">Claims & Approvals</span>
+                      </div>
+                    </div>
+                    
+                    <div className="module-card">
+                      <div className="module-icon"><Bell size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Notifications</span>
+                        <span className="module-desc">System Alerts</span>
+                      </div>
+                    </div>
+                    
+                    <div className="module-card">
+                      <div className="module-icon"><HelpCircle size={20} /></div>
+                      <div className="module-info">
+                        <span className="module-title">Help Center</span>
+                        <span className="module-desc">Internal IT Support</span>
                       </div>
                     </div>
                   </div>
-
-                  {/* Stage 2: Contacted */}
-                  <div className="pipeline-column">
-                    <div className="column-header">
-                      <span>Contacted</span>
-                      <span className="column-count">1</span>
-                    </div>
-                    <div className="column-cards">
-                      <div className="deal-card">
-                        <div className="deal-title">Stark Industries</div>
-                        <div className="deal-value">$45,000</div>
-                        <div className="deal-footer">
-                          <span className="deal-tag tag-orange">Demo Scheduled</span>
-                          <span className="deal-avatar">MK</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Stage 3: Proposal */}
-                  <div className="pipeline-column">
-                    <div className="column-header">
-                      <span>Proposal</span>
-                      <span className="column-count">1</span>
-                    </div>
-                    <div className="column-cards">
-                      <div className="deal-card highlight-card">
-                        <div className="deal-title">Wayne Enterprises</div>
-                        <div className="deal-value">$28,000</div>
-                        <div className="deal-footer">
-                          <span className="deal-tag tag-green">Under Review</span>
-                          <span className="deal-avatar">EL</span>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </main>
+                </main>
+              </div>
             </div>
           </div>
         </div>
-      </div>
-    </section>
-  
-      </>);
+      </section>
+    </>
+  );
 };
 
 export default Hero;
