@@ -24,13 +24,17 @@ const resolveTargets = async (body) => {
     return User.findAll({ where: { role: "employee" } });
   }
 
+  // Default: a single specific employee (also covers omitted targetType
+  // for backward compatibility with the original single-employee flow).
   if (!employeeId) throw new Error("employeeId is required when targeting a specific employee");
   const employee = await User.findByPk(employeeId);
   if (!employee) throw new Error("Employee not found");
   return [employee];
 };
 
-
+// GET /api/admin/users — list every employee/admin account for the Team tab.
+// Supports ?page=&limit=&sortBy=&sortDir= plus the existing Team UI filters:
+// ?search= (name/email), ?department=, ?role=, ?employmentStatus=
 const listUsers = async (req, res) => {
   try {
     const { page, limit, offset, order } = parsePagination(req.query, {
@@ -187,7 +191,8 @@ const getAdminStats = async (req, res) => {
   }
 };
 
-
+// GET /api/admin/tasks — every employee's tasks. Supports ?page=&limit=&
+// sortBy=&sortDir= and ?search= (title/assignee name).
 const getAllTasks = async (req, res) => {
   try {
     const { page, limit, offset, order } = parsePagination(req.query, {
@@ -224,7 +229,12 @@ const getAllTasks = async (req, res) => {
   }
 };
 
-
+// POST /api/admin/tasks — assign a task to a specific employee, a whole
+// department, or everyone. body: { targetType: "employee"|"department"|"all",
+// employeeId, department, title, description, priority, dueDate, dueTime, category, notes }
+// Fans out one Task row per matching employee (ownerId = that employee), so
+// each person's normal GET /api/tasks (scoped to req.user.id) picks it up —
+// and each of them gets a live Socket.IO push + notification immediately.
 const assignTask = async (req, res) => {
   try {
     const { targetType, title, description, priority, dueDate, dueTime, category, notes } = req.body;
