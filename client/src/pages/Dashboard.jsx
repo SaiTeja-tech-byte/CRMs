@@ -3216,6 +3216,8 @@ const TeamPage = ({ teamMembers, onAddMember, onUpdateMember, onDeleteMember }) 
 const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification, onDeleteNotification, setActiveMenu }) => {
   const [filterTab, setFilterTab] = useState("All");
   const [searchQuery, setSearchQuery] = useState("");
+  const [priorityFilter, setPriorityFilter] = useState("All");
+  const [dateFilter, setDateFilter] = useState("");
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   // Pagination (client-side, 8 per page)
@@ -3275,15 +3277,25 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
   const filteredList = (notifications || []).filter(n => {
     const matchesSearch = n.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                           n.description.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    if (filterTab === "Unread") return matchesSearch && n.unread && !n.archived;
-    if (filterTab === "Mentions") return matchesSearch && n.type === "Comment Mention" && !n.archived;
-    if (filterTab === "Archived") return matchesSearch && n.archived;
-    return matchesSearch && !n.archived;
+    const matchesPriority = priorityFilter === "All" || n.priority === priorityFilter;
+    const matchesDate = !dateFilter || n.date === dateFilter;
+    const matches = matchesSearch && matchesPriority && matchesDate;
+
+    if (filterTab === "Unread") return matches && n.unread && !n.archived;
+    if (filterTab === "Mentions") return matches && n.type === "Comment Mention" && !n.archived;
+    if (filterTab === "Archived") return matches && n.archived;
+    return matches && !n.archived;
   });
 
+  const hasActiveFilters = priorityFilter !== "All" || !!dateFilter || !!searchQuery;
+  const clearFilters = () => {
+    setSearchQuery("");
+    setPriorityFilter("All");
+    setDateFilter("");
+  };
+
   // Reset to page 1 whenever the filter/search changes what's being shown
-  useEffect(() => { setPage(1); }, [filterTab, searchQuery]);
+  useEffect(() => { setPage(1); }, [filterTab, searchQuery, priorityFilter, dateFilter]);
 
   const totalPages = Math.max(1, Math.ceil(filteredList.length / limit));
   const currentPage = Math.min(page, totalPages);
@@ -3359,6 +3371,38 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
             </div>
           </div>
 
+          {/* Filter Row: Priority + Date */}
+          <div className="d-flex flex-wrap align-items-center gap-2 mb-3">
+            <select
+              className="form-select w-auto"
+              style={{ borderRadius: "6px", border: "1px solid #e2e8f0", fontSize: "12.5px", height: "34px" }}
+              value={priorityFilter}
+              onChange={(e) => setPriorityFilter(e.target.value)}
+            >
+              <option value="All">Priority: All</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium</option>
+              <option value="Low">Low</option>
+            </select>
+            <input
+              type="date"
+              className="form-control w-auto text-secondary"
+              style={{ borderRadius: "6px", border: "1px solid #e2e8f0", fontSize: "12.5px", height: "34px" }}
+              value={dateFilter}
+              onChange={(e) => setDateFilter(e.target.value)}
+            />
+            {hasActiveFilters && (
+              <button
+                type="button"
+                className="btn-profile-secondary"
+                style={{ fontSize: "11.5px", fontWeight: "700", height: "34px", padding: "0 12px" }}
+                onClick={clearFilters}
+              >
+                <i className="bi bi-x-circle"></i> Clear Filters
+              </button>
+            )}
+          </div>
+
           {/* Notifications Listing */}
           {filteredList.length > 0 ? (
             <div className="d-flex flex-column gap-3">
@@ -3415,11 +3459,11 @@ const NotificationsPage = ({ notifications, onMarkAllRead, onUpdateNotification,
             <div className="empty-state-card py-5">
               <i className="bi bi-bell-slash empty-state-icon" style={{ fontSize: "48px" }}></i>
               <h4 style={{ fontSize: "14px", fontWeight: "800", color: "var(--crm-dark)", margin: "0 0 8px 0" }}>
-                {searchQuery ? "No Matching Notifications" : "No notifications yet"}
+                {hasActiveFilters ? "No Matching Notifications" : "No notifications yet"}
               </h4>
               <p className="text-muted mb-4" style={{ fontSize: "11.5px", maxWidth: "420px", margin: "0 auto 20px auto" }}>
-                {searchQuery 
-                  ? "Try refining your search terms or checking another filter tab." 
+                {hasActiveFilters 
+                  ? "Try adjusting your search, priority, or date filter, or checking another tab." 
                   : "You'll receive notifications here when important CRM activities, task assignments, or team invitations happen."}
               </p>
               <button 
@@ -4741,10 +4785,15 @@ const Dashboard = () => {
       onSocketEvent("settings:updated", syncDashboardData),
       onSocketEvent("news:new", syncDashboardData),
       onSocketEvent("news:deleted", syncDashboardData),
-      onSocketEvent("notification:new", (payload) => {
-        if (payload?.text) {
-          triggerNotification("New Notification", payload.text, "Medium", "System");
-        }
+      // Don't also call triggerNotification() here — that created a
+      // permanent local-only duplicate (no serverId) of every real
+      // notification the backend just created. syncServerNotifications()
+      // below already pulls the real row in, and only rows with a
+      // serverId can ever be marked read on the backend, which is what
+      // drives the sidebar bell badge. Keeping both meant the badge could
+      // look "stuck" even after reading everything, because you were
+      // reading the phantom copy, not the real one.
+      onSocketEvent("notification:new", () => {
         syncServerNotifications();
       }),
       onSocketEvent("leave:updated", () => { syncServerNotifications(); syncLeaveData(); }),
@@ -4948,11 +4997,21 @@ const Dashboard = () => {
     fetchServerNotifications()
       .then((serverList) => {
         setNotifications((prev) => {
-          const local = (prev || []).filter((n) => !n.serverId);
+          // Drop any leftover local-only notification that duplicates the
+          // text of a real server notification — these are phantom copies
+          // left over from before triggerNotification() was removed from
+          // the notification:new handler, and would otherwise stick around
+          // in localStorage forever.
+          const serverTexts = new Set((serverList || []).map((n) => n.text));
+          const local = (prev || []).filter((n) => !n.serverId && !serverTexts.has(n.description));
           const merged = [...(serverList || []).map(serverNotifToLocal), ...local];
           localStorage.setItem("crm_notifications_v2", JSON.stringify(merged));
           return merged;
         });
+        // Keep the sidebar bell badge (which reads straight from the
+        // server's unread-count endpoint) in step with whatever this page
+        // just loaded, instead of waiting for its own 20s poll.
+        window.dispatchEvent(new Event("crm_notifications_updated"));
       })
       .catch(() => {});
   };
