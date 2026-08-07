@@ -5,8 +5,7 @@ const TICKET_STATUSES = ["Open", "In Progress", "Resolved", "Closed"];
 const TASK_STATUSES = ["Pending", "In Progress", "Completed"];
 
 const ReportModal = ({
-  type, // "attendance" | "payroll" | "expenses" | "helpCenter" | "tasks" | "employees" | "organization"
-  isAdmin,
+  type, 
   filters,
   setFilters,
   onClose,
@@ -106,6 +105,14 @@ const ReportModal = ({
               <div style={{ display: "flex", alignItems: "center", gap: "16px", marginTop: "8px", borderTop: "1px dashed #e2e8f0", paddingTop: "16px" }}>
                 <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Employee Name</label>
                 <input type="text" name="name" value={filters.name || ""} onChange={handleChange} placeholder="Optional" style={{ flex: 1, padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", outline: "none" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Employee ID</label>
+                <input type="text" name="employeeId" value={filters.employeeId || ""} onChange={handleChange} placeholder="Optional" style={{ flex: 1, padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", outline: "none" }} />
+              </div>
+              <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+                <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Email</label>
+                <input type="text" name="email" value={filters.email || ""} onChange={handleChange} placeholder="Optional" style={{ flex: 1, padding: "8px 12px", borderRadius: "6px", border: "1px solid #cbd5e1", outline: "none" }} />
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
                 <label style={{ width: "120px", fontSize: "14px", fontWeight: "500", color: "#475569" }}>Department</label>
